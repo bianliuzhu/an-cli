@@ -2,9 +2,14 @@
 	"name": "ancli",
 	"version": "1.0.0",
 	"description": "前端命令行工具",
-	"main": "index.js",
+	"main": "bin/an-cli.js",
 	"scripts": {
-		"test": "echo \"Error: no test specified\" && exit 1"
+		"dev": "ts-node-dev --respawn --transpile-only src/index.ts",
+		"build": "rm -rf lib && tsc --build",
+		"pub": "sh publish.sh"
+	},
+	"bin": {
+		"ancli": "bin/an-cli.js"
 	},
 	"author": "Gleason",
 	"license": "ISC",
@@ -20,5 +25,29 @@
 		"prettier": "2.8.4",
 		"ts-node-dev": "^2.0.0",
 		"typescript": "^4.9.5"
+	},
+	"dependencies": {
+		"chalk": "^5.2.0",
+		"clear-console": "^1.1.0",
+		"commander": "^10.0.0",
+		"inquirer": "^9.1.4",
+		"shelljs": "^0.8.5"
+	},
+	"keywords": [
+		"typescript",
+		"cli",
+		"typescript 脚手架",
+		"ts 脚手架",
+		"ts-cli",
+		"脚手架"
+	],
+	"files": [
+		"package.json",
+		"README.md",
+		"lib"
+	],
+	"repository": {
+		"type": "git",
+		"url": "https://github.com/bianliuzhu/an-cli.git"
 	}
 }
