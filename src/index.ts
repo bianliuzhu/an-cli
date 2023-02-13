@@ -1,5 +1,5 @@
 import { program } from 'commander';
-
+import { installEslint } from './eslint-init';
 program
 	.version(`${require('../package.json').version}`, '-v --version')
 	.usage('<command> [options]');
@@ -8,7 +8,7 @@ program
 	.command('lint')
 	.description('初始化 eslint, prettier, commitlint')
 	.action(() => {
-		console.log('初始化');
+		installEslint();
 	});
 
 program.parse(process.argv);
