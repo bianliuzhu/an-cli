@@ -1,33 +1,41 @@
 import { defineConfig } from 'rollup';
-import resolve from '@rollup/plugin-node-resolve';
-import commonjs from '@rollup/plugin-commonjs';
-import typescript from '@rollup/plugin-typescript';
+/** 将json转换为ES6模块 */
 import json from '@rollup/plugin-json';
-import babel from '@rollup/plugin-babel';
-import builtins from 'rollup-plugin-node-builtins';
-
+/** rollup解析及编译TS插件 */
+import typescript from '@rollup/plugin-typescript';
+/** 解析代码中依赖的node_modules */
+import resolve from '@rollup/plugin-node-resolve';
+/** 将 CommonJS 模块转换为 ES6 的 Rollup 插件 */
+import commonjs from '@rollup/plugin-commonjs';
+/** rollup文件夹清除插件 */
+import { cleandir } from 'rollup-plugin-cleandir';
 export default defineConfig({
-	input: 'src/index.ts',
+	/** 打包入口文件 */
+	input: './src/index.ts',
+	/** 输出配置 */
 	output: {
-		dir: 'lib',
+		/** 输出目录 */
+		dir: './lib',
+		/** 输出文件为 CommonJS格式 */
 		format: 'cjs',
-		sourcemap: false,
 	},
 	plugins: [
+		/** 配置插件 - 每次打包清除目标文件 */
+		cleandir('./lib'),
+		/** 配置插件 - 将json转换为ES6模块 */
 		json(),
-		builtins(),
+		/** 配置插件 - 将json转换为ES6模块 */
 		typescript({
-			tsconfig: './tsconfig.json',
 			module: 'esnext',
+			exclude: ['./node_modules/**'],
 		}),
 		resolve({
-			preferBuiltins: false,
+			extensions: ['.js', '.ts', '.json'],
+			modulesOnly: true,
+			preferredBuiltins: false,
 		}),
-		commonjs({ extensions: ['.js', '.ts'] }),
-		babel({
-			babelHelpers: 'bundled',
-			exclude: 'node_modules/**',
-			extensions: ['.js', '.ts'],
-		}),
+		commonjs({ extensions: ['.js', '.ts', '.json'] }),
 	],
+	/** 排除打包的模块 */
+	external: ['chalk', 'ora', 'axios'],
 });

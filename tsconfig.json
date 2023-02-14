@@ -1,21 +1,16 @@
 {
 	"compilerOptions": {
-		"baseUrl": ".",
-		"outDir": "./lib",
-		"sourceMap": false,
-		"target": "ES5",
+		"rootDir": "./",
+		"types": ["node"],
+		"target": "ESNext",
 		"module": "CommonJS",
-		"moduleResolution": "node",
-		"allowJs": false,
+		"declaration": true,
+		"outDir": "lib",
 		"strict": true,
-		"noUnusedLocals": true,
-		"experimentalDecorators": true,
-		"resolveJsonModule": true,
 		"esModuleInterop": true,
-		"removeComments": false,
-
-		"declaration": false,
-		"declarationMap": false
+		"pretty": true,
+		"resolveJsonModule": true
 	},
-	"include": ["src/*"]
+	"include": ["src"],
+	"exclude": ["lib"]
 }
