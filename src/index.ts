@@ -1,14 +1,12 @@
 import { program } from 'commander';
-import { installEslint } from './eslint-init';
-program
-	.version(`${require('../package.json').version}`, '-v --version')
-	.usage('<command> [options]');
+import data from '../package.json';
+import { lintHandle } from './lint-init';
+
+program.version(`${data.version}`, '-v --version').usage('<command> [options]');
 
 program
 	.command('lint')
-	.description('初始化 eslint, prettier, commitlint')
-	.action(() => {
-		installEslint();
-	});
+	.description('install eslint, prettier, commitlint')
+	.action(() => lintHandle());
 
 program.parse(process.argv);
