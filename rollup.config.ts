@@ -18,6 +18,8 @@ export default defineConfig({
 		dir: './lib',
 		/** 输出文件为 CommonJS格式 */
 		format: 'cjs',
+		preserveModules: true,
+		exports: 'named',
 	},
 	plugins: [
 		/** 配置插件 - 每次打包清除目标文件 */

@@ -1,7 +1,7 @@
 {
-	"name": "ancli",
+	"name": "anl",
 	"version": "1.0.0",
-	"description": "前端命令行工具",
+	"description": "FE command line tool",
 	"main": "bin/an-cli.js",
 	"scripts": {
 		"dev": "rollup --config rollup.config.ts --configPlugin @rollup/plugin-typescript -w",
@@ -9,7 +9,7 @@
 		"pub": "sh publish.sh"
 	},
 	"bin": {
-		"ancli": "bin/an-cli.js"
+		"anl": "bin/an-cli.js"
 	},
 	"author": "Gleason <bianliuzhu@gmail.com>",
 	"license": "ISC",
@@ -21,6 +21,7 @@
 		"@rollup/plugin-node-resolve": "^13.1.3",
 		"@rollup/plugin-typescript": "^8.3.0",
 		"@types/inquirer": "^9.0.3",
+		"@types/shelljs": "^0.8.11",
 		"@typescript-eslint/eslint-plugin": "^5.52.0",
 		"@typescript-eslint/parser": "^5.52.0",
 		"eslint": "^8.7.0",
@@ -30,6 +31,7 @@
 		"typescript": "^4.5.4"
 	},
 	"dependencies": {
+		"app-root-path": "^3.1.0",
 		"cac": "^6.7.12",
 		"chalk": "4.*",
 		"clear-console": "^1.1.0",
@@ -50,7 +52,8 @@
 	"files": [
 		"package.json",
 		"README.md",
-		"lib"
+		"lib",
+		"template"
 	],
 	"repository": {
 		"type": "git",

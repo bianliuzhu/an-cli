@@ -1,28 +1,35 @@
-import createLogger from 'progress-estimator';
 import { plugins } from './type';
-import { exec, exit } from 'shelljs';
 import { spinner, log } from './utils';
-const logger = createLogger();
 
-const eslintHanlde = new Promise((resolve) => {
-	const cd = `npm i eslint-plugin-react@latest @typescript-eslint/eslint-plugin@latest @typescript-eslint/parser@latest eslint@latest -D`;
-	if (exec(cd).code !== 0) {
-		log.error('Error: installation failed');
-		exit(1);
-	} else {
-		resolve({ success: true });
-	}
-});
+import { exec } from 'child_process';
 
-// const task2 = new Promise((resolve) => {
-// 	setTimeout(() => {
-// 		resolve({ success: true });
-// 	}, 4200);
-// });
+import fs from 'fs';
+export const eslintHandle = (plugins: plugins) => {
+	spinner.start('start installation...');
+	const rootPath = exec('npm root -g');
+	rootPath.stdout?.on('data', (data: string) => {
+		fs.copyFile(
+			`${data.trim()}/anl/template/.eslintrc.js`,
+			`${process.cwd()}/.eslintrc.js`,
+			(err) => {
+				if (err) console.log('出了点小问题，哈哈哈哈');
+				else console.log('拷贝成功');
+			},
+		);
+	});
+	rootPath.stderr?.on('data', (data) => {
+		spinner.error(data);
+	});
+	const ReactShell = `npm i eslint-plugin-react@latest @typescript-eslint/eslint-plugin@latest @typescript-eslint/parser@latest -D`;
+	const child = exec(ReactShell, (err) => {
+		if (err) spinner.error(err.message);
+	});
 
-export const eslintInstllHanle = async (val: string[]) => {
-	spinner.start('start installation');
-	if (val.includes(plugins.ESLint)) {
-		await logger(eslintHanlde, 'install eslint');
-	}
+	child.stdout?.on('data', function (data) {
+		spinner.success(data);
+	});
+
+	child.stderr?.on('data', function (data) {
+		spinner.error(data);
+	});
 };

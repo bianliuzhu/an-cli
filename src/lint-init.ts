@@ -1,6 +1,6 @@
 import inquirer, { QuestionCollection } from 'inquirer';
 
-import { eslintInstllHanle } from './install-eslint';
+import { eslintHandle } from './install-eslint';
 
 export function lintHandle(): void {
 	const promptList: QuestionCollection[] = [
@@ -21,6 +21,6 @@ export function lintHandle(): void {
 	];
 	inquirer.prompt(promptList).then((answers) => {
 		console.log(answers);
-		// eslintInstllHanle(answers.plugins);
+		eslintHandle(answers.plugins);
 	});
 }
