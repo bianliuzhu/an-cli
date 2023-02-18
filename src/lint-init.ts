@@ -2,6 +2,7 @@ import inquirer, { QuestionCollection } from 'inquirer';
 import { eslintHandle } from './install-eslint';
 import { prettierHanlde } from './prettier';
 import { commitlintHanlde } from './install-commitlint';
+import vscodeHandle from './vscode';
 
 export function lintHandle(): void {
 	const promptList: QuestionCollection[] = [
@@ -37,5 +38,6 @@ export function lintHandle(): void {
 		await eslintHandle(answers.framework);
 		await prettierHanlde();
 		await commitlintHanlde();
+		await vscodeHandle();
 	});
 }
