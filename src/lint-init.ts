@@ -1,26 +1,41 @@
 import inquirer, { QuestionCollection } from 'inquirer';
-
 import { eslintHandle } from './install-eslint';
+import { prettierHanlde } from './prettier';
+import { commitlintHanlde } from './install-commitlint';
 
 export function lintHandle(): void {
 	const promptList: QuestionCollection[] = [
 		{
 			type: 'list',
-			message: 'Choose to use the framework',
+			message: 'Choose the framework to use',
 			name: 'framework',
-			choices: ['React', 'Vue', 'Node'],
+			choices: ['React', 'Vue'],
 			filter: (val: string) => val.toLowerCase(),
+			validate: (answer) => {
+				if (!answer.length) {
+					return 'Choose the framework to use';
+				}
+				return true;
+			},
 		},
-		{
-			type: 'checkbox',
-			message: 'Choose to install plugins',
-			name: 'plugins',
-			choices: ['ESLint', 'StyleLint', 'CommitLint', 'Prettier'],
-			filter: (val: string[]) => val.map((item) => item.toLowerCase()),
-		},
+		// {
+		// 	type: 'list',
+		// 	message: 'CSS 预编译',
+		// 	name: 'css',
+		// 	choices: ['Less', 'Sass'],
+		// 	filter: (val: string) => val.toLowerCase(),
+		// 	validate: (answer) => {
+		// 		console.log(answer);
+		// 		if (!answer.length) {
+		// 			return 'CSS 预编译';
+		// 		}
+		// 		return false;
+		// 	},
+		// },
 	];
-	inquirer.prompt(promptList).then((answers) => {
-		console.log(answers);
-		eslintHandle(answers.plugins);
+	inquirer.prompt(promptList).then(async (answers) => {
+		await eslintHandle(answers.framework);
+		await prettierHanlde();
+		await commitlintHanlde();
 	});
 }

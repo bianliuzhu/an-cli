@@ -5,18 +5,19 @@ module.exports = {
 	},
 	"extends": [
 		"eslint:recommended",
-		"plugin:react/recommended",
+		"plugin:vue/vue3-essential",
 		"plugin:@typescript-eslint/recommended",
 		"prettier"
 	],
-	"overrides": [],
+	"overrides": [
+	],
 	"parser": "@typescript-eslint/parser",
 	"parserOptions": {
 		"ecmaVersion": "latest",
 		"sourceType": "module"
 	},
 	"plugins": [
-		"react",
+		"vue",
 		"@typescript-eslint"
 	],
 	"rules": {

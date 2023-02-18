@@ -11,6 +11,6 @@
 		"pretty": true,
 		"resolveJsonModule": true
 	},
-	"include": ["src"],
+	"include": ["src", "data/install-stylelint.ts", "data/install-stylelint.ts"],
 	"exclude": ["lib"]
 }
