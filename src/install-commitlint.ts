@@ -29,7 +29,7 @@ export const commitlintHanlde = async () => {
 			reject({ success: false });
 		}
 	});
-	const toggle = false;
+	const toggle = true;
 	const execution = new Promise((resolve, reject) => {
 		try {
 			log.load('instll husky...');

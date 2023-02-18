@@ -35,9 +35,9 @@ export function lintHandle(): void {
 		// },
 	];
 	inquirer.prompt(promptList).then(async (answers) => {
-		await eslintHandle(answers.framework);
-		await prettierHanlde();
 		await commitlintHanlde();
+		await prettierHanlde();
 		await vscodeHandle();
+		await eslintHandle(answers.framework);
 	});
 }
