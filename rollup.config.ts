@@ -34,7 +34,7 @@ export default defineConfig({
 		resolve({
 			extensions: ['.js', '.ts', '.json'],
 			modulesOnly: true,
-			preferredBuiltins: false,
+			preferBuiltins: false,
 		}),
 		commonjs({ extensions: ['.js', '.ts', '.json'] }),
 	],
