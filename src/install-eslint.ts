@@ -4,11 +4,13 @@ import { exec } from 'child_process';
 import { spinner } from './utils';
 import { REACT_ESLINT, VUE_ESLINT } from './const';
 import createLogger from 'progress-estimator';
-import _package from '../package.json';
+
 const logger = createLogger({
 	storagePath: join(__dirname, '.progress-estimator'),
 });
+
 type Tframework = 'react' | 'vue' | 'node';
+
 export const eslintHandle = async (framework: Tframework) => {
 	spinner.start('start installation...');
 
@@ -32,26 +34,27 @@ export const eslintHandle = async (framework: Tframework) => {
 	});
 
 	const copyEslintFile = new Promise((resolve, reject) => {
-		const rootPath = exec('npm root -g');
-		rootPath.stdout?.on('data', (data: string) => {
+		try {
 			fs.copyFileSync(
-				`${data.trim()}/${_package.name}/template/.eslintignore`,
+				`${__dirname.replace('lib/src', 'template/.eslintignore')}`,
 				`${process.cwd()}/.eslintignore`,
 			);
 			fs.copyFileSync(
-				`${data.trim()}/${_package.name}/template/${lintfile}`,
+				`${__dirname.replace('lib/src', `template/${lintfile}`)}`,
 				`${process.cwd()}/.eslintrc.js`,
 			);
 			spinner.success('✨ .eslintrc file write success');
-			resolve({ success: true });
-		});
-		rootPath.stderr?.on('data', () => {
+			resolve({ success: !0 });
+		} catch (error) {
 			spinner.error('.eslintrc file write fail');
-			reject({ success: false });
-		});
+			reject(error);
+		}
 	});
 
-	await logger(eslintInstll, 'instll eslint', { estimate: 30000 });
-
-	await logger(copyEslintFile, 'write .eslintignore file');
+	try {
+		await logger(eslintInstll, 'instll eslint', { estimate: 30000 });
+		await logger(copyEslintFile, 'write .eslintignore file');
+	} catch (error) {
+		console.error('eslintHandle=====>', error);
+	}
 };

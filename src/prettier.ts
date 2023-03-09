@@ -4,10 +4,11 @@ import { join } from 'path';
 import { exec } from 'child_process';
 import { spinner } from './utils';
 import { copyFileSync } from 'fs';
-import _package from '../package.json';
+
 const logger = createLogger({
 	storagePath: join(__dirname, '.progress-estimator'),
 });
+
 export const prettierHanlde = async () => {
 	const execution = new Promise((resolve, reject) => {
 		const child = exec(Prettier, (err) => {
@@ -26,20 +27,23 @@ export const prettierHanlde = async () => {
 	});
 
 	const copyFile = new Promise((resolve, reject) => {
-		const getRootPath = exec('npm root -g');
-		getRootPath.stdout?.on('data', (data: string) => {
+		try {
 			copyFileSync(
-				`${data.trim()}/${_package.name}/template/.prettierrc.js`,
+				`${__dirname.replace('lib/src', 'template/prettierrc.js')}`,
 				`${process.cwd()}/.prettierrc.js`,
 			);
 			spinner.success('✨ .prettierrc write done!');
 			resolve({ success: true });
-		});
-		getRootPath.stderr?.on('data', () => {
-			spinner.error('.prettierrc write fail!');
-			reject({ success: false });
-		});
+		} catch (error) {
+			spinner.error('❌ prettierrc write fail!');
+			reject(error);
+		}
 	});
-	await logger(execution, 'install prettier', { estimate: 10000 });
-	await logger(copyFile, 'write .prettierrc file');
+
+	try {
+		await logger(execution, 'install prettier', { estimate: 10000 });
+		await logger(copyFile, 'write .prettierrc file');
+	} catch (error) {
+		console.error('prettierHanlde======>', error);
+	}
 };

@@ -1,13 +1,10 @@
-import { exec } from 'child_process';
 import {
 	existsSync,
 	readFileSync,
 	writeFileSync,
 	copyFileSync,
 	mkdirSync,
-	constants,
 } from 'fs';
-import _package from '../package.json';
 import { spinner } from './utils';
 
 const vscodeHandle = async () => {
@@ -20,20 +17,18 @@ const vscodeHandle = async () => {
 		const writeData = JSON.stringify(parsedData, null, '\t');
 		writeFileSync(setting_path, writeData);
 	} else {
-		const rootPath = exec('npm root -g');
-		rootPath.stdout?.on('data', (data: string) => {
-			const vscodePath = `${process.cwd()}/.vscode`;
+		const vscodePath = `${process.cwd()}/.vscode`;
+		try {
 			mkdirSync(vscodePath);
 			copyFileSync(
-				`${data.trim()}/${_package.name}/template/settings.json`,
+				`${__dirname.replace('lib/src', 'template/settings.json')}`,
 				`${vscodePath}/settings.json`,
-				constants.COPYFILE_EXCL,
 			);
 			spinner.success('✨ .vscode/settings.json file write success');
-		});
-		rootPath.stderr?.on('data', () => {
+		} catch (error) {
 			spinner.error('.vscode/settings.json file write fail');
-		});
+			console.error(error);
+		}
 	}
 };
 

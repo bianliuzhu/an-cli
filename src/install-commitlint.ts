@@ -11,9 +11,11 @@ import { join } from 'path';
 import { log, spinner } from './utils';
 import { writeFileSync } from 'fs';
 import { exec, exit, which } from 'shelljs';
+
 const _logger = createLogger({
 	storagePath: join(__dirname, '.progress-estimator'),
 });
+
 export const commitlintHanlde = async () => {
 	if (!which('git')) {
 		log.warning('Sorry, this script requires git');
@@ -26,7 +28,7 @@ export const commitlintHanlde = async () => {
 			spinner.success('✨ commitlint instll success!');
 			resolve({ success: true });
 		} catch (error) {
-			reject({ success: false });
+			reject(error);
 		}
 	});
 	const toggle = true;
@@ -58,10 +60,15 @@ export const commitlintHanlde = async () => {
 			resolve({ success: true });
 		} catch (error) {
 			spinner.error('commitlint instll fail!');
-			reject({ success: false });
+			reject(error);
 		}
 	});
-
-	await _logger(instllcommit, 'install commit lint tools', { estimate: 10000 });
-	await _logger(execution, 'commit config file write');
+	try {
+		await _logger(instllcommit, 'install commit lint tools', {
+			estimate: 10000,
+		});
+		await _logger(execution, 'commit config file write');
+	} catch (error) {
+		console.log('commitlintHanlde=====>', error);
+	}
 };
