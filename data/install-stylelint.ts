@@ -2,7 +2,7 @@ import fs from 'fs';
 import { join } from 'path';
 import { exec } from 'child_process';
 import { log, spinner } from '../src/utils';
-import { StyleLint } from '../src/const';
+import { StyleLint } from '../src/standard/const';
 import createLogger from 'progress-estimator';
 
 const logger = createLogger({
