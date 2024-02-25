@@ -1,9 +1,9 @@
+import { exec } from 'child_process';
 import fs from 'fs';
 import { join } from 'path';
-import { exec } from 'child_process';
-import { spinner } from './utils';
-import { REACT_ESLINT, VUE_ESLINT } from './const';
 import createLogger from 'progress-estimator';
+import { spinner } from '../utils';
+import { REACT_ESLINT, VUE_ESLINT } from './const';
 
 const logger = createLogger({
 	storagePath: join(__dirname, '.progress-estimator'),
@@ -35,14 +35,8 @@ export const eslintHandle = async (framework: Tframework) => {
 
 	const copyEslintFile = new Promise((resolve, reject) => {
 		try {
-			fs.copyFileSync(
-				`${__dirname.replace('lib/src', 'template/.eslintignore')}`,
-				`${process.cwd()}/.eslintignore`,
-			);
-			fs.copyFileSync(
-				`${__dirname.replace('lib/src', `template/${lintfile}`)}`,
-				`${process.cwd()}/.eslintrc.js`,
-			);
+			fs.copyFileSync(`${__dirname.replace('lib/src', 'template/.eslintignore')}`, `${process.cwd()}/.eslintignore`);
+			fs.copyFileSync(`${__dirname.replace('lib/src', `template/${lintfile}`)}`, `${process.cwd()}/.eslintrc.js`);
 			spinner.success('✨ .eslintrc file write success');
 			resolve({ success: !0 });
 		} catch (error) {

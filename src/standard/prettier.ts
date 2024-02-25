@@ -1,9 +1,9 @@
-import { Prettier } from './const';
-import createLogger from 'progress-estimator';
-import { join } from 'path';
 import { exec } from 'child_process';
-import { spinner } from './utils';
 import { copyFileSync } from 'fs';
+import { join } from 'path';
+import createLogger from 'progress-estimator';
+import { spinner } from '../utils';
+import { Prettier } from './const';
 
 const logger = createLogger({
 	storagePath: join(__dirname, '.progress-estimator'),
@@ -28,10 +28,7 @@ export const prettierHanlde = async () => {
 
 	const copyFile = new Promise((resolve, reject) => {
 		try {
-			copyFileSync(
-				`${__dirname.replace('lib/src', 'template/prettierrc.js')}`,
-				`${process.cwd()}/.prettierrc.js`,
-			);
+			copyFileSync(`${__dirname.replace('lib/src', 'template/prettierrc.js')}`, `${process.cwd()}/.prettierrc.js`);
 			spinner.success('✨ .prettierrc write done!');
 			resolve({ success: true });
 		} catch (error) {

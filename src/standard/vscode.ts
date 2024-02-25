@@ -1,11 +1,5 @@
-import {
-	existsSync,
-	readFileSync,
-	writeFileSync,
-	copyFileSync,
-	mkdirSync,
-} from 'fs';
-import { spinner } from './utils';
+import { copyFileSync, existsSync, mkdirSync, readFileSync, writeFileSync } from 'fs';
+import { spinner } from '../utils';
 
 const vscodeHandle = async () => {
 	const setting_path = `${process.cwd()}/.vscode/settings.json`;
@@ -20,10 +14,7 @@ const vscodeHandle = async () => {
 		const vscodePath = `${process.cwd()}/.vscode`;
 		try {
 			mkdirSync(vscodePath);
-			copyFileSync(
-				`${__dirname.replace('lib/src', 'template/settings.json')}`,
-				`${vscodePath}/settings.json`,
-			);
+			copyFileSync(`${__dirname.replace('lib/src', 'template/settings.json')}`, `${vscodePath}/settings.json`);
 			spinner.success('✨ .vscode/settings.json file write success');
 		} catch (error) {
 			spinner.error('.vscode/settings.json file write fail');

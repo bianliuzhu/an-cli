@@ -1,16 +1,10 @@
-import {
-	NPM_HUSK,
-	HUSKY_INSTALL,
-	ADD_COMMIT_MSG,
-	COMMIT_VERIFY,
-	COMMIT_CONFIG_CONTENT,
-} from './const';
-import createLogger from 'progress-estimator';
 import { join } from 'path';
+import createLogger from 'progress-estimator';
+import { ADD_COMMIT_MSG, COMMIT_CONFIG_CONTENT, COMMIT_VERIFY, HUSKY_INSTALL, NPM_HUSK } from './const';
 
-import { log, spinner } from './utils';
 import { writeFileSync } from 'fs';
 import { exec, exit, which } from 'shelljs';
+import { log, spinner } from '../utils';
 
 const _logger = createLogger({
 	storagePath: join(__dirname, '.progress-estimator'),
