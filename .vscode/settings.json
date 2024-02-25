@@ -11,7 +11,10 @@
 			"strings": true
 		},
 		"editor.suggest.insertMode": "replace",
-		"gitlens.codeLens.scopes": ["document"],
+		"gitlens.codeLens.scopes": [
+			"document"
+		],
 		"editor.defaultFormatter": "esbenp.prettier-vscode"
-	}
+	},
+	"editor.tabSize": 2
 }
