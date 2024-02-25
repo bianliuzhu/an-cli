@@ -8,17 +8,17 @@ import PathParse from './core/path';
 import { ComponentsSchemas, ConfigType, PathsObject } from './types';
 
 /**
-	"saveTypeFolderPath": "types",
-	"apiListFilePath": "services",
-	"swaggerJsonUrl": "https://serviceoneapi-stg.tesla.cn/core/swagger/v1/swagger.json",
+	"saveTypeFolderPath": "apps/types",
+	"apiListFilePath": "spps/services",
+	"swaggerJsonUrl": "",
 	"indent": "\t",
 	"headers": {}
  */
 
 const configContent = {
-	saveTypeFolderPath: 'types',
-	apiListFilePath: 'services',
-	swaggerJsonUrl: 'https://serviceoneapi-stg.tesla.cn/core/swagger/v1/swagger.json',
+	saveTypeFolderPath: 'apps/types',
+	apiListFilePath: 'apps/services',
+	swaggerJsonUrl: '',
 	indent: '\t',
 	headers: {},
 };
@@ -32,14 +32,14 @@ export class Main {
 	 * @param update 更新覆盖
 	 */
 	private handle(config: ConfigType) {
-		const response = DATA as OpenAPIV3.Document;
-		this.schemas = response.components?.schemas;
-		this.paths = response.paths;
-		const components = new Components(this.schemas, config);
-		components.handle();
-		const paths = new PathParse(this.paths, config);
-		paths.handle();
-		return;
+		// const response = DATA as OpenAPIV3.Document;
+		// this.schemas = response.components?.schemas;
+		// this.paths = response.paths;
+		// const components = new Components(this.schemas, config);
+		// components.handle();
+		// const paths = new PathParse(this.paths, config);
+		// paths.handle();
+		// return;
 		return new Promise((resolve) => {
 			if (!config.swaggerJsonUrl) return resolve({}); // reject map
 			getSwaggerJson(config)
