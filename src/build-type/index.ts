@@ -1,6 +1,6 @@
 import fs from 'fs';
 import { OpenAPIV3 } from 'openapi-types';
-import DATA from '../../data/sw.json';
+import DATA from '../../data/sau.json';
 import { clearDir, isFileExisted, writeFileRecursive } from '../utils';
 import Components from './core/components';
 import { getSwaggerJson } from './core/get-data';
@@ -32,14 +32,14 @@ export class Main {
 	 * @param update 更新覆盖
 	 */
 	private handle(config: ConfigType) {
-		// const response = DATA as OpenAPIV3.Document;
-		// this.schemas = response.components?.schemas;
-		// this.paths = response.paths;
-		// const components = new Components(this.schemas, config);
-		// components.handle();
-		// const paths = new PathParse(this.paths, config);
-		// paths.handle();
-		// return;
+		const response = DATA as OpenAPIV3.Document;
+		this.schemas = response.components?.schemas;
+		this.paths = response.paths;
+		const components = new Components(this.schemas, config);
+		components.handle();
+		const paths = new PathParse(this.paths, config);
+		paths.handle();
+		return;
 		return new Promise((resolve) => {
 			if (!config.swaggerJsonUrl) return resolve({}); // reject map
 			getSwaggerJson(config)
@@ -77,7 +77,10 @@ export class Main {
 			})
 			.catch((err) => {
 				clearDir(configContent.saveTypeFolderPath).then(() => {
-					writeFileRecursive(configFilePath, JSON.stringify(configContent, null, 2))
+					writeFileRecursive(
+						configFilePath,
+						JSON.stringify(configContent, null, 2),
+					)
 						.catch((err) => {
 							console.log(err);
 						})
@@ -89,5 +92,5 @@ export class Main {
 			});
 	}
 }
-// const int = new Main();
-// int.initialize();
+const int = new Main();
+int.initialize();
