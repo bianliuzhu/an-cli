@@ -1,12 +1,12 @@
 {
 	"name": "anl",
-	"version": "1.2.3",
+	"version": "1.2.6",
 	"description": "FE command line tool",
 	"main": "bin/an-cli.js",
 	"scripts": {
 		"dev": "rollup --config rollup.config.ts --configPlugin @rollup/plugin-typescript -w",
-		"build": "rm -rf lib && rollup --config rollup.config.ts --configPlugin @rollup/plugin-typescript",
-		"pub": "sh publish.sh",
+		"build": "rimraf lib && rollup --config rollup.config.ts --configPlugin @rollup/plugin-typescript",
+		"pub": "bash publish.sh",
 		"ts": "tsc ./src/int.ts --noEmit --watch"
 	},
 	"bin": {
@@ -29,6 +29,7 @@
 		"husky": "^8.0.3",
 		"openapi-types": "^9.3.0",
 		"prettier": "^3.3.2",
+		"rimraf": "^5.0.7",
 		"rollup": "^2.64.0",
 		"rollup-plugin-cleandir": "^2.0.0",
 		"rollup-plugin-terser": "^7.0.2",
