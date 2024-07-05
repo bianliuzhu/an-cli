@@ -27,11 +27,12 @@
 		"@typescript-eslint/parser": "^5.52.0",
 		"eslint": "^8.7.0",
 		"husky": "^8.0.3",
+		"openapi-types": "^9.3.0",
+		"prettier": "^3.3.2",
 		"rollup": "^2.64.0",
 		"rollup-plugin-cleandir": "^2.0.0",
 		"rollup-plugin-terser": "^7.0.2",
-		"typescript": "^4.5.4",
-		"openapi-types": "^9.3.0"
+		"typescript": "^4.5.4"
 	},
 	"dependencies": {
 		"app-root-path": "^3.1.0",

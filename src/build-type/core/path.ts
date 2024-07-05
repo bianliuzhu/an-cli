@@ -70,20 +70,32 @@ export class PathParse {
 	}
 
 	pathTranslantionName(path: string, method: HttpMethods): { name: string; method: string } {
-		const name = path
+		// 补全路径
+		let completionPath = '';
+		if (!path.startsWith('/')) {
+			completionPath = '/' + path;
+		}
+
+		const name = completionPath
 			.slice(1)
 			.replace(/\/\{\w+\}/g, () => '')
 			.replace(/\/\w/g, (str) => {
 				const [, two] = str.split('');
 				return two.toUpperCase();
 			})
-			.replace('api', '');
+			.replace(/(\/api)|(api)/g, '');
 		return { name, method };
 	}
 
 	pathTranslantionFileName(_path: string): { name: string; path: string } {
-		const path = _path.replace('/api', '').replace(/\{\w+\}/g, (s) => `$${s}`);
-		const name = _path.slice(1).replace(/\//g, '-').replace('api-', '');
+		// 补全路径
+		let completionPath = '';
+		if (!_path.startsWith('/')) {
+			completionPath = '/' + _path;
+		}
+
+		const path = completionPath.replace(/(\/api)|(api)/g, '').replace(/\{\w+\}/g, (s) => `$${s}`);
+		const name = completionPath.slice(1).replace(/\//g, '-').replace('api-', '');
 		return { name, path };
 	}
 
@@ -96,19 +108,26 @@ export class PathParse {
 		return fileName;
 	}
 
-	propertiesParse(properties: Properties): string {
+	propertiesParse(properties: Properties): string[] {
 		const content = [];
 		for (const key in properties) {
 			const item = properties[key];
+
 			const result = this.schemaParse(item);
-			const str = `${TIGHTEN}${TIGHTEN}${key}:${result}`;
-			content.push(str);
+			let _value = '';
+			if (Array.isArray(result)) {
+				_value = `${TIGHTEN}${TIGHTEN}${key}:{${result.join('\n')}};`;
+			} else {
+				_value = `${TIGHTEN}${TIGHTEN}${key}:${result};`;
+			}
+
+			content.push(_value);
 		}
-		return content.join('\n');
+		return content;
 	}
 
-	nonArraySchemaObjectParse(nonArraySchemaObject: NonArraySchemaObject) {
-		if (!nonArraySchemaObject) return '';
+	nonArraySchemaObjectParse(nonArraySchemaObject: NonArraySchemaObject): string | string[] {
+		if (!nonArraySchemaObject) return 'unknown';
 		switch (nonArraySchemaObject.type) {
 			case 'boolean':
 				return 'boolean';
@@ -120,7 +139,7 @@ export class PathParse {
 			case 'string':
 				return 'string';
 			default:
-				return '';
+				return 'unknown';
 		}
 	}
 
@@ -137,7 +156,12 @@ export class PathParse {
 
 		if (schemaObject) {
 			const val = this.schemaParse(items);
-			return `Array<${val}>`;
+			if (Array.isArray(val)) {
+				const _val = `Array<{${val.join('\n')}}>`;
+				return _val;
+			} else {
+				return `Array<${val}>`;
+			}
 		}
 		return '';
 	}
@@ -151,8 +175,8 @@ export class PathParse {
 		return importStatements;
 	}
 
-	schemaParse(schema: Schema | undefined): string {
-		if (!schema) return '';
+	schemaParse(schema: Schema | undefined): string | string[] {
+		if (!schema) return 'unknown';
 		const type = (schema as SchemaObject)?.type;
 		const referenceObject = '$ref' in schema ? (schema as ReferenceObject) : null;
 		const arraySchemaObject = type === 'array' ? (schema as ArraySchemaObject) : null;
@@ -166,7 +190,7 @@ export class PathParse {
 		if (nonArraySchemaObject) {
 			return this.nonArraySchemaObjectParse(nonArraySchemaObject);
 		}
-		return '';
+		return 'unknown';
 	}
 
 	responseObjectParse(responseObject: ResponseObject) {
@@ -177,8 +201,7 @@ export class PathParse {
 
 		if (schema) {
 			const result = this.schemaParse(schema);
-			const res = result.split('\n');
-			return res;
+			return result;
 		}
 	}
 
@@ -194,24 +217,36 @@ export class PathParse {
 
 		if (referenceObject) {
 			const typeName = this.referenceObjectParse(referenceObject);
-			this.contentBody.response = `type Response = ${typeName}['responseObject']`;
+			// this.contentBody.response = `type Response = ${typeName}['responseObject']`;
+			this.contentBody.response = `type Response = ${typeName}`;
 			this.contentBody._response = typeName;
 		}
 
 		if (responseObject) {
 			const responsess = this.responseObjectParse(responseObject);
-			this.contentBody.response = `type Response = ${responsess}['responseObject']`;
-			this.contentBody._response = `${responsess}`;
+			// console.log(responsess);
+			// this.contentBody.response = `type Response = ${responsess}['responseObject']`;
+			if (Array.isArray(responsess)) {
+				this.contentBody.response = `interface Response {${responsess.join('\n')}} `;
+				this.contentBody._response = `${responsess.join('\n')}`;
+			} else {
+				this.contentBody.response = `type Response = ${responsess}`;
+				this.contentBody._response = `${responsess}`;
+			}
 		}
 	}
 
 	requestBodyObjectParse(requestBodyObject: OpenAPIV3.RequestBodyObject) {
-		const { schema } = Object.values(requestBodyObject.content)[0];
+		const requestBodyObjectContent = Object.values(requestBodyObject.content);
+
+		const { schema } =
+			Array.isArray(requestBodyObjectContent) && requestBodyObjectContent.length > 0 ? requestBodyObjectContent[0] : { schema: null };
 		if (schema) {
 			const type = (schema as SchemaObject)?.type;
 			const referenceObject = '$ref' in schema ? (schema as ReferenceObject) : null;
 			const arraySchemaObject = type === 'array' ? (schema as ArraySchemaObject) : null;
 			const nonArraySchemaObject = type && this.nonArrayType.includes(type) ? (schema as NonArraySchemaObject) : null;
+
 			if (referenceObject) {
 				const str = this.referenceObjectParse(referenceObject);
 				return `${TIGHTEN}type Body = ${str}`;
@@ -221,15 +256,22 @@ export class PathParse {
 				return `${TIGHTEN}type Body = ${str}`;
 			}
 			if (nonArraySchemaObject) {
-				const str = this.nonArraySchemaObjectParse(nonArraySchemaObject);
-
-				return [`${TIGHTEN}interface Body {`, str, `}`];
+				const result = this.nonArraySchemaObjectParse(nonArraySchemaObject);
+				if (Array.isArray(result)) {
+					if (result.length === 0) {
+						return [`${TIGHTEN}type Body = void`];
+					} else {
+						return [`${TIGHTEN}interface Body {`, ...result, `}`];
+					}
+				} else {
+					return [`${TIGHTEN}type Body = ${result}`];
+				}
 			}
 		}
 	}
 
 	requestBodyParse(requestBody: OperationObject['requestBody']) {
-		if (!requestBody) return '';
+		if (!requestBody) return '{}';
 		const referenceObject = '$ref' in requestBody ? (requestBody as ReferenceObject) : null;
 		const requestBodyObject = 'content' in requestBody ? (requestBody as RequestBodyObject) : null;
 		if (referenceObject) {
@@ -237,10 +279,10 @@ export class PathParse {
 
 			return `${TIGHTEN}type Body = ${typeName}`;
 		}
-		if (requestBodyObject) {
+		if (requestBodyObject && String(requestBody) === '[object Object]' && Reflect.ownKeys(requestBody).length !== 0) {
 			return this.requestBodyObjectParse(requestBodyObject);
 		}
-		return '';
+		return '{}';
 	}
 
 	requestParametersParse(parameters: OperationObject['parameters']) {
@@ -252,7 +294,7 @@ export class PathParse {
 
 			if (V1) {
 				const typeName = this.referenceObjectParse(V1);
-				console.log(this.pathKey, typeName, 'item 是 ReferenceObject 类型', '----为处理---');
+				console.log(this.pathKey, typeName, 'item 是 ReferenceObject 类型', '----未处理---');
 				return typeName;
 			}
 			if (V2) {
@@ -260,18 +302,34 @@ export class PathParse {
 					const v2value = this.schemaParse(V2.schema);
 					path.push(`${TIGHTEN}${TIGHTEN}type ${V2.name} = ${v2value};`);
 					if (this.contentBody.payload._path) {
-						this.contentBody.payload._path[V2.name] = v2value;
+						if (typeof v2value === 'string') {
+							this.contentBody.payload._path[V2.name] = v2value;
+						} else {
+							console.log(v2value);
+						}
 					} else {
-						this.contentBody.payload._path = { [V2.name]: v2value };
+						if (typeof v2value === 'string') {
+							this.contentBody.payload._path = { [V2.name]: v2value };
+						} else {
+							console.log(v2value);
+						}
 					}
 				}
 				if (V2.in === 'query') {
 					const v2value = this.schemaParse(V2.schema);
 					query.push(`${TIGHTEN}${TIGHTEN}${V2.name}: ${v2value};`);
 					if (this.contentBody.payload._query) {
-						this.contentBody.payload._query[V2.name] = v2value;
+						if (typeof v2value === 'string') {
+							this.contentBody.payload._query[V2.name] = v2value;
+						} else {
+							console.log(v2value);
+						}
 					} else {
-						this.contentBody.payload._query = { [V2.name]: v2value };
+						if (typeof v2value === 'string') {
+							this.contentBody.payload._query = { [V2.name]: v2value };
+						} else {
+							console.log(v2value);
+						}
 					}
 				}
 			}
@@ -298,9 +356,9 @@ export class PathParse {
 
 		if (v.requestBody) {
 			const body = this.requestBodyParse(v.requestBody);
-			if (body && Array.isArray(body)) {
+			if (Array.isArray(body)) {
 				this.contentBody.payload.body = body;
-			} else {
+			} else if (body) {
 				const value = body?.split('\n') || [];
 				this.contentBody.payload.body = value;
 			}
@@ -312,11 +370,14 @@ export class PathParse {
 			const _key = key.toLowerCase() as HttpMethods;
 			const methodItems = itemObject[_key];
 			if (methodItems) {
+				const Path = this.pathKey;
 				const { name, method } = this.pathTranslantionName(this.pathKey, key as HttpMethods);
+				// if (Path === 'api/user/login') {
 				this.requestHandle(methodItems);
 				this.responseHandle(methodItems.responses);
 				this.contentBody.method = method;
 				this.contentBody.namespace = name + method;
+				// }
 			}
 		}
 	}
@@ -371,7 +432,11 @@ export class PathParse {
 		const apiParamsPath = _path ? pathParamsHandle(_path) : '';
 		const apiParamsQuery = _query ? `params: ${namespace}.Query` : '';
 		const apiParamsBody = body.length > 0 ? `params: ${namespace}.Body` : '';
-		const temp: { apiParamsPath?: string; apiParamsQuery?: string; apiParamsBody?: string } = {};
+		const temp: {
+			apiParamsPath?: string;
+			apiParamsQuery?: string;
+			apiParamsBody?: string;
+		} = {};
 		apiParamsPath && (temp['apiParamsPath'] = apiParamsPath);
 		apiParamsQuery && (temp['apiParamsQuery'] = apiParamsQuery);
 		apiParamsBody && (temp['apiParamsBody'] = apiParamsBody);

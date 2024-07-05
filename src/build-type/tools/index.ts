@@ -15,6 +15,7 @@ export const templateConfig: TemplateBaseType = {};
  */
 export function requireModule(modulePath: string, clearCache = true) {
 	try {
+		// eslint-disable-next-line @typescript-eslint/no-var-requires
 		const m = require(modulePath);
 		if (clearCache) {
 			setTimeout(() => {
@@ -207,7 +208,11 @@ function parseEnumToUnionType(enumArr?: string[]): string {
 function parseNameSpace(item: TreeInterface, content: string[], indentation = 0): string[] {
 	const indentationSpace = handleIndentation(indentation);
 
-	return [`${indentationSpace}declare namespace ${item.interfaceNamespace} {`, ...content.map((v) => `${indentationSpace}${v}`), `${indentationSpace}}`];
+	return [
+		`${indentationSpace}declare namespace ${item.interfaceNamespace} {`,
+		...content.map((v) => `${indentationSpace}${v}`),
+		`${indentationSpace}}`,
+	];
 }
 /** 解析详细属性 */
 function parseProperties(

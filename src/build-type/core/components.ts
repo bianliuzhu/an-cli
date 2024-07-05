@@ -169,7 +169,8 @@ class Components {
 						break;
 					case 'object':
 						{
-							const { headerRef: _headerObjet, renderStr: _render } = this.parseObject(schemaSource as OpenAPIV3.SchemaObject, name) ?? this.defalutReturn;
+							const { headerRef: _headerObjet, renderStr: _render } =
+								this.parseObject(schemaSource as OpenAPIV3.SchemaObject, name) ?? this.defalutReturn;
 							content.push(_render);
 							!headerRef.includes(_headerObjet) && headerRef.push(_headerObjet);
 						}
@@ -178,7 +179,7 @@ class Components {
 			}
 
 			const interfaceName = `export interface ${interfaceKey} {`;
-			const renderStr = [...headerRef, '\n', interfaceName, ...content, `}`];
+			const renderStr = [...headerRef, '\n', interfaceName, ...content, `\t}`];
 			// return { properties, renderStr, fieldCount: content.length, propertiesCount: Object.keys(properties as object).length, headerRef };
 			return renderStr.join('\n');
 		} catch (error) {
