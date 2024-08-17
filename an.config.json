@@ -1,0 +1,7 @@
+{
+  "saveTypeFolderPath": "apps/types",
+  "apiListFilePath": "apps/services",
+  "swaggerJsonUrl": "",
+  "indent": "\t",
+  "headers": {}
+}
