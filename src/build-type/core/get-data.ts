@@ -30,7 +30,7 @@ export async function getSwaggerJson(config: ConfigType): TReturnType {
 /** 发起请求 */
 export function requestJson({ swaggerJsonUrl: url, headers = {} }: ConfigType): TReturnType {
 	return new Promise((resolve, reject) => {
-		let TM: NodeJS.Timeout;
+		let TM: ReturnType<typeof setTimeout> | undefined = undefined;
 		const request = /^https/.test(url) ? https.request : http.request;
 
 		console.info(`Request Start: ${url}`);

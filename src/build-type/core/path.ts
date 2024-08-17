@@ -27,6 +27,7 @@ type ContentBody = {
 	fileName: string; // 文件名
 	method: string; // 方法名
 	path: string; // 请求路径
+	summary: string | undefined;
 };
 
 type MapType = Map<string, ContentBody>;
@@ -54,6 +55,7 @@ const contentBody: ContentBody = {
 	fileName: '',
 	method: '',
 	path: '',
+	summary: '',
 };
 
 export class PathParse {
@@ -378,6 +380,7 @@ export class PathParse {
 				this.responseHandle(methodItems.responses);
 				this.contentBody.method = method;
 				this.contentBody.namespace = name + method;
+				this.contentBody.summary = methodItems.summary;
 				// }
 			}
 		}
@@ -407,6 +410,7 @@ export class PathParse {
 							fileName: '',
 							method: '',
 							path: '',
+							summary: '',
 						};
 					}
 				}
@@ -418,7 +422,7 @@ export class PathParse {
 	}
 
 	writeApiListFile(content: ContentBody) {
-		const { namespace, payload, method, path: apiPath, _response } = content;
+		const { namespace, payload, method, path: apiPath, _response, summary } = content;
 		const { _path, _query, body } = payload;
 		const apiName = namespace.replace(namespace[0], namespace[0].toLowerCase());
 		const pathParamsHandle = (p: any) => {
@@ -453,7 +457,7 @@ export class PathParse {
 			')',
 			` => `,
 			`${method}${_response ? '<' + `${namespace}.Response` + '>' : ''}`,
-			'(`' + apiPath + '`' + `${apiParamsQuery || apiParamsBody ? ', params' : ''}` + ')',
+			'(`' + apiPath + '`' + `${apiParamsQuery || apiParamsBody ? ', params' : ''}` + ');',
 		];
 		return contentList.join('');
 	}
@@ -467,12 +471,17 @@ export class PathParse {
 		const P = (key: string, content: ContentBody) =>
 			new Promise((resolve, reject) => {
 				try {
-					const { namespace, payload, response, fileName, method } = content;
+					const { namespace, payload, response, fileName, method, summary } = content;
 
 					!methodList.includes(method) && methodList.push(method);
 
 					const contentArray = [`declare namespace ${namespace} {`, ...payload.path, ...payload.query, ...payload.body, `${TIGHTEN}${response}`, `}`];
 
+					// 添加注释
+					const Comment = ['/**', '\n', ` * ${summary}`, '\n', ' */'].join('');
+					summary && apiListFileContent.push(Comment);
+
+					// api 请求
 					const apistr = this.writeApiListFile(content);
 					apiListFileContent.push(apistr, '\n');
 
@@ -493,7 +502,7 @@ export class PathParse {
 		}
 
 		Promise.all(Plist).then(() => {
-			apiListFileContent.unshift(`import { ${methodList.join(',')} } from './api';`, '\n');
+			apiListFileContent.unshift(`import { ${methodList.join(', ')} } from './api';`, '\n');
 			clearDir(this.config.apiListFilePath + '/index.ts').finally(() => {
 				writeFileRecursive(this.config.apiListFilePath + '/index.ts', apiListFileContent.join('\n'))
 					.then(() => {
