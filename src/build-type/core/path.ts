@@ -71,7 +71,7 @@ export class PathParse {
 
 	pathTranslantionName(path: string, method: HttpMethods): { name: string; method: string } {
 		// 补全路径
-		let completionPath = '';
+		let completionPath = path;
 		if (!path.startsWith('/')) {
 			completionPath = '/' + path;
 		}
@@ -89,7 +89,7 @@ export class PathParse {
 
 	pathTranslantionFileName(_path: string): { name: string; path: string } {
 		// 补全路径
-		let completionPath = '';
+		let completionPath = _path;
 		if (!_path.startsWith('/')) {
 			completionPath = '/' + _path;
 		}
@@ -207,6 +207,7 @@ export class PathParse {
 
 	responseHandle(response: ResponsesObject) {
 		const value = response['200'];
+		if (!value) return;
 		const responseObject = 'content' in (value as ResponseObject) ? (value as ResponseObject) : null;
 		const referenceObject = '$ref' in (value as ReferenceObject) ? (value as ReferenceObject) : null;
 

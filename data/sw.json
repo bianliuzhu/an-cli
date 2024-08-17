@@ -1,13 +1,15 @@
 {
 	"openapi": "3.0.1",
 	"info": {
-		"title": "Tesla Customer Community ----- Customer Faced Api -----",
+		"title": "",
 		"version": "v1"
 	},
 	"paths": {
 		"/api/advertisement/{id}": {
 			"get": {
-				"tags": ["Advertisement"],
+				"tags": [
+					"Advertisement"
+				],
 				"summary": "/获取广告位",
 				"parameters": [
 					{
@@ -30,7 +32,9 @@
 		},
 		"/api/article/{id}": {
 			"get": {
-				"tags": ["Article"],
+				"tags": [
+					"Article"
+				],
 				"parameters": [
 					{
 						"name": "id",
@@ -51,7 +55,9 @@
 		},
 		"/api/article/code/{code}": {
 			"get": {
-				"tags": ["Article"],
+				"tags": [
+					"Article"
+				],
 				"parameters": [
 					{
 						"name": "code",
@@ -71,7 +77,9 @@
 		},
 		"/api/article/follow": {
 			"post": {
-				"tags": ["Article"],
+				"tags": [
+					"Article"
+				],
 				"summary": "文章关注",
 				"requestBody": {
 					"content": {
@@ -116,7 +124,9 @@
 				}
 			},
 			"get": {
-				"tags": ["Article"],
+				"tags": [
+					"Article"
+				],
 				"summary": "文章关注列表",
 				"responses": {
 					"200": {
@@ -144,7 +154,9 @@
 		},
 		"/api/article/{id}/poster": {
 			"get": {
-				"tags": ["Article"],
+				"tags": [
+					"Article"
+				],
 				"parameters": [
 					{
 						"name": "id",
@@ -165,7 +177,9 @@
 		},
 		"/api/article/{id}/poster-path": {
 			"get": {
-				"tags": ["Article"],
+				"tags": [
+					"Article"
+				],
 				"parameters": [
 					{
 						"name": "id",
@@ -186,7 +200,9 @@
 		},
 		"/api/auditlog": {
 			"post": {
-				"tags": ["AuditLog"],
+				"tags": [
+					"AuditLog"
+				],
 				"requestBody": {
 					"content": {
 						"application/json": {
@@ -215,7 +231,9 @@
 		},
 		"/api/authentication/client_token": {
 			"post": {
-				"tags": ["Authentication"],
+				"tags": [
+					"Authentication"
+				],
 				"requestBody": {
 					"content": {
 						"application/json": {
@@ -244,7 +262,9 @@
 		},
 		"/api/authentication/client_refresh": {
 			"post": {
-				"tags": ["Authentication"],
+				"tags": [
+					"Authentication"
+				],
 				"parameters": [
 					{
 						"name": "authorization",
@@ -282,7 +302,9 @@
 		},
 		"/api/authentication/restore_tokens": {
 			"post": {
-				"tags": ["Authentication"],
+				"tags": [
+					"Authentication"
+				],
 				"summary": "获取令牌信息",
 				"requestBody": {
 					"content": {
@@ -329,7 +351,9 @@
 		},
 		"/api/authentication/update_tokens": {
 			"post": {
-				"tags": ["Authentication"],
+				"tags": [
+					"Authentication"
+				],
 				"summary": "保存令牌信息",
 				"requestBody": {
 					"content": {
@@ -376,7 +400,9 @@
 		},
 		"/api/authentication/wechatuserinfo": {
 			"post": {
-				"tags": ["Authentication"],
+				"tags": [
+					"Authentication"
+				],
 				"summary": "获取微信用户信息",
 				"responses": {
 					"200": {
@@ -387,7 +413,9 @@
 		},
 		"/api/authentication/logout": {
 			"post": {
-				"tags": ["Authentication"],
+				"tags": [
+					"Authentication"
+				],
 				"summary": "登出",
 				"parameters": [
 					{
@@ -424,7 +452,9 @@
 		},
 		"/api/benefits/{locationId}": {
 			"get": {
-				"tags": ["Benefits"],
+				"tags": [
+					"Benefits"
+				],
 				"summary": "超充站点下停车减免权益详情",
 				"parameters": [
 					{
@@ -463,7 +493,9 @@
 		},
 		"/api/benefits/parking/{locationId}": {
 			"get": {
-				"tags": ["Benefits"],
+				"tags": [
+					"Benefits"
+				],
 				"summary": "校验超充站点下是否存在停车减免权益",
 				"parameters": [
 					{
@@ -502,7 +534,9 @@
 		},
 		"/api/category": {
 			"get": {
-				"tags": ["Category"],
+				"tags": [
+					"Category"
+				],
 				"parameters": [
 					{
 						"name": "type",
@@ -538,7 +572,9 @@
 		},
 		"/api/chargingblindbox/poster": {
 			"get": {
-				"tags": ["ChargingBlindBox"],
+				"tags": [
+					"ChargingBlindBox"
+				],
 				"responses": {
 					"200": {
 						"description": "Success"
@@ -548,7 +584,9 @@
 		},
 		"/api/chargingblindbox/token": {
 			"post": {
-				"tags": ["ChargingBlindBox"],
+				"tags": [
+					"ChargingBlindBox"
+				],
 				"responses": {
 					"200": {
 						"description": "Success",
@@ -575,7 +613,9 @@
 		},
 		"/api/chargingblindbox/shared": {
 			"get": {
-				"tags": ["ChargingBlindBox"],
+				"tags": [
+					"ChargingBlindBox"
+				],
 				"responses": {
 					"200": {
 						"description": "Success",
@@ -602,7 +642,9 @@
 		},
 		"/api/checkifcarowner": {
 			"get": {
-				"tags": ["CheckIfCarOwner"],
+				"tags": [
+					"CheckIfCarOwner"
+				],
 				"responses": {
 					"200": {
 						"description": "Success"
@@ -612,7 +654,9 @@
 		},
 		"/api/club/list": {
 			"get": {
-				"tags": ["Club"],
+				"tags": [
+					"Club"
+				],
 				"parameters": [
 					{
 						"name": "city",
@@ -647,7 +691,9 @@
 		},
 		"/api/club/cities": {
 			"get": {
-				"tags": ["Club"],
+				"tags": [
+					"Club"
+				],
 				"responses": {
 					"200": {
 						"description": "Success"
@@ -657,7 +703,9 @@
 		},
 		"/api/club/{id}": {
 			"get": {
-				"tags": ["Club"],
+				"tags": [
+					"Club"
+				],
 				"parameters": [
 					{
 						"name": "id",
@@ -678,7 +726,9 @@
 		},
 		"/api/club/sign": {
 			"post": {
-				"tags": ["Club"],
+				"tags": [
+					"Club"
+				],
 				"parameters": [
 					{
 						"name": "authorization",
@@ -716,7 +766,9 @@
 		},
 		"/api/club/checkemail": {
 			"post": {
-				"tags": ["Club"],
+				"tags": [
+					"Club"
+				],
 				"parameters": [
 					{
 						"name": "authorization",
@@ -754,7 +806,9 @@
 		},
 		"/api/customer": {
 			"get": {
-				"tags": ["Customer"],
+				"tags": [
+					"Customer"
+				],
 				"summary": "获取用户姓名,若用户无有效token, 返回null",
 				"responses": {
 					"200": {
@@ -765,7 +819,9 @@
 		},
 		"/api/customer/carownerinfo": {
 			"get": {
-				"tags": ["Customer"],
+				"tags": [
+					"Customer"
+				],
 				"responses": {
 					"200": {
 						"description": "Success"
@@ -775,7 +831,9 @@
 		},
 		"/api/customerupload": {
 			"post": {
-				"tags": ["CustomerUpload"],
+				"tags": [
+					"CustomerUpload"
+				],
 				"requestBody": {
 					"content": {
 						"multipart/form-data": {
@@ -805,7 +863,9 @@
 		},
 		"/api/customervehicle": {
 			"get": {
-				"tags": ["CustomerVehicle"],
+				"tags": [
+					"CustomerVehicle"
+				],
 				"parameters": [
 					{
 						"name": "email",
@@ -848,7 +908,9 @@
 				}
 			},
 			"post": {
-				"tags": ["CustomerVehicle"],
+				"tags": [
+					"CustomerVehicle"
+				],
 				"requestBody": {
 					"content": {
 						"application/json": {
@@ -892,7 +954,9 @@
 				}
 			},
 			"put": {
-				"tags": ["CustomerVehicle"],
+				"tags": [
+					"CustomerVehicle"
+				],
 				"requestBody": {
 					"content": {
 						"application/json": {
@@ -938,7 +1002,9 @@
 		},
 		"/api/customervehicle/check": {
 			"post": {
-				"tags": ["CustomerVehicle"],
+				"tags": [
+					"CustomerVehicle"
+				],
 				"requestBody": {
 					"content": {
 						"application/json": {
@@ -984,7 +1050,9 @@
 		},
 		"/api/customervehicle/{vin}": {
 			"delete": {
-				"tags": ["CustomerVehicle"],
+				"tags": [
+					"CustomerVehicle"
+				],
 				"parameters": [
 					{
 						"name": "vin",
@@ -1021,7 +1089,9 @@
 		},
 		"/api/delivery/appointments": {
 			"get": {
-				"tags": ["Delivery"],
+				"tags": [
+					"Delivery"
+				],
 				"summary": "Get user valid delivery appointments",
 				"responses": {
 					"200": {
@@ -1058,7 +1128,9 @@
 		},
 		"/api/delivery/details": {
 			"get": {
-				"tags": ["Delivery"],
+				"tags": [
+					"Delivery"
+				],
 				"summary": "Get user delivery details by vmid",
 				"parameters": [
 					{
@@ -1097,7 +1169,9 @@
 		},
 		"/api/document/uploadsurveyattachment": {
 			"post": {
-				"tags": ["Document"],
+				"tags": [
+					"Document"
+				],
 				"requestBody": {
 					"content": {
 						"multipart/form-data": {
@@ -1127,7 +1201,9 @@
 		},
 		"/api/event/signedup/list": {
 			"get": {
-				"tags": ["Event"],
+				"tags": [
+					"Event"
+				],
 				"summary": "已报名的活动列表",
 				"responses": {
 					"200": {
@@ -1138,7 +1214,9 @@
 		},
 		"/api/event/follow": {
 			"get": {
-				"tags": ["Event"],
+				"tags": [
+					"Event"
+				],
 				"summary": "已关注的活动列表",
 				"responses": {
 					"200": {
@@ -1147,7 +1225,9 @@
 				}
 			},
 			"post": {
-				"tags": ["Event"],
+				"tags": [
+					"Event"
+				],
 				"summary": "用户关注活动",
 				"requestBody": {
 					"content": {
@@ -1194,7 +1274,9 @@
 		},
 		"/api/event/checkifinvited": {
 			"post": {
-				"tags": ["Event"],
+				"tags": [
+					"Event"
+				],
 				"requestBody": {
 					"content": {
 						"application/json": {
@@ -1241,7 +1323,9 @@
 		},
 		"/api/event/cancel": {
 			"post": {
-				"tags": ["Event"],
+				"tags": [
+					"Event"
+				],
 				"summary": "用户取消报名",
 				"requestBody": {
 					"content": {
@@ -1271,7 +1355,9 @@
 		},
 		"/api/event/{id}/getwechatmpsuncode/{type}": {
 			"get": {
-				"tags": ["Event"],
+				"tags": [
+					"Event"
+				],
 				"parameters": [
 					{
 						"name": "id",
@@ -1300,7 +1386,9 @@
 		},
 		"/api/event/volunteer/count": {
 			"get": {
-				"tags": ["Event"],
+				"tags": [
+					"Event"
+				],
 				"responses": {
 					"200": {
 						"description": "Success",
@@ -1327,7 +1415,9 @@
 		},
 		"/api/event/volunteer/list": {
 			"get": {
-				"tags": ["Event"],
+				"tags": [
+					"Event"
+				],
 				"parameters": [
 					{
 						"name": "pageSize",
@@ -1372,7 +1462,9 @@
 		},
 		"/api/eventpostershare/{eventId}": {
 			"get": {
-				"tags": ["EventPosterShare"],
+				"tags": [
+					"EventPosterShare"
+				],
 				"parameters": [
 					{
 						"name": "eventId",
@@ -1393,7 +1485,9 @@
 		},
 		"/api/feature/{feature}": {
 			"get": {
-				"tags": ["Feature"],
+				"tags": [
+					"Feature"
+				],
 				"parameters": [
 					{
 						"name": "feature",
@@ -1413,7 +1507,9 @@
 		},
 		"/api/form": {
 			"get": {
-				"tags": ["Form"],
+				"tags": [
+					"Form"
+				],
 				"parameters": [
 					{
 						"name": "id",
@@ -1433,7 +1529,9 @@
 		},
 		"/api/form/{code}": {
 			"get": {
-				"tags": ["Form"],
+				"tags": [
+					"Form"
+				],
 				"parameters": [
 					{
 						"name": "code",
@@ -1453,7 +1551,9 @@
 		},
 		"/api/form/customerform": {
 			"post": {
-				"tags": ["Form"],
+				"tags": [
+					"Form"
+				],
 				"requestBody": {
 					"content": {
 						"application/json": {
@@ -1482,7 +1582,9 @@
 		},
 		"/internalresource/{resourceId}": {
 			"get": {
-				"tags": ["InternalResource"],
+				"tags": [
+					"InternalResource"
+				],
 				"parameters": [
 					{
 						"name": "resourceId",
@@ -1503,7 +1605,9 @@
 		},
 		"/api/landingpage/{code}": {
 			"get": {
-				"tags": ["LandingPage"],
+				"tags": [
+					"LandingPage"
+				],
 				"parameters": [
 					{
 						"name": "code",
@@ -1530,7 +1634,9 @@
 		},
 		"/api/landingpage/{code}/event": {
 			"get": {
-				"tags": ["LandingPage"],
+				"tags": [
+					"LandingPage"
+				],
 				"parameters": [
 					{
 						"name": "code",
@@ -1587,7 +1693,9 @@
 		},
 		"/api/landingpage2/{code}": {
 			"get": {
-				"tags": ["LandingPage2"],
+				"tags": [
+					"LandingPage2"
+				],
 				"parameters": [
 					{
 						"name": "code",
@@ -1630,7 +1738,9 @@
 		},
 		"/api/landingpage2/article": {
 			"get": {
-				"tags": ["LandingPage2"],
+				"tags": [
+					"LandingPage2"
+				],
 				"parameters": [
 					{
 						"name": "pageSize",
@@ -1682,7 +1792,9 @@
 		},
 		"/api/luckydraw/{id}": {
 			"get": {
-				"tags": ["LuckyDraw"],
+				"tags": [
+					"LuckyDraw"
+				],
 				"summary": "抽奖活动详情",
 				"parameters": [
 					{
@@ -1722,7 +1834,9 @@
 		},
 		"/api/luckydraw/initial": {
 			"post": {
-				"tags": ["LuckyDraw"],
+				"tags": [
+					"LuckyDraw"
+				],
 				"summary": "初始化用户参加抽奖活动初始可获得抽奖代币数量",
 				"requestBody": {
 					"description": "",
@@ -1770,7 +1884,9 @@
 		},
 		"/api/luckydraw/{luckyDrawId}/qualification": {
 			"get": {
-				"tags": ["LuckyDraw"],
+				"tags": [
+					"LuckyDraw"
+				],
 				"summary": "获取参加抽奖活动信息",
 				"parameters": [
 					{
@@ -1818,7 +1934,9 @@
 		},
 		"/api/luckydraw/qualification": {
 			"post": {
-				"tags": ["LuckyDraw"],
+				"tags": [
+					"LuckyDraw"
+				],
 				"summary": "参加抽奖活动获取抽奖机会",
 				"requestBody": {
 					"description": "",
@@ -1866,7 +1984,9 @@
 		},
 		"/api/luckydraw/{luckyDrawId}/unusedtokens": {
 			"get": {
-				"tags": ["LuckyDraw"],
+				"tags": [
+					"LuckyDraw"
+				],
 				"summary": "获取对应抽奖活动未使用的代币信息",
 				"parameters": [
 					{
@@ -1914,7 +2034,9 @@
 		},
 		"/api/luckydraw": {
 			"post": {
-				"tags": ["LuckyDraw"],
+				"tags": [
+					"LuckyDraw"
+				],
 				"summary": "参与抽奖, 公众号授权加密字符串 和 authorization 二者必有其一",
 				"requestBody": {
 					"description": "抽奖请求信息以及公众号授权加密字符串",
@@ -1962,7 +2084,9 @@
 		},
 		"/api/luckydraw/{luckyDrawId}/winner": {
 			"get": {
-				"tags": ["LuckyDraw"],
+				"tags": [
+					"LuckyDraw"
+				],
 				"summary": "获取抽奖活动中奖奖品",
 				"parameters": [
 					{
@@ -2010,7 +2134,9 @@
 		},
 		"/api/luckydraw/info": {
 			"get": {
-				"tags": ["LuckyDraw"],
+				"tags": [
+					"LuckyDraw"
+				],
 				"summary": "根据抽奖关联资源类型Id 获取抽奖信息",
 				"parameters": [
 					{
@@ -2038,7 +2164,9 @@
 		},
 		"/api/luckydraw/mailing/{winnerId}": {
 			"post": {
-				"tags": ["LuckyDraw"],
+				"tags": [
+					"LuckyDraw"
+				],
 				"summary": "设置中奖邮寄信息",
 				"parameters": [
 					{
@@ -2098,7 +2226,9 @@
 		},
 		"/api/luckydraw/contact/{winnerId}": {
 			"post": {
-				"tags": ["LuckyDraw"],
+				"tags": [
+					"LuckyDraw"
+				],
 				"summary": "设置中奖联系信息",
 				"parameters": [
 					{
@@ -2158,7 +2288,9 @@
 		},
 		"/api/luckydraw/received/{winnerId}": {
 			"post": {
-				"tags": ["LuckyDraw"],
+				"tags": [
+					"LuckyDraw"
+				],
 				"summary": "用户奖品兑换||领取",
 				"parameters": [
 					{
@@ -2216,7 +2348,9 @@
 		},
 		"/api/merchant": {
 			"get": {
-				"tags": ["Merchant"],
+				"tags": [
+					"Merchant"
+				],
 				"summary": "商户列表",
 				"parameters": [
 					{
@@ -2283,7 +2417,9 @@
 		},
 		"/api/merchantvoucheritem/{voucherItemId}": {
 			"get": {
-				"tags": ["MerchantVoucherItem"],
+				"tags": [
+					"MerchantVoucherItem"
+				],
 				"summary": "根据卡券ID获取核销商户权益卡券详情",
 				"parameters": [
 					{
@@ -2306,7 +2442,9 @@
 		},
 		"/api/merchantvoucheritem/usedinfo/{voucherItemId}": {
 			"get": {
-				"tags": ["MerchantVoucherItem"],
+				"tags": [
+					"MerchantVoucherItem"
+				],
 				"summary": "获取核销商户权益卡券使用状态",
 				"parameters": [
 					{
@@ -2329,7 +2467,9 @@
 		},
 		"/api/merchantvoucheritem": {
 			"get": {
-				"tags": ["MerchantVoucherItem"],
+				"tags": [
+					"MerchantVoucherItem"
+				],
 				"summary": "根据CODE获取核销商户权益卡券详情",
 				"parameters": [
 					{
@@ -2350,7 +2490,9 @@
 		},
 		"/api/merchantvoucheritem/writeoff": {
 			"post": {
-				"tags": ["MerchantVoucherItem"],
+				"tags": [
+					"MerchantVoucherItem"
+				],
 				"summary": "商户权益卡券核销",
 				"parameters": [
 					{
@@ -2371,7 +2513,9 @@
 		},
 		"/api/merchantvoucheritem/getwriteoffhistory": {
 			"get": {
-				"tags": ["MerchantVoucherItem"],
+				"tags": [
+					"MerchantVoucherItem"
+				],
 				"summary": "门店商户权益核销历史",
 				"parameters": [
 					{
@@ -2419,7 +2563,9 @@
 		},
 		"/api/merchantvoucheritem/exportwriteoffhistory": {
 			"get": {
-				"tags": ["MerchantVoucherItem"],
+				"tags": [
+					"MerchantVoucherItem"
+				],
 				"parameters": [
 					{
 						"name": "from",
@@ -2447,7 +2593,9 @@
 		},
 		"/api/minicampaign/{code}": {
 			"get": {
-				"tags": ["MiniCampaign"],
+				"tags": [
+					"MiniCampaign"
+				],
 				"summary": "根据code查询MiniCampaign基本信息",
 				"parameters": [
 					{
@@ -2485,7 +2633,9 @@
 		},
 		"/api/minicampaign/{code}/{id}/page": {
 			"get": {
-				"tags": ["MiniCampaign"],
+				"tags": [
+					"MiniCampaign"
+				],
 				"summary": "根据id或code查询页面信息",
 				"parameters": [
 					{
@@ -2532,7 +2682,9 @@
 		},
 		"/api/minicampaign/{code}/layout/{type}": {
 			"get": {
-				"tags": ["MiniCampaign"],
+				"tags": [
+					"MiniCampaign"
+				],
 				"summary": "查询组件配置",
 				"parameters": [
 					{
@@ -2580,7 +2732,9 @@
 		},
 		"/api/minicampaign/{code}/channel/{channelId}": {
 			"get": {
-				"tags": ["MiniCampaign"],
+				"tags": [
+					"MiniCampaign"
+				],
 				"summary": "查询渠道名称",
 				"parameters": [
 					{
@@ -2629,7 +2783,9 @@
 		},
 		"/api/minicampaign/{code}/personal": {
 			"get": {
-				"tags": ["MiniCampaign"],
+				"tags": [
+					"MiniCampaign"
+				],
 				"summary": "个人中心",
 				"parameters": [
 					{
@@ -2667,7 +2823,9 @@
 		},
 		"/api/minicampaign/{code}/authorize": {
 			"post": {
-				"tags": ["MiniCampaign"],
+				"tags": [
+					"MiniCampaign"
+				],
 				"summary": "同意活动授权书",
 				"parameters": [
 					{
@@ -2705,7 +2863,9 @@
 		},
 		"/api/minicampaign/{code}/customer": {
 			"post": {
-				"tags": ["MiniCampaign"],
+				"tags": [
+					"MiniCampaign"
+				],
 				"summary": "添加用户信息",
 				"parameters": [
 					{
@@ -2751,7 +2911,9 @@
 		},
 		"/api/minicampaignluckydraw/{code}/{luckyDrawId}": {
 			"get": {
-				"tags": ["MiniCampaignLuckyDraw"],
+				"tags": [
+					"MiniCampaignLuckyDraw"
+				],
 				"summary": "获取抽奖活动信息",
 				"parameters": [
 					{
@@ -2800,7 +2962,9 @@
 		},
 		"/api/minicampaignluckydraw/{code}/{luckyDrawId}/unusedtokens": {
 			"get": {
-				"tags": ["MiniCampaignLuckyDraw"],
+				"tags": [
+					"MiniCampaignLuckyDraw"
+				],
 				"summary": "抽奖机会次数",
 				"parameters": [
 					{
@@ -2854,7 +3018,9 @@
 		},
 		"/api/minicampaignluckydraw/{code}/{luckyDrawId}/winners": {
 			"get": {
-				"tags": ["MiniCampaignLuckyDraw"],
+				"tags": [
+					"MiniCampaignLuckyDraw"
+				],
 				"summary": "中奖结果展示",
 				"parameters": [
 					{
@@ -2901,7 +3067,9 @@
 		},
 		"/api/minicampaignluckydraw/{code}/{luckyDrawId}/tokens": {
 			"get": {
-				"tags": ["MiniCampaignLuckyDraw"],
+				"tags": [
+					"MiniCampaignLuckyDraw"
+				],
 				"summary": "抽奖机会明细",
 				"parameters": [
 					{
@@ -2955,7 +3123,9 @@
 		},
 		"/api/minicampaignluckydraw/{code}/{layoutId}/luckydraw": {
 			"post": {
-				"tags": ["MiniCampaignLuckyDraw"],
+				"tags": [
+					"MiniCampaignLuckyDraw"
+				],
 				"summary": "抽奖",
 				"parameters": [
 					{
@@ -3021,7 +3191,9 @@
 		},
 		"/api/minicampaignluckydraw/{code}/{id}/poster": {
 			"get": {
-				"tags": ["MiniCampaignLuckyDraw"],
+				"tags": [
+					"MiniCampaignLuckyDraw"
+				],
 				"summary": "获取海报元素",
 				"parameters": [
 					{
@@ -3068,7 +3240,9 @@
 		},
 		"/api/minicampaignluckydraw/{code}/myprizes": {
 			"get": {
-				"tags": ["MiniCampaignLuckyDraw"],
+				"tags": [
+					"MiniCampaignLuckyDraw"
+				],
 				"summary": "我的奖品列表",
 				"parameters": [
 					{
@@ -3113,7 +3287,9 @@
 		},
 		"/api/minicampaignluckydraw/{code}/mailing/{winnerId}": {
 			"get": {
-				"tags": ["MiniCampaignLuckyDraw"],
+				"tags": [
+					"MiniCampaignLuckyDraw"
+				],
 				"summary": "查询奖品收货地址",
 				"parameters": [
 					{
@@ -3165,7 +3341,9 @@
 				}
 			},
 			"post": {
-				"tags": ["MiniCampaignLuckyDraw"],
+				"tags": [
+					"MiniCampaignLuckyDraw"
+				],
 				"summary": "完善奖品收货地址",
 				"parameters": [
 					{
@@ -3231,7 +3409,9 @@
 		},
 		"/api/notification/{code}": {
 			"get": {
-				"tags": ["Notification"],
+				"tags": [
+					"Notification"
+				],
 				"parameters": [
 					{
 						"name": "code",
@@ -3251,7 +3431,9 @@
 		},
 		"/api/parkingvoucher/{id}/description": {
 			"get": {
-				"tags": ["ParkingVoucher"],
+				"tags": [
+					"ParkingVoucher"
+				],
 				"summary": "获取停车减免权益描述与配置的使用说明文章配置链接 todo: 整合1",
 				"parameters": [
 					{
@@ -3291,7 +3473,9 @@
 		},
 		"/api/parkingvoucher/chargingstation/list": {
 			"get": {
-				"tags": ["ParkingVoucher"],
+				"tags": [
+					"ParkingVoucher"
+				],
 				"summary": "获取一个城市拥有权益的超充站点",
 				"parameters": [
 					{
@@ -3329,7 +3513,9 @@
 		},
 		"/api/quizbanner": {
 			"get": {
-				"tags": ["QuizBanner"],
+				"tags": [
+					"QuizBanner"
+				],
 				"summary": "获取广告列表 get advertisements for index page",
 				"parameters": [
 					{
@@ -3351,7 +3537,9 @@
 		},
 		"/api/quizposters": {
 			"get": {
-				"tags": ["QuizPosters"],
+				"tags": [
+					"QuizPosters"
+				],
 				"summary": "我的战绩",
 				"responses": {
 					"200": {
@@ -3362,7 +3550,9 @@
 		},
 		"/api/quizposters/generate": {
 			"get": {
-				"tags": ["QuizPosters"],
+				"tags": [
+					"QuizPosters"
+				],
 				"summary": "路试提交后，预生成海报，返回url或者base64",
 				"responses": {
 					"200": {
@@ -3373,7 +3563,9 @@
 		},
 		"/api/quizroadexam": {
 			"get": {
-				"tags": ["QuizRoadExam"],
+				"tags": [
+					"QuizRoadExam"
+				],
 				"summary": "获取路试题目",
 				"responses": {
 					"200": {
@@ -3382,7 +3574,9 @@
 				}
 			},
 			"post": {
-				"tags": ["QuizRoadExam"],
+				"tags": [
+					"QuizRoadExam"
+				],
 				"summary": "路试作答",
 				"requestBody": {
 					"content": {
@@ -3412,7 +3606,9 @@
 		},
 		"/api/quizroadexam/helpexam": {
 			"get": {
-				"tags": ["QuizRoadExam"],
+				"tags": [
+					"QuizRoadExam"
+				],
 				"summary": "求助好友，获取求助Id",
 				"responses": {
 					"200": {
@@ -3423,7 +3619,9 @@
 		},
 		"/api/quizroadexam/helpexamstatus": {
 			"get": {
-				"tags": ["QuizRoadExam"],
+				"tags": [
+					"QuizRoadExam"
+				],
 				"summary": "轮询求助状态",
 				"parameters": [
 					{
@@ -3444,7 +3642,9 @@
 		},
 		"/api/quizroadexam/helpabandon": {
 			"post": {
-				"tags": ["QuizRoadExam"],
+				"tags": [
+					"QuizRoadExam"
+				],
 				"summary": "放弃求助",
 				"responses": {
 					"200": {
@@ -3455,7 +3655,9 @@
 		},
 		"/api/quizroadexam/helpexamquestion": {
 			"get": {
-				"tags": ["QuizRoadExam"],
+				"tags": [
+					"QuizRoadExam"
+				],
 				"summary": "获取求助题目信息",
 				"parameters": [
 					{
@@ -3476,7 +3678,9 @@
 		},
 		"/api/quizroadexam/helpexamsubmit": {
 			"post": {
-				"tags": ["QuizRoadExam"],
+				"tags": [
+					"QuizRoadExam"
+				],
 				"summary": "路试助力作答",
 				"requestBody": {
 					"content": {
@@ -3506,7 +3710,9 @@
 		},
 		"/api/quizusers": {
 			"post": {
-				"tags": ["QuizUsers"],
+				"tags": [
+					"QuizUsers"
+				],
 				"summary": "添加用户信息 verify identity string and signature, if passed, create a new user.",
 				"parameters": [
 					{
@@ -3548,7 +3754,9 @@
 		},
 		"/api/quizusers/activityauthorize": {
 			"post": {
-				"tags": ["QuizUsers"],
+				"tags": [
+					"QuizUsers"
+				],
 				"summary": "用户同意活动授权书",
 				"responses": {
 					"200": {
@@ -3559,7 +3767,9 @@
 		},
 		"/api/quizusers/examstatus": {
 			"get": {
-				"tags": ["QuizUsers"],
+				"tags": [
+					"QuizUsers"
+				],
 				"summary": "获取当前用户笔试及路试状态",
 				"responses": {
 					"200": {
@@ -3570,7 +3780,9 @@
 		},
 		"/api/quizwrittenexam": {
 			"get": {
-				"tags": ["QuizWrittenExam"],
+				"tags": [
+					"QuizWrittenExam"
+				],
 				"summary": "获取笔试题目",
 				"responses": {
 					"200": {
@@ -3579,7 +3791,9 @@
 				}
 			},
 			"post": {
-				"tags": ["QuizWrittenExam"],
+				"tags": [
+					"QuizWrittenExam"
+				],
 				"summary": "笔试作答",
 				"requestBody": {
 					"content": {
@@ -3609,7 +3823,9 @@
 		},
 		"/api/referral/poster/{bgIndex}": {
 			"post": {
-				"tags": ["Referral"],
+				"tags": [
+					"Referral"
+				],
 				"parameters": [
 					{
 						"name": "bgIndex",
@@ -3630,7 +3846,9 @@
 		},
 		"/api/referral/{refererCode}": {
 			"get": {
-				"tags": ["Referral"],
+				"tags": [
+					"Referral"
+				],
 				"parameters": [
 					{
 						"name": "refererCode",
@@ -3667,7 +3885,9 @@
 		},
 		"/api/serviceoperator": {
 			"get": {
-				"tags": ["ServiceOperator"],
+				"tags": [
+					"ServiceOperator"
+				],
 				"responses": {
 					"200": {
 						"description": "Success"
@@ -3677,7 +3897,9 @@
 		},
 		"/api/share/event/{id}": {
 			"get": {
-				"tags": ["Share"],
+				"tags": [
+					"Share"
+				],
 				"parameters": [
 					{
 						"name": "id",
@@ -3713,7 +3935,9 @@
 		},
 		"/api/share/event/code/{code}": {
 			"get": {
-				"tags": ["Share"],
+				"tags": [
+					"Share"
+				],
 				"parameters": [
 					{
 						"name": "code",
@@ -3748,7 +3972,9 @@
 		},
 		"/api/share/event/shortcode/{code}": {
 			"get": {
-				"tags": ["Share"],
+				"tags": [
+					"Share"
+				],
 				"parameters": [
 					{
 						"name": "code",
@@ -3768,7 +3994,9 @@
 		},
 		"/api/share/sign": {
 			"post": {
-				"tags": ["Share"],
+				"tags": [
+					"Share"
+				],
 				"summary": "活动报名",
 				"requestBody": {
 					"description": "",
@@ -3816,7 +4044,9 @@
 		},
 		"/api/share/offlinesignup/{offlineCode}": {
 			"post": {
-				"tags": ["Share"],
+				"tags": [
+					"Share"
+				],
 				"summary": "活动线下报名",
 				"parameters": [
 					{
@@ -3875,7 +4105,9 @@
 		},
 		"/api/share/quicksignup": {
 			"post": {
-				"tags": ["Share"],
+				"tags": [
+					"Share"
+				],
 				"summary": "太阳码快速报名（支持八位和六位）",
 				"requestBody": {
 					"content": {
@@ -3905,7 +4137,9 @@
 		},
 		"/api/share/signin": {
 			"post": {
-				"tags": ["Share"],
+				"tags": [
+					"Share"
+				],
 				"summary": "客户签到\r\ntodo 目前参数走query 后续对接统一Request body",
 				"requestBody": {
 					"content": {
@@ -3935,7 +4169,9 @@
 		},
 		"/api/share/hassignedin/{eventId}": {
 			"get": {
-				"tags": ["Share"],
+				"tags": [
+					"Share"
+				],
 				"summary": "获取是否有待签到活动",
 				"parameters": [
 					{
@@ -3958,7 +4194,9 @@
 		},
 		"/api/share/signupstatus/{eventId}": {
 			"get": {
-				"tags": ["Share"],
+				"tags": [
+					"Share"
+				],
 				"summary": "校验活动报名人数获取是否还可以报名",
 				"parameters": [
 					{
@@ -3981,7 +4219,9 @@
 		},
 		"/api/share/sign-survey": {
 			"post": {
-				"tags": ["Share"],
+				"tags": [
+					"Share"
+				],
 				"requestBody": {
 					"content": {
 						"application/json": {
@@ -4027,7 +4267,9 @@
 		},
 		"/api/share/offlinesignup-survey/{offlineCode}": {
 			"post": {
-				"tags": ["Share"],
+				"tags": [
+					"Share"
+				],
 				"parameters": [
 					{
 						"name": "offlineCode",
@@ -4083,7 +4325,9 @@
 		},
 		"/api/special/{id}": {
 			"get": {
-				"tags": ["Special"],
+				"tags": [
+					"Special"
+				],
 				"parameters": [
 					{
 						"name": "id",
@@ -4104,7 +4348,9 @@
 		},
 		"/api/special/popular": {
 			"get": {
-				"tags": ["Special"],
+				"tags": [
+					"Special"
+				],
 				"responses": {
 					"200": {
 						"description": "Success"
@@ -4114,7 +4360,9 @@
 		},
 		"/api/springfestival/{code}/authorize": {
 			"post": {
-				"tags": ["SpringFestival"],
+				"tags": [
+					"SpringFestival"
+				],
 				"summary": "春节活动同意活动授权数添加抽奖机会",
 				"parameters": [
 					{
@@ -4152,7 +4400,9 @@
 		},
 		"/api/springfestival/{code}/customerform": {
 			"post": {
-				"tags": ["SpringFestival"],
+				"tags": [
+					"SpringFestival"
+				],
 				"summary": "预约试驾表单提交,0没有添加机会，1添加抽奖机会",
 				"parameters": [
 					{
@@ -4209,7 +4459,9 @@
 		},
 		"/api/springfestival/{code}/promise/location": {
 			"post": {
-				"tags": ["SpringFestival"],
+				"tags": [
+					"SpringFestival"
+				],
 				"summary": "是否在许愿范围内",
 				"parameters": [
 					{
@@ -4266,7 +4518,9 @@
 		},
 		"/api/springfestival/{code}/promises": {
 			"get": {
-				"tags": ["SpringFestival"],
+				"tags": [
+					"SpringFestival"
+				],
 				"summary": "许愿记录",
 				"parameters": [
 					{
@@ -4302,7 +4556,9 @@
 				}
 			},
 			"post": {
-				"tags": ["SpringFestival"],
+				"tags": [
+					"SpringFestival"
+				],
 				"summary": "许愿",
 				"parameters": [
 					{
@@ -4359,7 +4615,9 @@
 		},
 		"/api/springfestival/{code}/tokens": {
 			"get": {
-				"tags": ["SpringFestival"],
+				"tags": [
+					"SpringFestival"
+				],
 				"summary": "查询试驾/投稿/打卡抽奖次数",
 				"parameters": [
 					{
@@ -4397,7 +4655,9 @@
 		},
 		"/api/springfestival/{code}/promise/{id}/poster": {
 			"post": {
-				"tags": ["SpringFestival"],
+				"tags": [
+					"SpringFestival"
+				],
 				"summary": "获取海报元素,返回体验店/服务中心，昵称，二维码url",
 				"parameters": [
 					{
@@ -4444,7 +4704,9 @@
 		},
 		"/api/survey/{id}": {
 			"get": {
-				"tags": ["Survey"],
+				"tags": [
+					"Survey"
+				],
 				"parameters": [
 					{
 						"name": "id",
@@ -4473,7 +4735,9 @@
 		},
 		"/api/survey/getsurveybycode/{code}": {
 			"get": {
-				"tags": ["Survey"],
+				"tags": [
+					"Survey"
+				],
 				"parameters": [
 					{
 						"name": "code",
@@ -4493,7 +4757,9 @@
 		},
 		"/api/survey/targeted/{code}": {
 			"get": {
-				"tags": ["Survey"],
+				"tags": [
+					"Survey"
+				],
 				"parameters": [
 					{
 						"name": "code",
@@ -4513,7 +4779,9 @@
 		},
 		"/api/survey/customersurvey": {
 			"post": {
-				"tags": ["Survey"],
+				"tags": [
+					"Survey"
+				],
 				"requestBody": {
 					"content": {
 						"application/json": {
@@ -4542,7 +4810,9 @@
 		},
 		"/api/survey/answer/{customerSurveyId}": {
 			"get": {
-				"tags": ["Survey"],
+				"tags": [
+					"Survey"
+				],
 				"parameters": [
 					{
 						"name": "customerSurveyId",
@@ -4580,7 +4850,9 @@
 		},
 		"/api/survey/vote/statistics/{surveyId}": {
 			"get": {
-				"tags": ["Survey"],
+				"tags": [
+					"Survey"
+				],
 				"parameters": [
 					{
 						"name": "surveyId",
@@ -4618,7 +4890,9 @@
 		},
 		"/api/toclocalassistant/cities": {
 			"get": {
-				"tags": ["TocLocalAssistant"],
+				"tags": [
+					"TocLocalAssistant"
+				],
 				"parameters": [
 					{
 						"name": "city",
@@ -4654,7 +4928,9 @@
 		},
 		"/api/toclocalassistant/{id}": {
 			"get": {
-				"tags": ["TocLocalAssistant"],
+				"tags": [
+					"TocLocalAssistant"
+				],
 				"parameters": [
 					{
 						"name": "id",
@@ -4692,7 +4968,9 @@
 		},
 		"/api/tocmember": {
 			"post": {
-				"tags": ["TocMember"],
+				"tags": [
+					"TocMember"
+				],
 				"summary": "添加会员",
 				"requestBody": {
 					"content": {
@@ -4737,7 +5015,9 @@
 				}
 			},
 			"delete": {
-				"tags": ["TocMember"],
+				"tags": [
+					"TocMember"
+				],
 				"summary": "移除会员身份",
 				"responses": {
 					"200": {
@@ -4763,7 +5043,9 @@
 				}
 			},
 			"get": {
-				"tags": ["TocMember"],
+				"tags": [
+					"TocMember"
+				],
 				"summary": "获取当前会员信息",
 				"responses": {
 					"200": {
@@ -4791,7 +5073,9 @@
 		},
 		"/api/tocmember/reasons": {
 			"post": {
-				"tags": ["TocMember"],
+				"tags": [
+					"TocMember"
+				],
 				"summary": "退出原因",
 				"requestBody": {
 					"content": {
@@ -4832,7 +5116,9 @@
 		},
 		"/api/treasure/customerconsent": {
 			"post": {
-				"tags": ["Treasure"],
+				"tags": [
+					"Treasure"
+				],
 				"summary": "知晓并同意活动规则",
 				"responses": {
 					"200": {
@@ -4858,7 +5144,9 @@
 				}
 			},
 			"get": {
-				"tags": ["Treasure"],
+				"tags": [
+					"Treasure"
+				],
 				"summary": "获取用户是否已知晓并同意活动规则",
 				"responses": {
 					"200": {
@@ -4886,7 +5174,9 @@
 		},
 		"/api/treasure/getreferralandloyaltytoken": {
 			"get": {
-				"tags": ["Treasure"],
+				"tags": [
+					"Treasure"
+				],
 				"summary": "获取用户引荐复购次数并更新抽奖次数",
 				"responses": {
 					"200": {
@@ -4914,7 +5204,9 @@
 		},
 		"/api/trtlocation/bodyshop": {
 			"get": {
-				"tags": ["TrtLocation"],
+				"tags": [
+					"TrtLocation"
+				],
 				"responses": {
 					"200": {
 						"description": "Success"
@@ -4924,7 +5216,9 @@
 		},
 		"/api/trtlocation/store": {
 			"get": {
-				"tags": ["TrtLocation"],
+				"tags": [
+					"TrtLocation"
+				],
 				"responses": {
 					"200": {
 						"description": "Success"
@@ -4934,7 +5228,9 @@
 		},
 		"/api/trtlocation/service": {
 			"get": {
-				"tags": ["TrtLocation"],
+				"tags": [
+					"TrtLocation"
+				],
 				"responses": {
 					"200": {
 						"description": "Success"
@@ -4944,7 +5240,9 @@
 		},
 		"/api/trtlocation/delivery": {
 			"get": {
-				"tags": ["TrtLocation"],
+				"tags": [
+					"TrtLocation"
+				],
 				"responses": {
 					"200": {
 						"description": "Success",
@@ -4971,7 +5269,9 @@
 		},
 		"/api/url": {
 			"get": {
-				"tags": ["Url"],
+				"tags": [
+					"Url"
+				],
 				"parameters": [
 					{
 						"name": "shortUrl",
@@ -4990,7 +5290,9 @@
 		},
 		"/api/userpost/{code}/{id}": {
 			"get": {
-				"tags": ["UserPost"],
+				"tags": [
+					"UserPost"
+				],
 				"summary": "获取投稿组件基本信息(广告滚动条、是否开启点赞、是否显示加精等)",
 				"parameters": [
 					{
@@ -5038,7 +5340,9 @@
 		},
 		"/api/userpost/{code}/{id}/posts": {
 			"get": {
-				"tags": ["UserPost"],
+				"tags": [
+					"UserPost"
+				],
 				"summary": "瀑布流分页列表",
 				"parameters": [
 					{
@@ -5130,7 +5434,9 @@
 		},
 		"/api/userpost/{code}/{id}/details": {
 			"get": {
-				"tags": ["UserPost"],
+				"tags": [
+					"UserPost"
+				],
 				"summary": "投稿详情",
 				"parameters": [
 					{
@@ -5184,7 +5490,9 @@
 		},
 		"/api/userpost/{code}/{id}/like": {
 			"post": {
-				"tags": ["UserPost"],
+				"tags": [
+					"UserPost"
+				],
 				"summary": "点赞",
 				"parameters": [
 					{
@@ -5238,7 +5546,9 @@
 		},
 		"/api/userpost/{code}/{id}/unlike": {
 			"post": {
-				"tags": ["UserPost"],
+				"tags": [
+					"UserPost"
+				],
 				"summary": "取消点赞",
 				"parameters": [
 					{
@@ -5292,7 +5602,9 @@
 		},
 		"/api/userpost/{code}/{id}/tag": {
 			"get": {
-				"tags": ["UserPost"],
+				"tags": [
+					"UserPost"
+				],
 				"summary": "获取投稿标签",
 				"parameters": [
 					{
@@ -5340,7 +5652,9 @@
 		},
 		"/api/userpost/{code}/{id}/category": {
 			"get": {
-				"tags": ["UserPost"],
+				"tags": [
+					"UserPost"
+				],
 				"summary": "获取投稿分类",
 				"parameters": [
 					{
@@ -5388,7 +5702,9 @@
 		},
 		"/api/userpost/{code}": {
 			"post": {
-				"tags": ["UserPost"],
+				"tags": [
+					"UserPost"
+				],
 				"summary": "发布投稿",
 				"parameters": [
 					{
@@ -5404,7 +5720,11 @@
 					"content": {
 						"multipart/form-data": {
 							"schema": {
-								"required": ["Content", "files", "Id"],
+								"required": [
+									"Content",
+									"files",
+									"Id"
+								],
 								"type": "object",
 								"properties": {
 									"Id": {
@@ -5493,7 +5813,9 @@
 		},
 		"/api/userpost/{code}/myposts": {
 			"get": {
-				"tags": ["UserPost"],
+				"tags": [
+					"UserPost"
+				],
 				"summary": "我的投稿",
 				"parameters": [
 					{
@@ -5538,7 +5860,9 @@
 		},
 		"/api/userpost/{code}/{id}/poster/{index}": {
 			"get": {
-				"tags": ["UserPost"],
+				"tags": [
+					"UserPost"
+				],
 				"summary": "获取海报元素",
 				"parameters": [
 					{
@@ -5594,7 +5918,9 @@
 		},
 		"/api/vconsolewhitelist": {
 			"get": {
-				"tags": ["VConsoleWhiteList"],
+				"tags": [
+					"VConsoleWhiteList"
+				],
 				"responses": {
 					"200": {
 						"description": "Success",
@@ -5621,7 +5947,9 @@
 		},
 		"/api/videos/categories": {
 			"get": {
-				"tags": ["Videos"],
+				"tags": [
+					"Videos"
+				],
 				"summary": "视频分类",
 				"responses": {
 					"200": {
@@ -5649,7 +5977,9 @@
 		},
 		"/api/videos/categories/{vehicleType}": {
 			"get": {
-				"tags": ["Videos"],
+				"tags": [
+					"Videos"
+				],
 				"summary": "车型下有视频的分类",
 				"parameters": [
 					{
@@ -5687,7 +6017,9 @@
 		},
 		"/api/videos/popular": {
 			"get": {
-				"tags": ["Videos"],
+				"tags": [
+					"Videos"
+				],
 				"summary": "热门视频",
 				"responses": {
 					"200": {
@@ -5715,7 +6047,9 @@
 		},
 		"/api/videos/list": {
 			"get": {
-				"tags": ["Videos"],
+				"tags": [
+					"Videos"
+				],
 				"summary": "视频列表",
 				"parameters": [
 					{
@@ -5783,7 +6117,9 @@
 		},
 		"/api/videos/recommended": {
 			"get": {
-				"tags": ["Videos"],
+				"tags": [
+					"Videos"
+				],
 				"summary": "推荐视频",
 				"parameters": [
 					{
@@ -5822,7 +6158,9 @@
 		},
 		"/api/videos/{id}": {
 			"get": {
-				"tags": ["Videos"],
+				"tags": [
+					"Videos"
+				],
 				"summary": "视频详情",
 				"parameters": [
 					{
@@ -5862,7 +6200,9 @@
 		},
 		"/api/voucher/{voucherId}/shopgroups": {
 			"get": {
-				"tags": ["Voucher"],
+				"tags": [
+					"Voucher"
+				],
 				"summary": "官方权益卡券适用门店城市列表",
 				"parameters": [
 					{
@@ -5902,7 +6242,9 @@
 		},
 		"/api/voucher/{voucherId}/shops": {
 			"get": {
-				"tags": ["Voucher"],
+				"tags": [
+					"Voucher"
+				],
 				"summary": "官方权益卡券适用门店列表",
 				"parameters": [
 					{
@@ -5959,7 +6301,9 @@
 		},
 		"/api/voucher/{voucherId}/claim": {
 			"get": {
-				"tags": ["Voucher"],
+				"tags": [
+					"Voucher"
+				],
 				"summary": "商户权益卡券领取",
 				"parameters": [
 					{
@@ -5999,7 +6343,9 @@
 		},
 		"/api/voucher/{voucherId}/merchant": {
 			"get": {
-				"tags": ["Voucher"],
+				"tags": [
+					"Voucher"
+				],
 				"summary": "商户权益卡券适用商户",
 				"parameters": [
 					{
@@ -6039,7 +6385,9 @@
 		},
 		"/api/voucheritem": {
 			"get": {
-				"tags": ["VoucherItem"],
+				"tags": [
+					"VoucherItem"
+				],
 				"summary": "钣喷中心可核销VIN官方权益卡券列表",
 				"parameters": [
 					{
@@ -6060,7 +6408,9 @@
 		},
 		"/api/voucheritem/writeoff": {
 			"post": {
-				"tags": ["VoucherItem"],
+				"tags": [
+					"VoucherItem"
+				],
 				"summary": "官方权益卡券核销",
 				"requestBody": {
 					"description": "",
@@ -6100,7 +6450,9 @@
 		},
 		"/api/voucherpackage/{id}": {
 			"get": {
-				"tags": ["VoucherPackage"],
+				"tags": [
+					"VoucherPackage"
+				],
 				"summary": "官方权益详情\r\n获取官方权益详情及适用门店信息 todo: 整合1",
 				"parameters": [
 					{
@@ -6123,7 +6475,9 @@
 		},
 		"/api/voucherpackage/voucheritems": {
 			"get": {
-				"tags": ["VoucherPackage"],
+				"tags": [
+					"VoucherPackage"
+				],
 				"summary": "个人中心卡券列表",
 				"parameters": [
 					{
@@ -6187,7 +6541,9 @@
 		},
 		"/api/voucherpackage/merchant/{id}": {
 			"get": {
-				"tags": ["VoucherPackage"],
+				"tags": [
+					"VoucherPackage"
+				],
 				"summary": "根据Id获取商户权益详情\r\n商户权益详情 todo: 整合1",
 				"parameters": [
 					{
@@ -6226,7 +6582,9 @@
 		},
 		"/api/voucherpackage/merchant/code/{code}": {
 			"get": {
-				"tags": ["VoucherPackage"],
+				"tags": [
+					"VoucherPackage"
+				],
 				"summary": "根据Code获取商户权益详情",
 				"parameters": [
 					{
@@ -6264,7 +6622,9 @@
 		},
 		"/api/voucherpackage/merchant/{id}/wechatmpsuncode": {
 			"get": {
-				"tags": ["VoucherPackage"],
+				"tags": [
+					"VoucherPackage"
+				],
 				"summary": "获取权益微信小程序太阳码",
 				"parameters": [
 					{
@@ -6287,7 +6647,9 @@
 		},
 		"/api/voucherpackage/merchant/cities": {
 			"get": {
-				"tags": ["VoucherPackage"],
+				"tags": [
+					"VoucherPackage"
+				],
 				"summary": "商户权益下城市列表",
 				"parameters": [
 					{
@@ -6324,7 +6686,9 @@
 		},
 		"/api/voucherpackage/merchant": {
 			"get": {
-				"tags": ["VoucherPackage"],
+				"tags": [
+					"VoucherPackage"
+				],
 				"summary": "商户权益/停车减免权益 列表",
 				"parameters": [
 					{
@@ -6413,7 +6777,9 @@
 		},
 		"/api/voucherpackage/voucherclaim": {
 			"post": {
-				"tags": ["VoucherPackage"],
+				"tags": [
+					"VoucherPackage"
+				],
 				"summary": "商户_官方俱乐部权益保存领取记录",
 				"parameters": [
 					{
@@ -6452,7 +6818,9 @@
 		},
 		"/api/voucherpackagelocation/{voucherPackageId}": {
 			"get": {
-				"tags": ["VoucherPackageLocation"],
+				"tags": [
+					"VoucherPackageLocation"
+				],
 				"summary": "官方权益门店列表",
 				"parameters": [
 					{
@@ -6509,7 +6877,9 @@
 		},
 		"/api/voucherpackagelocation/group/{voucherPackageId}": {
 			"get": {
-				"tags": ["VoucherPackageLocation"],
+				"tags": [
+					"VoucherPackageLocation"
+				],
 				"summary": "官方权益门店城市列表",
 				"parameters": [
 					{
@@ -6549,7 +6919,9 @@
 		},
 		"/api/wechatauth": {
 			"get": {
-				"tags": ["WechatAuth"],
+				"tags": [
+					"WechatAuth"
+				],
 				"responses": {
 					"200": {
 						"description": "Success"
@@ -6559,7 +6931,9 @@
 		},
 		"/yeihughiuu.txt": {
 			"get": {
-				"tags": ["ZBizDomain"],
+				"tags": [
+					"ZBizDomain"
+				],
 				"responses": {
 					"200": {
 						"description": "Success"
@@ -6569,7 +6943,9 @@
 		},
 		"/03fc1txmdn.txt": {
 			"get": {
-				"tags": ["ZBizDomain"],
+				"tags": [
+					"ZBizDomain"
+				],
 				"responses": {
 					"200": {
 						"description": "Success"
@@ -6579,7 +6955,9 @@
 		},
 		"/kxhdzjcamk.txt": {
 			"get": {
-				"tags": ["ZBizDomain"],
+				"tags": [
+					"ZBizDomain"
+				],
 				"responses": {
 					"200": {
 						"description": "Success"
@@ -6589,7 +6967,9 @@
 		},
 		"/rywfuqdztr.txt": {
 			"get": {
-				"tags": ["ZBizDomain"],
+				"tags": [
+					"ZBizDomain"
+				],
 				"responses": {
 					"200": {
 						"description": "Success"
@@ -6599,7 +6979,9 @@
 		},
 		"/xuycvqdus5.txt": {
 			"get": {
-				"tags": ["ZBizDomain"],
+				"tags": [
+					"ZBizDomain"
+				],
 				"responses": {
 					"200": {
 						"description": "Success"
@@ -6609,7 +6991,9 @@
 		},
 		"/ajathxd1oa.txt": {
 			"get": {
-				"tags": ["ZBizDomain"],
+				"tags": [
+					"ZBizDomain"
+				],
 				"responses": {
 					"200": {
 						"description": "Success"
@@ -6644,7 +7028,9 @@
 				"additionalProperties": false
 			},
 			"ArticleFollowByCustomerDto": {
-				"required": ["articleId"],
+				"required": [
+					"articleId"
+				],
 				"type": "object",
 				"properties": {
 					"articleId": {
@@ -6672,17 +7058,26 @@
 				"additionalProperties": false
 			},
 			"BenefitAttribute": {
-				"enum": [1, 2, 4],
+				"enum": [
+					1,
+					2,
+					4
+				],
 				"type": "integer",
 				"format": "int32"
 			},
 			"ClientTypeEnum": {
-				"enum": [0, 1],
+				"enum": [
+					0,
+					1
+				],
 				"type": "integer",
 				"format": "int32"
 			},
 			"ClubSignEmailInputDto": {
-				"required": ["clubId"],
+				"required": [
+					"clubId"
+				],
 				"type": "object",
 				"properties": {
 					"clubId": {
@@ -6700,7 +7095,9 @@
 				"additionalProperties": false
 			},
 			"ClubSignInputDto": {
-				"required": ["clubId"],
+				"required": [
+					"clubId"
+				],
 				"type": "object",
 				"properties": {
 					"clubId": {
@@ -6724,7 +7121,12 @@
 				"additionalProperties": false
 			},
 			"CustomerFormSubmitDto": {
-				"required": ["code", "content", "id", "version"],
+				"required": [
+					"code",
+					"content",
+					"id",
+					"version"
+				],
 				"type": "object",
 				"properties": {
 					"id": {
@@ -6911,7 +7313,11 @@
 				"additionalProperties": false
 			},
 			"DeliveryCustomerTypeDTO": {
-				"enum": ["CUSTOMER_A", "CUSTOMER_B", "CUSTOMER_C"],
+				"enum": [
+					"CUSTOMER_A",
+					"CUSTOMER_B",
+					"CUSTOMER_C"
+				],
 				"type": "string"
 			},
 			"DeliveryDTO": {
@@ -7017,7 +7423,12 @@
 				"additionalProperties": false
 			},
 			"DeliveryStatusDTO": {
-				"enum": ["NONE", "PENDING", "COMPLETED", "PROCESSING"],
+				"enum": [
+					"NONE",
+					"PENDING",
+					"COMPLETED",
+					"PROCESSING"
+				],
 				"type": "string"
 			},
 			"DeliveryTemporaryLicenseDTO": {
@@ -7042,7 +7453,10 @@
 				"additionalProperties": false
 			},
 			"DictType": {
-				"enum": [1, 2],
+				"enum": [
+					1,
+					2
+				],
 				"type": "integer",
 				"format": "int32"
 			},
@@ -7062,7 +7476,9 @@
 				"additionalProperties": false
 			},
 			"EventCancelByCustomerDto": {
-				"required": ["eventId"],
+				"required": [
+					"eventId"
+				],
 				"type": "object",
 				"properties": {
 					"eventId": {
@@ -7073,7 +7489,9 @@
 				"additionalProperties": false
 			},
 			"EventFollowByCustomerDto": {
-				"required": ["eventId"],
+				"required": [
+					"eventId"
+				],
 				"type": "object",
 				"properties": {
 					"eventId": {
@@ -7087,7 +7505,11 @@
 				"additionalProperties": false
 			},
 			"EventQuickSignUpDto": {
-				"required": ["eventId", "lastName", "mobilePhone"],
+				"required": [
+					"eventId",
+					"lastName",
+					"mobilePhone"
+				],
 				"type": "object",
 				"properties": {
 					"signUpChannel": {
@@ -7185,7 +7607,9 @@
 				"additionalProperties": false
 			},
 			"EventSiginupVerifyInviteeDto": {
-				"required": ["eventId"],
+				"required": [
+					"eventId"
+				],
 				"type": "object",
 				"properties": {
 					"email": {
@@ -7204,7 +7628,9 @@
 				"additionalProperties": false
 			},
 			"EventSignInDto": {
-				"required": ["eventId"],
+				"required": [
+					"eventId"
+				],
 				"type": "object",
 				"properties": {
 					"signUpChannel": {
@@ -7242,7 +7668,11 @@
 				"additionalProperties": false
 			},
 			"EventSignUpPostDto": {
-				"required": ["eventId", "lastName", "mobilePhone"],
+				"required": [
+					"eventId",
+					"lastName",
+					"mobilePhone"
+				],
 				"type": "object",
 				"properties": {
 					"signUpChannel": {
@@ -7348,7 +7778,10 @@
 				"additionalProperties": false
 			},
 			"EventSignWithSurveyDto": {
-				"required": ["customerSurvey", "eventSignup"],
+				"required": [
+					"customerSurvey",
+					"eventSignup"
+				],
 				"type": "object",
 				"properties": {
 					"eventSignup": {
@@ -7388,7 +7821,10 @@
 				"additionalProperties": false
 			},
 			"ExamAnswerInputDto": {
-				"required": ["answerId", "questionId"],
+				"required": [
+					"answerId",
+					"questionId"
+				],
 				"type": "object",
 				"properties": {
 					"questionId": {
@@ -7403,12 +7839,19 @@
 				"additionalProperties": false
 			},
 			"GrantType": {
-				"enum": [0, 1, 2, 3],
+				"enum": [
+					0,
+					1,
+					2,
+					3
+				],
 				"type": "integer",
 				"format": "int32"
 			},
 			"LandingPageRequestEventType": {
-				"enum": [1],
+				"enum": [
+					1
+				],
 				"type": "integer",
 				"format": "int32"
 			},
@@ -7466,7 +7909,10 @@
 				"additionalProperties": false
 			},
 			"LuckyDrawWinnerContactInputDto": {
-				"required": ["consignee", "telephone"],
+				"required": [
+					"consignee",
+					"telephone"
+				],
 				"type": "object",
 				"properties": {
 					"identityType": {
@@ -7616,7 +8062,10 @@
 				"additionalProperties": false
 			},
 			"RoadExamHelpInputDto": {
-				"required": ["answerId", "helpId"],
+				"required": [
+					"answerId",
+					"helpId"
+				],
 				"type": "object",
 				"properties": {
 					"helpId": {
@@ -7631,12 +8080,21 @@
 				"additionalProperties": false
 			},
 			"SignUpChannel": {
-				"enum": [0, 1, 2, 3],
+				"enum": [
+					0,
+					1,
+					2,
+					3
+				],
 				"type": "integer",
 				"format": "int32"
 			},
 			"SourceType": {
-				"enum": [0, 1, 2],
+				"enum": [
+					0,
+					1,
+					2
+				],
 				"type": "integer",
 				"format": "int32"
 			},
@@ -7729,22 +8187,41 @@
 				"additionalProperties": false
 			},
 			"Type": {
-				"enum": [0, 1, 2, 3, 4, 5, 6, 7],
+				"enum": [
+					0,
+					1,
+					2,
+					3,
+					4,
+					5,
+					6,
+					7
+				],
 				"type": "integer",
 				"format": "int32"
 			},
 			"UseType": {
-				"enum": [0, 1, 2],
+				"enum": [
+					0,
+					1,
+					2
+				],
 				"type": "integer",
 				"format": "int32"
 			},
 			"UserIdentityType": {
-				"enum": [0, 1],
+				"enum": [
+					0,
+					1
+				],
 				"type": "integer",
 				"format": "int32"
 			},
 			"UserTokensDto": {
-				"required": ["identity", "sign"],
+				"required": [
+					"identity",
+					"sign"
+				],
 				"type": "object",
 				"properties": {
 					"access_token": {
@@ -7922,22 +8399,37 @@
 				"additionalProperties": false
 			},
 			"VoucherItemUseType": {
-				"enum": [0, 1, 2],
+				"enum": [
+					0,
+					1,
+					2
+				],
 				"type": "integer",
 				"format": "int32"
 			},
 			"VoucherPackageCategory": {
-				"enum": [0, 1, 2, 3],
+				"enum": [
+					0,
+					1,
+					2,
+					3
+				],
 				"type": "integer",
 				"format": "int32"
 			},
 			"VoucherPackageType": {
-				"enum": [0, 1],
+				"enum": [
+					0,
+					1
+				],
 				"type": "integer",
 				"format": "int32"
 			},
 			"WeChatAppClientCode": {
-				"required": ["identity", "sign"],
+				"required": [
+					"identity",
+					"sign"
+				],
 				"type": "object",
 				"properties": {
 					"clientId": {
@@ -7969,7 +8461,24 @@
 				"additionalProperties": false
 			},
 			"WechatShareCodeTargetType": {
-				"enum": [1, 2, 3, 4, 5, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17],
+				"enum": [
+					1,
+					2,
+					3,
+					4,
+					5,
+					7,
+					8,
+					9,
+					10,
+					11,
+					12,
+					13,
+					14,
+					15,
+					16,
+					17
+				],
 				"type": "integer",
 				"format": "int32"
 			}
@@ -7977,7 +8486,7 @@
 		"securitySchemes": {
 			"Bearer": {
 				"type": "apiKey",
-				"description": "JWT Authorization header using the Bearer scheme. \\r\\n\\r\\n\n                      Enter 'Bearer' [space] and then your token in the text input below.\n                      \\r\\n\\r\\nExample: 'Bearer 12345abcdef'",
+				"description": "",
 				"name": "Authorization",
 				"in": "header"
 			}

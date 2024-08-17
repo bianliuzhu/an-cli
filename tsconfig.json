@@ -1,7 +1,9 @@
 {
 	"compilerOptions": {
 		"rootDir": "./",
-		"types": ["node"],
+		"types": [
+			"node"
+		],
 		"target": "ESNext",
 		"module": "CommonJS",
 		"declaration": false,
@@ -9,8 +11,15 @@
 		"strict": true,
 		"esModuleInterop": true,
 		"pretty": true,
-		"resolveJsonModule": true
+		"resolveJsonModule": true,
 	},
-	"include": ["src", "data/install-stylelint.ts", "data/install-stylelint.ts"],
-	"exclude": ["lib"]
+	"include": [
+		"src",
+		"data/install-stylelint.ts",
+		"data/install-stylelint.ts",
+		"apps"
+	],
+	"exclude": [
+		"lib"
+	]
 }

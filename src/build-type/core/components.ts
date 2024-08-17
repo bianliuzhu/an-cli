@@ -179,7 +179,7 @@ class Components {
 			}
 
 			const interfaceName = `export interface ${interfaceKey} {`;
-			const renderStr = [...headerRef, '\n', interfaceName, ...content, `\t}`];
+			const renderStr = [...headerRef, '\n', interfaceName, ...content, `}`];
 			// return { properties, renderStr, fieldCount: content.length, propertiesCount: Object.keys(properties as object).length, headerRef };
 			return renderStr.join('\n');
 		} catch (error) {

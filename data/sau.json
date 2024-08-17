@@ -6,13 +6,15 @@
 	},
 	"servers": [
 		{
-			"url": "https://serviceoneapi-stg.tesla.cn/core"
+			"url": ""
 		}
 	],
 	"paths": {
 		"/api/activity/servicevisit/{serviceVisitId}": {
 			"get": {
-				"tags": ["Activity"],
+				"tags": [
+					"Activity"
+				],
 				"parameters": [
 					{
 						"name": "serviceVisitId",
@@ -58,7 +60,9 @@
 		},
 		"/AppPackages/{fileName}": {
 			"get": {
-				"tags": ["AppPackages"],
+				"tags": [
+					"AppPackages"
+				],
 				"parameters": [
 					{
 						"name": "fileName",
@@ -78,7 +82,9 @@
 		},
 		"/AppPackages/upload": {
 			"post": {
-				"tags": ["AppPackages"],
+				"tags": [
+					"AppPackages"
+				],
 				"requestBody": {
 					"content": {
 						"multipart/form-data": {
@@ -125,7 +131,9 @@
 		},
 		"/api/AppVersion": {
 			"get": {
-				"tags": ["AppVersion"],
+				"tags": [
+					"AppVersion"
+				],
 				"responses": {
 					"200": {
 						"description": "Success",
@@ -152,7 +160,9 @@
 		},
 		"/api/attachment/referenceId/{referenceId}/referenceType/{referenceType}": {
 			"get": {
-				"tags": ["Attachment"],
+				"tags": [
+					"Attachment"
+				],
 				"parameters": [
 					{
 						"name": "referenceId",
@@ -198,7 +208,9 @@
 		},
 		"/api/attachment/add": {
 			"post": {
-				"tags": ["Attachment"],
+				"tags": [
+					"Attachment"
+				],
 				"requestBody": {
 					"content": {
 						"multipart/form-data": {
@@ -264,7 +276,9 @@
 		},
 		"/api/attachment/download/{filePath}": {
 			"get": {
-				"tags": ["Attachment"],
+				"tags": [
+					"Attachment"
+				],
 				"parameters": [
 					{
 						"name": "filePath",
@@ -284,7 +298,9 @@
 		},
 		"/api/attachment/remove/{attachmentId}": {
 			"post": {
-				"tags": ["Attachment"],
+				"tags": [
+					"Attachment"
+				],
 				"parameters": [
 					{
 						"name": "attachmentId",
@@ -329,7 +345,9 @@
 		},
 		"/api/corrections/saveOwners": {
 			"post": {
-				"tags": ["Corrections"],
+				"tags": [
+					"Corrections"
+				],
 				"requestBody": {
 					"content": {
 						"application/json-patch+json": {
@@ -392,7 +410,9 @@
 		},
 		"/api/lookup/paytypes": {
 			"get": {
-				"tags": ["Lookup"],
+				"tags": [
+					"Lookup"
+				],
 				"parameters": [
 					{
 						"name": "locale",
@@ -429,7 +449,9 @@
 		},
 		"/api/motionstatus/transitions": {
 			"get": {
-				"tags": ["MotionStatus"],
+				"tags": [
+					"MotionStatus"
+				],
 				"parameters": [
 					{
 						"name": "status",
@@ -479,7 +501,9 @@
 		},
 		"/api/motionstatus/change": {
 			"post": {
-				"tags": ["MotionStatus"],
+				"tags": [
+					"MotionStatus"
+				],
 				"requestBody": {
 					"content": {
 						"application/json-patch+json": {
@@ -530,7 +554,9 @@
 		},
 		"/api/parts/count/{serviceVisitId}": {
 			"get": {
-				"tags": ["Parts"],
+				"tags": [
+					"Parts"
+				],
 				"parameters": [
 					{
 						"name": "serviceVisitId",
@@ -568,7 +594,9 @@
 		},
 		"/api/parts/servicevisit/{serviceVisitId}": {
 			"get": {
-				"tags": ["Parts"],
+				"tags": [
+					"Parts"
+				],
 				"parameters": [
 					{
 						"name": "serviceVisitId",
@@ -606,7 +634,9 @@
 		},
 		"/api/parts/partpickrequest/{servicevisitId}": {
 			"get": {
-				"tags": ["Parts"],
+				"tags": [
+					"Parts"
+				],
 				"parameters": [
 					{
 						"name": "servicevisitId",
@@ -644,7 +674,9 @@
 		},
 		"/api/parts/requestpick": {
 			"post": {
-				"tags": ["Parts"],
+				"tags": [
+					"Parts"
+				],
 				"requestBody": {
 					"content": {
 						"application/json-patch+json": {
@@ -695,7 +727,9 @@
 		},
 		"/STPCoreStaticFiles/{fileName}": {
 			"get": {
-				"tags": ["Service.Touch.Point.Core.API"],
+				"tags": [
+					"Service.Touch.Point.Core.API"
+				],
 				"parameters": [
 					{
 						"name": "fileName",
@@ -715,7 +749,9 @@
 		},
 		"/api/servicevisit/my": {
 			"post": {
-				"tags": ["ServiceVisit"],
+				"tags": [
+					"ServiceVisit"
+				],
 				"requestBody": {
 					"content": {
 						"application/json-patch+json": {
@@ -766,7 +802,9 @@
 		},
 		"/api/servicevisit/search": {
 			"get": {
-				"tags": ["ServiceVisit"],
+				"tags": [
+					"ServiceVisit"
+				],
 				"parameters": [
 					{
 						"name": "term",
@@ -802,7 +840,9 @@
 		},
 		"/api/servicevisit/detail": {
 			"get": {
-				"tags": ["ServiceVisit"],
+				"tags": [
+					"ServiceVisit"
+				],
 				"parameters": [
 					{
 						"name": "serviceVisitId",
@@ -839,7 +879,9 @@
 		},
 		"/api/servicevisit/warranty": {
 			"get": {
-				"tags": ["ServiceVisit"],
+				"tags": [
+					"ServiceVisit"
+				],
 				"parameters": [
 					{
 						"name": "serviceVisitId",
@@ -876,7 +918,9 @@
 		},
 		"/api/servicevisit/audittrail": {
 			"get": {
-				"tags": ["ServiceVisit"],
+				"tags": [
+					"ServiceVisit"
+				],
 				"parameters": [
 					{
 						"name": "serviceVisitId",
@@ -913,7 +957,9 @@
 		},
 		"/api/servicevisit/tags": {
 			"get": {
-				"tags": ["ServiceVisit"],
+				"tags": [
+					"ServiceVisit"
+				],
 				"parameters": [
 					{
 						"name": "serviceVisitId",
@@ -950,7 +996,9 @@
 		},
 		"/api/servicevisit/etc": {
 			"post": {
-				"tags": ["ServiceVisit"],
+				"tags": [
+					"ServiceVisit"
+				],
 				"requestBody": {
 					"content": {
 						"application/json-patch+json": {
@@ -1001,7 +1049,9 @@
 		},
 		"/api/timetracker/recordtime": {
 			"post": {
-				"tags": ["TimeTracker"],
+				"tags": [
+					"TimeTracker"
+				],
 				"requestBody": {
 					"content": {
 						"application/json-patch+json": {
@@ -1052,7 +1102,9 @@
 		},
 		"/api/timetracker/summary/userId/{userId}": {
 			"get": {
-				"tags": ["TimeTracker"],
+				"tags": [
+					"TimeTracker"
+				],
 				"parameters": [
 					{
 						"name": "userId",
@@ -1098,7 +1150,9 @@
 		},
 		"/api/timetracker/summary/serviceVisitId/{serviceVisitId}": {
 			"get": {
-				"tags": ["TimeTracker"],
+				"tags": [
+					"TimeTracker"
+				],
 				"parameters": [
 					{
 						"name": "serviceVisitId",
@@ -1144,7 +1198,9 @@
 		},
 		"/api/trt/all": {
 			"get": {
-				"tags": ["TRT"],
+				"tags": [
+					"TRT"
+				],
 				"responses": {
 					"200": {
 						"description": "Success",
@@ -1171,7 +1227,9 @@
 		},
 		"/api/trt/scaLocationId/{scaLocationId}": {
 			"get": {
-				"tags": ["TRT"],
+				"tags": [
+					"TRT"
+				],
 				"parameters": [
 					{
 						"name": "scaLocationId",
@@ -1209,7 +1267,9 @@
 		},
 		"/api/trt/term": {
 			"get": {
-				"tags": ["TRT"],
+				"tags": [
+					"TRT"
+				],
 				"parameters": [
 					{
 						"name": "term",
@@ -1245,7 +1305,9 @@
 		},
 		"/api/user/userId/{userId}": {
 			"get": {
-				"tags": ["User"],
+				"tags": [
+					"User"
+				],
 				"parameters": [
 					{
 						"name": "userId",
@@ -1283,7 +1345,9 @@
 		},
 		"/api/user/adUserName/{adUserName}": {
 			"get": {
-				"tags": ["User"],
+				"tags": [
+					"User"
+				],
 				"parameters": [
 					{
 						"name": "adUserName",
@@ -1322,7 +1386,16 @@
 	"components": {
 		"schemas": {
 			"ActivityCorrectionPartStatusEnum": {
-				"enum": [0, 1, 2, 3, 4, 5, 6, 7],
+				"enum": [
+					0,
+					1,
+					2,
+					3,
+					4,
+					5,
+					6,
+					7
+				],
 				"type": "integer",
 				"format": "int32"
 			},
@@ -1380,7 +1453,11 @@
 				"additionalProperties": false
 			},
 			"ActivityStatusEnum": {
-				"enum": [1, 2, 3],
+				"enum": [
+					1,
+					2,
+					3
+				],
 				"type": "integer",
 				"format": "int32"
 			},
@@ -1650,7 +1727,10 @@
 				"additionalProperties": false
 			},
 			"AttachmentStorageTypeEnum": {
-				"enum": [1, 2],
+				"enum": [
+					1,
+					2
+				],
 				"type": "integer",
 				"format": "int32"
 			},
@@ -1867,7 +1947,17 @@
 				"additionalProperties": false
 			},
 			"DocumentTypeEnum": {
-				"enum": [1, 2, 3, 4, 5, 6, 7, 8, 9],
+				"enum": [
+					1,
+					2,
+					3,
+					4,
+					5,
+					6,
+					7,
+					8,
+					9
+				],
 				"type": "integer",
 				"format": "int32"
 			},
@@ -2167,14 +2257,50 @@
 			},
 			"LocationMasterLocationTypeEnum": {
 				"enum": [
-					1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19
+					1,
+					2,
+					3,
+					4,
+					5,
+					6,
+					7,
+					8,
+					9,
+					10,
+					11,
+					12,
+					13,
+					14,
+					15,
+					16,
+					17,
+					18,
+					19
 				],
 				"type": "integer",
 				"format": "int32"
 			},
 			"LocationMasterWarehouseTypeEnum": {
 				"enum": [
-					1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19
+					1,
+					2,
+					3,
+					4,
+					5,
+					6,
+					7,
+					8,
+					9,
+					10,
+					11,
+					12,
+					13,
+					14,
+					15,
+					16,
+					17,
+					18,
+					19
 				],
 				"type": "integer",
 				"format": "int32"
@@ -2421,7 +2547,15 @@
 				"additionalProperties": false
 			},
 			"PersonaProductTypeEnum": {
-				"enum": [0, 1, 2, 3, 4, 6, 7],
+				"enum": [
+					0,
+					1,
+					2,
+					3,
+					4,
+					6,
+					7
+				],
 				"type": "integer",
 				"format": "int32"
 			},
@@ -2460,19 +2594,53 @@
 				"additionalProperties": false
 			},
 			"ScaLocationTypeEnum": {
-				"enum": [1, 2, 3, 4, 5, 6, 7, 8, 30, 31, 32, 33],
+				"enum": [
+					1,
+					2,
+					3,
+					4,
+					5,
+					6,
+					7,
+					8,
+					30,
+					31,
+					32,
+					33
+				],
 				"type": "integer",
 				"format": "int32"
 			},
 			"SCReferenceTypeEnum": {
 				"enum": [
-					1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19
+					1,
+					2,
+					3,
+					4,
+					5,
+					6,
+					7,
+					8,
+					9,
+					10,
+					11,
+					12,
+					13,
+					14,
+					15,
+					16,
+					17,
+					18,
+					19
 				],
 				"type": "integer",
 				"format": "int32"
 			},
 			"ServiceVisitContactPayerTypeEnum": {
-				"enum": [1, 2],
+				"enum": [
+					1,
+					2
+				],
 				"type": "integer",
 				"format": "int32"
 			},
@@ -2696,10 +2864,76 @@
 			},
 			"ServiceVisitMotionStatusEnum": {
 				"enum": [
-					1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20,
-					21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35, 36, 37,
-					38, 39, 40, 41, 42, 47, 48, 49, 50, 51, 52, 53, 54, 55, 56, 57, 58,
-					59, 60, 61, 62, 63, 65, 66, 67, 68, 69, 70, 71, 72, 73, 74, 75
+					1,
+					2,
+					3,
+					4,
+					5,
+					6,
+					7,
+					8,
+					9,
+					10,
+					11,
+					12,
+					13,
+					14,
+					15,
+					16,
+					17,
+					18,
+					19,
+					20,
+					21,
+					22,
+					23,
+					24,
+					25,
+					26,
+					27,
+					28,
+					29,
+					30,
+					31,
+					32,
+					33,
+					34,
+					35,
+					36,
+					37,
+					38,
+					39,
+					40,
+					41,
+					42,
+					47,
+					48,
+					49,
+					50,
+					51,
+					52,
+					53,
+					54,
+					55,
+					56,
+					57,
+					58,
+					59,
+					60,
+					61,
+					62,
+					63,
+					65,
+					66,
+					67,
+					68,
+					69,
+					70,
+					71,
+					72,
+					73,
+					74,
+					75
 				],
 				"type": "integer",
 				"format": "int32"
@@ -2788,7 +3022,11 @@
 				"additionalProperties": false
 			},
 			"ServiceVisitStatusEnum": {
-				"enum": [1, 2, 3],
+				"enum": [
+					1,
+					2,
+					3
+				],
 				"type": "integer",
 				"format": "int32"
 			},
@@ -2956,7 +3194,10 @@
 				"additionalProperties": false
 			},
 			"TimeTrackerActionEnum": {
-				"enum": [1, 2],
+				"enum": [
+					1,
+					2
+				],
 				"type": "integer",
 				"format": "int32"
 			},
@@ -3793,12 +4034,20 @@
 				"additionalProperties": false
 			},
 			"ValidationMessageCategoriesEnum": {
-				"enum": [0, 1, 2, 3],
+				"enum": [
+					0,
+					1,
+					2,
+					3
+				],
 				"type": "integer",
 				"format": "int32"
 			},
 			"VisitSortDirectionEnum": {
-				"enum": [1, 2],
+				"enum": [
+					1,
+					2
+				],
 				"type": "integer",
 				"format": "int32"
 			},
@@ -3815,7 +4064,14 @@
 				"additionalProperties": false
 			},
 			"VisitSortTypeEnum": {
-				"enum": [1, 2, 3, 4, 5, 6],
+				"enum": [
+					1,
+					2,
+					3,
+					4,
+					5,
+					6
+				],
 				"type": "integer",
 				"format": "int32"
 			},
