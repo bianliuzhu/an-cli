@@ -8,9 +8,15 @@ export function isFileExisted(path_way: string) {
 	return new Promise((resolve, reject) => {
 		fs.access(path_way, (err) => {
 			if (err) {
-				reject(false); //"不存在"
+				/**
+				 * 文件不存在
+				 */
+				reject(false); // "不存在"
 			} else {
-				resolve(true); //"存在"
+				/**
+				 * 文件存在
+				 */
+				resolve(true); // "存在"
 			}
 		});
 	});

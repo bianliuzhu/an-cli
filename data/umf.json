@@ -1,0 +1,2483 @@
+{
+    "openapi": "3.0.0",
+    "paths": {
+        "/api/test": {
+            "get": {
+                "operationId": "AppController_apiTest",
+                "parameters": [],
+                "responses": {
+                    "200": {
+                        "description": ""
+                    }
+                },
+                "tags": [
+                    "Test Server"
+                ]
+            }
+        },
+        "/api/lsp/compile": {
+            "post": {
+                "operationId": "LspController_compile",
+                "summary": "Get code completions based on given input",
+                "parameters": [],
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/CompletionDto"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Successfully fetched the completion list."
+                    },
+                    "400": {
+                        "description": "Failed to fetch the completion list."
+                    }
+                },
+                "tags": [
+                    "LSP"
+                ]
+            }
+        },
+        "/api/manageGame/createGame": {
+            "post": {
+                "operationId": "ManageGameController_createGame",
+                "summary": "创建新的游戏",
+                "parameters": [],
+                "requestBody": {
+                    "required": true,
+                    "description": "创建游戏报文",
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/CreateGameDto"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "游戏创建成功"
+                    }
+                },
+                "tags": [
+                    "Manage Game"
+                ]
+            }
+        },
+        "/api/manageGame/gameList": {
+            "get": {
+                "operationId": "ManageGameController_getGameList",
+                "summary": "游戏列表",
+                "parameters": [],
+                "responses": {
+                    "200": {
+                        "description": "返回游戏列表"
+                    }
+                },
+                "tags": [
+                    "Manage Game"
+                ]
+            }
+        },
+        "/api/manageGame/getGameConfig/{gameName}": {
+            "get": {
+                "operationId": "ManageGameController_getGameConfig",
+                "summary": "获取游戏的配置信息",
+                "parameters": [
+                    {
+                        "name": "gameName",
+                        "required": true,
+                        "in": "path",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "返回游戏配置"
+                    },
+                    "400": {
+                        "description": "获取游戏配置失败"
+                    }
+                },
+                "tags": [
+                    "Manage Game"
+                ]
+            }
+        },
+        "/api/manageGame/rename": {
+            "post": {
+                "operationId": "ManageGameController_rename",
+                "summary": "游戏名称重命名",
+                "parameters": [],
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/RenameDto"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Successfully."
+                    },
+                    "400": {
+                        "description": "Failed."
+                    }
+                },
+                "tags": [
+                    "Manage Game"
+                ]
+            }
+        },
+        "/api/manageGame/delete": {
+            "post": {
+                "operationId": "ManageGameController_deleteFileOrDir",
+                "summary": "删除游戏",
+                "parameters": [],
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/DeleteGameDto"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Successfully"
+                    },
+                    "400": {
+                        "description": "Failed."
+                    }
+                },
+                "tags": [
+                    "Manage Game"
+                ]
+            }
+        },
+        "/api/manageGame/readGameAssets/{readDirPath}": {
+            "get": {
+                "operationId": "ManageGameController_readGameAssets",
+                "summary": "Read Game Assets",
+                "parameters": [
+                    {
+                        "name": "readDirPath",
+                        "required": true,
+                        "in": "path",
+                        "description": "Path of the game directory to read assets from, including subdirectories.",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Retrieve the assets of the specified game directory."
+                    }
+                },
+                "tags": [
+                    "Manage Game"
+                ]
+            }
+        },
+        "/api/manageGame/readUserAssets/{readDirPath}": {
+            "get": {
+                "operationId": "ManageGameController_readUserAssets",
+                "summary": "读取用户资源",
+                "parameters": [
+                    {
+                        "name": "readDirPath",
+                        "required": true,
+                        "in": "path",
+                        "description": "读取资产的用户目录路径，包括子目录.",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "检索指定用户目录下的资源."
+                    }
+                },
+                "tags": [
+                    "Manage Game"
+                ]
+            }
+        },
+        "/api/manageGame/setGameConfig": {
+            "post": {
+                "operationId": "ManageGameController_setGameConfig",
+                "summary": "Set Game Configuration",
+                "parameters": [],
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/GameConfigDto"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Game configuration set successfully."
+                    },
+                    "400": {
+                        "description": "Failed to set the game configuration."
+                    }
+                },
+                "tags": [
+                    "Manage Game"
+                ]
+            }
+        },
+        "/api/manageGame/resource/uploadFiles": {
+            "post": {
+                "operationId": "ManageGameController_uploadUserResource",
+                "summary": "上传用户资源文件",
+                "parameters": [],
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/UploadResourceDto"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Files uploaded successfully."
+                    },
+                    "400": {
+                        "description": "Failed to upload files."
+                    }
+                },
+                "tags": [
+                    "Manage Game"
+                ]
+            }
+        },
+        "/api/manageGame/resource/rename": {
+            "post": {
+                "operationId": "ManageGameController_resourceRename",
+                "summary": "用户资源文件重命名",
+                "parameters": [],
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/RenameDto"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Successfully"
+                    },
+                    "400": {
+                        "description": "Failed"
+                    }
+                },
+                "tags": [
+                    "Manage Game"
+                ]
+            }
+        },
+        "/api/manageGame/resource/delete": {
+            "post": {
+                "operationId": "ManageGameController_resourceDelete",
+                "summary": "删除用户资源文件",
+                "parameters": [],
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/DeleteResourceDto"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Successfully"
+                    },
+                    "400": {
+                        "description": "Failed"
+                    }
+                },
+                "tags": [
+                    "Manage Game"
+                ]
+            }
+        },
+        "/api/manageGame/resource/mkdir": {
+            "post": {
+                "operationId": "ManageGameController_resourceMkDir",
+                "summary": "新建用户资源文件夹",
+                "parameters": [
+                    {
+                        "name": "resource",
+                        "required": true,
+                        "in": "path",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/MkDirDto"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Directory created successfully."
+                    },
+                    "400": {
+                        "description": "Failed to create directory."
+                    }
+                },
+                "tags": [
+                    "Manage Game"
+                ]
+            }
+        },
+        "/api/manageGame/openGameDict/{gameName}": {
+            "get": {
+                "operationId": "ManageGameController_openGameDict",
+                "summary": "Open Game Dictionary",
+                "parameters": [
+                    {
+                        "name": "gameName",
+                        "required": true,
+                        "in": "path",
+                        "description": "Name of the game.",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Opens the dictionary for a specified game."
+                    }
+                },
+                "tags": [
+                    "Manage Game"
+                ]
+            }
+        },
+        "/api/manageGame/openGameAssetsDict/{gameName}": {
+            "get": {
+                "operationId": "ManageGameController_openGameAssetsDict",
+                "summary": "Open Game Assets Dictionary",
+                "parameters": [
+                    {
+                        "name": "gameName",
+                        "required": true,
+                        "in": "path",
+                        "description": "Name of the game.",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    {
+                        "name": "subFolder",
+                        "required": true,
+                        "in": "query",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Opens the assets dictionary for a specified game."
+                    }
+                },
+                "tags": [
+                    "Manage Game"
+                ]
+            }
+        },
+        "/api/manageGame/ejectGameAsWeb/{gameName}": {
+            "get": {
+                "operationId": "ManageGameController_ejectGameAsWeb",
+                "summary": "Eject Game As Web App",
+                "parameters": [
+                    {
+                        "name": "gameName",
+                        "required": true,
+                        "in": "path",
+                        "description": "Name of the game to be exported as web app.",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Exports the specified game as a web app."
+                    }
+                },
+                "tags": [
+                    "Manage Game"
+                ]
+            }
+        },
+        "/api/manageGame/ejectGameAsExe/{gameName}": {
+            "get": {
+                "operationId": "ManageGameController_ejectGameAsExe",
+                "summary": "Eject Game As EXE",
+                "parameters": [
+                    {
+                        "name": "gameName",
+                        "required": true,
+                        "in": "path",
+                        "description": "Name of the game to be exported as EXE.",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Exports the specified game as an EXE (Windows Electron App)."
+                    }
+                },
+                "tags": [
+                    "Manage Game"
+                ]
+            }
+        },
+        "/api/manageGame/ejectGameAsAndroid/{gameName}": {
+            "get": {
+                "operationId": "ManageGameController_ejectGameAsAndroid",
+                "summary": "Eject Game As Android App",
+                "parameters": [
+                    {
+                        "name": "gameName",
+                        "required": true,
+                        "in": "path",
+                        "description": "Name of the game to be exported as an Android app.",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Exports the specified game as an Android app."
+                    }
+                },
+                "tags": [
+                    "Manage Game"
+                ]
+            }
+        },
+        "/api/manageGame/deleteFile": {
+            "post": {
+                "operationId": "ManageGameController_deleteFile",
+                "summary": "Delete File",
+                "parameters": [],
+                "requestBody": {
+                    "required": true,
+                    "description": "File deletion data",
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/DeleteFileDto"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Successfully deleted the file."
+                    },
+                    "400": {
+                        "description": "Failed to delete the file."
+                    }
+                },
+                "tags": [
+                    "Manage Game"
+                ]
+            }
+        },
+        "/api/manageGame/createNewScene": {
+            "post": {
+                "operationId": "ManageGameController_createNewScene",
+                "summary": "Create a New Scene",
+                "parameters": [],
+                "requestBody": {
+                    "required": true,
+                    "description": "Scene creation data",
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/CreateNewSceneDto"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Successfully created the scene."
+                    },
+                    "400": {
+                        "description": "Failed to create the scene or scene already exists."
+                    }
+                },
+                "tags": [
+                    "Manage Game"
+                ]
+            }
+        },
+        "/api/manageGame/editScene": {
+            "post": {
+                "operationId": "ManageGameController_editScene",
+                "summary": "Edit Scene",
+                "parameters": [],
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/EditSceneDto"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Scene edited successfully."
+                    },
+                    "400": {
+                        "description": "Failed to edit the scene."
+                    }
+                },
+                "tags": [
+                    "Manage Game"
+                ]
+            }
+        },
+        "/api/manageGame/editTextFile": {
+            "post": {
+                "operationId": "ManageGameController_editTextFile",
+                "summary": "Edit TextFile",
+                "parameters": [],
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/EditTextFileDto"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "File edited successfully."
+                    },
+                    "400": {
+                        "description": "Failed to edit the file."
+                    }
+                },
+                "tags": [
+                    "Manage Game"
+                ]
+            }
+        },
+        "/api/manageGame/uploadFiles": {
+            "post": {
+                "operationId": "ManageGameController_uploadFiles",
+                "summary": "Upload Files",
+                "parameters": [],
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/UploadFilesDto"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Files uploaded successfully."
+                    },
+                    "400": {
+                        "description": "Failed to upload files."
+                    }
+                },
+                "tags": [
+                    "Manage Game"
+                ]
+            }
+        },
+        "/api/manageGame/mkdir": {
+            "post": {
+                "operationId": "ManageGameController_mkDir",
+                "summary": "Create Directory",
+                "parameters": [],
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/MkDirDto"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Directory created successfully."
+                    },
+                    "400": {
+                        "description": "Failed to create directory."
+                    }
+                },
+                "tags": [
+                    "Manage Game"
+                ]
+            }
+        },
+        "/api/manageGame/{gameName}/scene/{fileName}": {
+            "get": {
+                "operationId": "ManageGameController_laodSceneFile",
+                "summary": "read scene file",
+                "parameters": [
+                    {
+                        "name": "gameName",
+                        "required": true,
+                        "in": "path",
+                        "description": "game name.",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    {
+                        "name": "fileName",
+                        "required": true,
+                        "in": "path",
+                        "description": "scene file name.",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "return zh and en scene file"
+                    }
+                },
+                "tags": [
+                    "Manage Game"
+                ]
+            }
+        },
+        "/api/llm/txt/v2/cache": {
+            "post": {
+                "operationId": "LlmController_mCache",
+                "summary": "Kimi模型资源存储",
+                "parameters": [],
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/Llm"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Successfully."
+                    },
+                    "400": {
+                        "description": "Failed."
+                    }
+                },
+                "tags": [
+                    "LLM"
+                ]
+            }
+        },
+        "/api/llm/txt/v2/{tlmId}": {
+            "get": {
+                "operationId": "LlmController_txtV3",
+                "summary": "Maas文生文",
+                "parameters": [
+                    {
+                        "name": "tlmId",
+                        "required": true,
+                        "in": "path",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Successfully."
+                    },
+                    "400": {
+                        "description": "Failed."
+                    }
+                },
+                "tags": [
+                    "LLM"
+                ]
+            }
+        },
+        "/api/llm/recommend/{rid}/features": {
+            "get": {
+                "operationId": "LlmController_recommendFeatures",
+                "summary": "推荐角色人格",
+                "parameters": [
+                    {
+                        "name": "rid",
+                        "required": true,
+                        "in": "path",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Successfully."
+                    },
+                    "400": {
+                        "description": "Failed."
+                    }
+                },
+                "tags": [
+                    "LLM"
+                ]
+            }
+        },
+        "/api/llm/recommend/{bgid}/category": {
+            "get": {
+                "operationId": "LlmController_recommendCategory",
+                "summary": "推荐背景分类",
+                "parameters": [
+                    {
+                        "name": "bgid",
+                        "required": true,
+                        "in": "path",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Successfully."
+                    },
+                    "400": {
+                        "description": "Failed."
+                    }
+                },
+                "tags": [
+                    "LLM"
+                ]
+            }
+        },
+        "/api/llm/txt/v3/upload": {
+            "post": {
+                "operationId": "LlmController_uploadV3",
+                "summary": "发起文生文SSE处理",
+                "parameters": [],
+                "responses": {
+                    "200": {
+                        "description": "Successfully."
+                    },
+                    "400": {
+                        "description": "Failed."
+                    }
+                },
+                "tags": [
+                    "LLM"
+                ]
+            }
+        },
+        "/api/llm/image/upload": {
+            "post": {
+                "operationId": "LlmController_imageUpload",
+                "summary": "大模型图片上传接口",
+                "parameters": [],
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/ImageUploadDto"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Successfully."
+                    },
+                    "501": {
+                        "description": "Failed."
+                    }
+                },
+                "tags": [
+                    "LLM"
+                ]
+            }
+        },
+        "/api/llm/sseTest": {
+            "get": {
+                "operationId": "LlmController_sse",
+                "parameters": [],
+                "responses": {
+                    "200": {
+                        "description": ""
+                    }
+                },
+                "tags": [
+                    "LLM"
+                ]
+            }
+        },
+        "/api/llm/upload/text": {
+            "post": {
+                "operationId": "LlmController_uploadText",
+                "summary": "上传文本文件返回文本，最大可接收5000字符",
+                "parameters": [],
+                "responses": {
+                    "200": {
+                        "description": "Successfully."
+                    },
+                    "501": {
+                        "description": "Failed."
+                    }
+                },
+                "tags": [
+                    "LLM"
+                ]
+            }
+        },
+        "/api/llm/get/expression/list": {
+            "get": {
+                "operationId": "LlmController_getExpressionList",
+                "summary": "获取表情标签列表",
+                "parameters": [],
+                "responses": {
+                    "200": {
+                        "description": "Successfully."
+                    },
+                    "501": {
+                        "description": "Failed."
+                    }
+                },
+                "tags": [
+                    "LLM"
+                ]
+            }
+        },
+        "/api/llm/draw/{event}/{reqId}": {
+            "get": {
+                "operationId": "LlmController_draw",
+                "summary": "获取绘图结果",
+                "parameters": [
+                    {
+                        "name": "event",
+                        "required": true,
+                        "in": "path",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    {
+                        "name": "reqId",
+                        "required": true,
+                        "in": "path",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Successfully."
+                    },
+                    "501": {
+                        "description": "Failed."
+                    }
+                },
+                "tags": [
+                    "LLM"
+                ]
+            }
+        },
+        "/api/llm/draw/task": {
+            "get": {
+                "operationId": "LlmController_drawing",
+                "summary": "获取该用户下正在绘图的Reqs",
+                "parameters": [],
+                "responses": {
+                    "200": {
+                        "description": "Successfully."
+                    },
+                    "501": {
+                        "description": "Failed."
+                    }
+                },
+                "tags": [
+                    "LLM"
+                ]
+            }
+        },
+        "/api/role/figure": {
+            "post": {
+                "operationId": "RoleController_createFigure",
+                "summary": "保存角色",
+                "parameters": [],
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/AddRoleDto"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Successfully."
+                    },
+                    "501": {
+                        "description": "Failed."
+                    }
+                },
+                "tags": [
+                    "Role"
+                ]
+            }
+        },
+        "/api/role/figure/img": {
+            "post": {
+                "operationId": "RoleController_uploadFigureImg",
+                "summary": "保存立绘/表情差分图图片",
+                "parameters": [],
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/AddFigureDto"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Successfully."
+                    },
+                    "501": {
+                        "description": "Failed."
+                    }
+                },
+                "tags": [
+                    "Role"
+                ]
+            }
+        },
+        "/api/role/list": {
+            "get": {
+                "operationId": "RoleController_listRole",
+                "summary": "获取该用户下角色列表",
+                "parameters": [],
+                "responses": {
+                    "200": {
+                        "description": "Successfully."
+                    },
+                    "501": {
+                        "description": "Failed."
+                    }
+                },
+                "tags": [
+                    "Role"
+                ]
+            }
+        },
+        "/api/role/{rid}": {
+            "put": {
+                "operationId": "RoleController_updateRole",
+                "summary": "更新角色",
+                "parameters": [
+                    {
+                        "name": "rid",
+                        "required": true,
+                        "in": "path",
+                        "description": "角色ID",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/UpdateRoleDto"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Successfully."
+                    },
+                    "501": {
+                        "description": "Failed."
+                    }
+                },
+                "tags": [
+                    "Role"
+                ]
+            },
+            "delete": {
+                "operationId": "RoleController_deletedRole",
+                "summary": "删除角色",
+                "parameters": [
+                    {
+                        "name": "rid",
+                        "required": true,
+                        "in": "path",
+                        "description": "角色ID",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Successfully."
+                    },
+                    "501": {
+                        "description": "Failed."
+                    }
+                },
+                "tags": [
+                    "Role"
+                ]
+            }
+        },
+        "/api/role/test1": {
+            "get": {
+                "operationId": "RoleController_test",
+                "parameters": [],
+                "responses": {
+                    "200": {
+                        "description": ""
+                    }
+                },
+                "tags": [
+                    "Role"
+                ]
+            }
+        },
+        "/api/resource": {
+            "post": {
+                "operationId": "ResourceController_create",
+                "parameters": [],
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/CreateResourceDto"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "201": {
+                        "description": ""
+                    }
+                },
+                "tags": [
+                    "Resource"
+                ]
+            }
+        },
+        "/api/resource/{id}": {
+            "get": {
+                "operationId": "ResourceController_findOne",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "required": true,
+                        "in": "path",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": ""
+                    }
+                },
+                "tags": [
+                    "Resource"
+                ]
+            },
+            "patch": {
+                "operationId": "ResourceController_update",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "required": true,
+                        "in": "path",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/UpdateResourceDto"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": ""
+                    }
+                },
+                "tags": [
+                    "Resource"
+                ]
+            },
+            "delete": {
+                "operationId": "ResourceController_remove",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "required": true,
+                        "in": "path",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": ""
+                    }
+                },
+                "tags": [
+                    "Resource"
+                ]
+            }
+        },
+        "/api/bg/add": {
+            "post": {
+                "operationId": "BgController_createBg",
+                "summary": "保存背景信息",
+                "parameters": [],
+                "requestBody": {
+                    "required": true,
+                    "description": "保存背景信息",
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/CreateBgDto"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Successfully."
+                    },
+                    "501": {
+                        "description": "Failed."
+                    }
+                },
+                "tags": [
+                    "Bg"
+                ]
+            }
+        },
+        "/api/bg/list": {
+            "get": {
+                "operationId": "BgController_list",
+                "summary": "获取背景信息列表",
+                "parameters": [],
+                "responses": {
+                    "200": {
+                        "description": "Successfully."
+                    },
+                    "501": {
+                        "description": "Failed."
+                    }
+                },
+                "tags": [
+                    "Bg"
+                ]
+            }
+        },
+        "/api/bg/update/{bid}": {
+            "post": {
+                "operationId": "BgController_updateBg",
+                "summary": "更新背景信息",
+                "parameters": [
+                    {
+                        "name": "bid",
+                        "required": true,
+                        "in": "path",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "requestBody": {
+                    "required": true,
+                    "description": "更新背景信息",
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/UpdateBgDto"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Successfully."
+                    },
+                    "501": {
+                        "description": "Failed."
+                    }
+                },
+                "tags": [
+                    "Bg"
+                ]
+            }
+        },
+        "/api/bg/uploadImage/{bid}": {
+            "post": {
+                "operationId": "BgController_uploadBgImg",
+                "summary": "保存背景图片",
+                "parameters": [
+                    {
+                        "name": "bid",
+                        "required": true,
+                        "in": "path",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/UploadImageDto"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Successfully."
+                    },
+                    "501": {
+                        "description": "Failed."
+                    }
+                },
+                "tags": [
+                    "Bg"
+                ]
+            }
+        },
+        "/api/bg/remove/{bid}": {
+            "delete": {
+                "operationId": "BgController_remove",
+                "summary": "删除背景信息",
+                "parameters": [
+                    {
+                        "name": "bid",
+                        "required": true,
+                        "in": "path",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": ""
+                    }
+                },
+                "tags": [
+                    "Bg"
+                ]
+            }
+        },
+        "/api/user/login": {
+            "post": {
+                "operationId": "UserController_login",
+                "summary": "用户登录",
+                "parameters": [],
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/CreateUserDto"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Successfully."
+                    }
+                },
+                "tags": [
+                    "User"
+                ]
+            }
+        },
+        "/api/user": {
+            "post": {
+                "operationId": "UserController_create",
+                "parameters": [],
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/CreateUserDto"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "201": {
+                        "description": ""
+                    }
+                },
+                "tags": [
+                    "User"
+                ]
+            }
+        },
+        "/api/editor/createNewScene": {
+            "post": {
+                "operationId": "EditorController_createNewScene",
+                "summary": "创建章节/场景",
+                "parameters": [],
+                "requestBody": {
+                    "required": true,
+                    "description": "创建章节/场景",
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/DialogueDto"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Successfully created the scene."
+                    },
+                    "400": {
+                        "description": "Failed."
+                    }
+                },
+                "tags": [
+                    "Editor"
+                ]
+            }
+        },
+        "/api/editor/deleteScene": {
+            "post": {
+                "operationId": "EditorController_deleteScene",
+                "summary": "删除章节/场景",
+                "parameters": [],
+                "requestBody": {
+                    "required": true,
+                    "description": "删除章节/场景",
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/SceneDto"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Successfully delete the scene."
+                    },
+                    "400": {
+                        "description": "Failed."
+                    }
+                },
+                "tags": [
+                    "Editor"
+                ]
+            }
+        },
+        "/api/editor/sceneDetail": {
+            "post": {
+                "operationId": "EditorController_getSceneDetail",
+                "summary": "查询场景详情内容",
+                "parameters": [],
+                "requestBody": {
+                    "required": true,
+                    "description": "查询场景详情内容",
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/SceneDetailDto"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Successfully."
+                    },
+                    "400": {
+                        "description": "Failed."
+                    }
+                },
+                "tags": [
+                    "Editor"
+                ]
+            }
+        },
+        "/api/editor/editUiScene/upload": {
+            "post": {
+                "operationId": "EditorController_uploadUiSceneDialogue",
+                "summary": "上传文本更新UI对话资源",
+                "parameters": [],
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/DialogueDto"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Successfully."
+                    },
+                    "400": {
+                        "description": "Failed."
+                    }
+                },
+                "tags": [
+                    "Editor"
+                ]
+            }
+        },
+        "/api/editor/editUiScene/dialogue": {
+            "post": {
+                "operationId": "EditorController_editUiSceneDialogue",
+                "summary": "更新UI编辑器对话资源",
+                "parameters": [],
+                "requestBody": {
+                    "required": true,
+                    "description": "更新UI编辑器对话资源",
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/DialogueDto"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Successfully."
+                    },
+                    "400": {
+                        "description": "Failed."
+                    }
+                },
+                "tags": [
+                    "Editor"
+                ]
+            }
+        },
+        "/api/editor/scene/command/{id}": {
+            "post": {
+                "operationId": "EditorController_commandLine",
+                "summary": "根据行ID获取指令行",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "required": true,
+                        "in": "path",
+                        "description": "id",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "requestBody": {
+                    "required": true,
+                    "description": "场景信息",
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/SceneDto"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Successfully."
+                    },
+                    "400": {
+                        "description": "Failed."
+                    }
+                },
+                "tags": [
+                    "Editor"
+                ]
+            }
+        },
+        "/api/editor/scene/check": {
+            "post": {
+                "operationId": "EditorController_checkScene",
+                "summary": "校验场景信息",
+                "parameters": [],
+                "requestBody": {
+                    "required": true,
+                    "description": "校验场景信息",
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/SceneDto"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Successfully."
+                    },
+                    "400": {
+                        "description": "Failed."
+                    }
+                },
+                "tags": [
+                    "Editor"
+                ]
+            }
+        },
+        "/api/editor/editUiScene/resource": {
+            "post": {
+                "operationId": "EditorController_editUiSceneResource",
+                "summary": "更新UI编辑器场景资源",
+                "parameters": [],
+                "requestBody": {
+                    "required": true,
+                    "description": "更新UI编辑器场景资源",
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/UpdateUiResourceDto"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Successfully."
+                    },
+                    "400": {
+                        "description": "Failed."
+                    }
+                },
+                "tags": [
+                    "Editor"
+                ]
+            }
+        },
+        "/api/editor/editTxtScene/upload": {
+            "post": {
+                "operationId": "EditorController_uploadTxtSceneDialogue",
+                "summary": "上传文本更新TXT对话资源",
+                "parameters": [],
+                "requestBody": {
+                    "required": true,
+                    "description": "更新文本编辑器内容",
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/UpdateTxtSceneDto"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Successfully."
+                    },
+                    "400": {
+                        "description": "Failed."
+                    }
+                },
+                "tags": [
+                    "Editor"
+                ]
+            }
+        },
+        "/api/editor/editTxtScene": {
+            "post": {
+                "operationId": "EditorController_editTxtScene",
+                "summary": "更新文本编辑器内容",
+                "parameters": [],
+                "requestBody": {
+                    "required": true,
+                    "description": "更新文本编辑器内容",
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/UpdateTxtSceneDto"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Successfully."
+                    },
+                    "400": {
+                        "description": "Failed."
+                    }
+                },
+                "tags": [
+                    "Editor"
+                ]
+            }
+        },
+        "/api/editor/rename": {
+            "post": {
+                "operationId": "EditorController_sceneFileRename",
+                "summary": "场景文件重命名",
+                "parameters": [],
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/SceneReNameDto"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Rename successfully."
+                    },
+                    "400": {
+                        "description": "Failed"
+                    }
+                },
+                "tags": [
+                    "Editor"
+                ]
+            }
+        },
+        "/api/editor/getSectionSceneList/{gameName}": {
+            "post": {
+                "operationId": "EditorController_getSectionSceneList",
+                "summary": "获取章节场景列表数据",
+                "parameters": [
+                    {
+                        "name": "gameName",
+                        "required": true,
+                        "in": "path",
+                        "description": "游戏名称",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Successfully."
+                    },
+                    "400": {
+                        "description": "Failed."
+                    }
+                },
+                "tags": [
+                    "Editor"
+                ]
+            }
+        },
+        "/api/editor/launch/{gameName}": {
+            "get": {
+                "operationId": "EditorController_launchGame",
+                "summary": "发布游戏",
+                "parameters": [
+                    {
+                        "name": "gameName",
+                        "required": true,
+                        "in": "path",
+                        "description": "游戏名称",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Successfully."
+                    },
+                    "400": {
+                        "description": "Failed."
+                    }
+                },
+                "tags": [
+                    "Editor"
+                ]
+            }
+        }
+    },
+    "info": {
+        "title": "UMPAY.NETA Terre API",
+        "description": "API Refrence of UMPAY.NETA Terre Editor",
+        "version": "1.0",
+        "contact": {}
+    },
+    "tags": [],
+    "servers": [],
+    "components": {
+        "schemas": {
+            "CompletionDto": {
+                "type": "object",
+                "properties": {
+                    "editorValue": {
+                        "type": "string",
+                        "description": "Editor input value for which the completion is required"
+                    },
+                    "sceneType": {
+                        "type": "string",
+                        "description": "scene file type en or zh"
+                    },
+                    "params": {
+                        "type": "object",
+                        "description": "Parameters required for completion"
+                    }
+                },
+                "required": [
+                    "editorValue",
+                    "sceneType",
+                    "params"
+                ]
+            },
+            "CreateGameDto": {
+                "type": "object",
+                "properties": {
+                    "gameName": {
+                        "type": "string",
+                        "description": "The name of the game to be created"
+                    }
+                },
+                "required": [
+                    "gameName"
+                ]
+            },
+            "RenameDto": {
+                "type": "object",
+                "properties": {
+                    "source": {
+                        "type": "string",
+                        "description": "The source path of the file or directory to be renamed"
+                    },
+                    "newName": {
+                        "type": "string",
+                        "description": "New name for renaming the file or directory"
+                    }
+                },
+                "required": [
+                    "source",
+                    "newName"
+                ]
+            },
+            "DeleteGameDto": {
+                "type": "object",
+                "properties": {
+                    "gameName": {
+                        "type": "string",
+                        "description": "游戏名称"
+                    }
+                },
+                "required": [
+                    "gameName"
+                ]
+            },
+            "GameConfigDto": {
+                "type": "object",
+                "properties": {
+                    "gameName": {
+                        "type": "string",
+                        "description": "The name of the game"
+                    },
+                    "newConfig": {
+                        "type": "string",
+                        "description": "New game configuration"
+                    }
+                },
+                "required": [
+                    "gameName",
+                    "newConfig"
+                ]
+            },
+            "UploadResourceDto": {
+                "type": "object",
+                "properties": {
+                    "folder": {
+                        "type": "string",
+                        "description": "资源所属文件夹"
+                    }
+                },
+                "required": [
+                    "folder"
+                ]
+            },
+            "DeleteResourceDto": {
+                "type": "object",
+                "properties": {
+                    "name": {
+                        "type": "string",
+                        "description": "资源名称"
+                    }
+                },
+                "required": [
+                    "name"
+                ]
+            },
+            "MkDirDto": {
+                "type": "object",
+                "properties": {
+                    "source": {
+                        "type": "string",
+                        "description": "已有的资源文件夹"
+                    },
+                    "name": {
+                        "type": "string",
+                        "description": "Name for the new directory"
+                    }
+                },
+                "required": [
+                    "source",
+                    "name"
+                ]
+            },
+            "DeleteFileDto": {
+                "type": "object",
+                "properties": {
+                    "path": {
+                        "type": "string",
+                        "description": "The path to the file to be deleted"
+                    }
+                },
+                "required": [
+                    "path"
+                ]
+            },
+            "CreateNewSceneDto": {
+                "type": "object",
+                "properties": {
+                    "gameName": {
+                        "type": "string",
+                        "description": "The name of the game"
+                    },
+                    "sceneName": {
+                        "type": "string",
+                        "description": "The name of the scene"
+                    }
+                },
+                "required": [
+                    "gameName",
+                    "sceneName"
+                ]
+            },
+            "EditSceneDto": {
+                "type": "object",
+                "properties": {
+                    "gameName": {
+                        "type": "string",
+                        "description": "The name of the game"
+                    },
+                    "sceneName": {
+                        "type": "string",
+                        "description": "The name of the scene"
+                    },
+                    "type": {
+                        "type": "string",
+                        "description": "Scene data type en or zh"
+                    },
+                    "sceneData": {
+                        "type": "string",
+                        "description": "Scene data content",
+                        "format": "{ value: string }"
+                    }
+                },
+                "required": [
+                    "gameName",
+                    "sceneName",
+                    "type",
+                    "sceneData"
+                ]
+            },
+            "EditTextFileDto": {
+                "type": "object",
+                "properties": {
+                    "path": {
+                        "type": "string",
+                        "description": "The path of textfile"
+                    },
+                    "textFile": {
+                        "type": "string",
+                        "description": "Text data content"
+                    }
+                },
+                "required": [
+                    "path",
+                    "textFile"
+                ]
+            },
+            "UploadFilesDto": {
+                "type": "object",
+                "properties": {
+                    "targetDirectory": {
+                        "type": "string",
+                        "description": "Target directory for the uploaded files"
+                    }
+                },
+                "required": [
+                    "targetDirectory"
+                ]
+            },
+            "Llm": {
+                "type": "object",
+                "properties": {}
+            },
+            "ImageUploadDto": {
+                "type": "object",
+                "properties": {
+                    "category": {
+                        "type": "string",
+                        "description": "图片类别"
+                    },
+                    "original": {
+                        "type": "string",
+                        "description": "蒙版对应原始图片名称"
+                    }
+                },
+                "required": [
+                    "category",
+                    "original"
+                ]
+            },
+            "AddRoleDto": {
+                "type": "object",
+                "properties": {
+                    "name": {
+                        "type": "string",
+                        "description": "角色名字"
+                    },
+                    "gender": {
+                        "type": "string",
+                        "description": "性别",
+                        "enum": [
+                            "male",
+                            "female"
+                        ]
+                    },
+                    "style": {
+                        "type": "string",
+                        "description": "立绘风格"
+                    },
+                    "age": {
+                        "type": "string",
+                        "description": "年纪",
+                        "enum": [
+                            "child",
+                            "adult",
+                            "hoariness"
+                        ]
+                    }
+                },
+                "required": [
+                    "name",
+                    "gender",
+                    "style",
+                    "age"
+                ]
+            },
+            "AddFigureDto": {
+                "type": "object",
+                "properties": {
+                    "fileUrl": {
+                        "type": "string",
+                        "description": "需要保存的文件地址"
+                    },
+                    "rid": {
+                        "type": "string",
+                        "description": "角色ID"
+                    },
+                    "expression": {
+                        "type": "string",
+                        "description": "差分名"
+                    }
+                },
+                "required": [
+                    "fileUrl",
+                    "rid",
+                    "expression"
+                ]
+            },
+            "UpdateRoleDto": {
+                "type": "object",
+                "properties": {
+                    "fileUrl": {
+                        "type": "string",
+                        "description": "主立绘的图片地址"
+                    },
+                    "fileLink": {
+                        "type": "string",
+                        "description": "主立绘图片链接"
+                    },
+                    "seed": {
+                        "type": "string",
+                        "description": "主立绘随机种子"
+                    },
+                    "tlmId": {
+                        "type": "string",
+                        "description": "角色对应的大模型信息ID"
+                    },
+                    "feature": {
+                        "type": "string",
+                        "description": "人格"
+                    },
+                    "referPic": {
+                        "type": "string",
+                        "description": "人格参考图"
+                    },
+                    "expression": {
+                        "type": "string",
+                        "description": "差分名"
+                    },
+                    "prompts": {
+                        "type": "string",
+                        "description": "提示词"
+                    },
+                    "figures": {
+                        "description": "表情差分图",
+                        "type": "array",
+                        "items": {
+                            "type": "string"
+                        }
+                    }
+                },
+                "required": [
+                    "fileUrl",
+                    "fileLink",
+                    "seed",
+                    "tlmId",
+                    "feature",
+                    "referPic",
+                    "expression",
+                    "prompts",
+                    "figures"
+                ]
+            },
+            "CreateResourceDto": {
+                "type": "object",
+                "properties": {
+                    "name": {
+                        "type": "string",
+                        "description": "资源名称"
+                    },
+                    "path": {
+                        "type": "string",
+                        "description": "资源路径"
+                    },
+                    "type": {
+                        "type": "string",
+                        "description": "资源类型"
+                    },
+                    "uid": {
+                        "type": "string",
+                        "description": "用户ID"
+                    },
+                    "pid": {
+                        "type": "string",
+                        "description": "父级资源ID"
+                    },
+                    "remark": {
+                        "type": "string",
+                        "description": "备注"
+                    }
+                },
+                "required": [
+                    "name",
+                    "path",
+                    "type",
+                    "uid",
+                    "pid",
+                    "remark"
+                ]
+            },
+            "UpdateResourceDto": {
+                "type": "object",
+                "properties": {}
+            },
+            "CreateBgDto": {
+                "type": "object",
+                "properties": {
+                    "name": {
+                        "type": "string",
+                        "description": "背景名称"
+                    },
+                    "style": {
+                        "type": "string",
+                        "description": "背景风格"
+                    }
+                },
+                "required": [
+                    "name",
+                    "style"
+                ]
+            },
+            "UpdateBgDto": {
+                "type": "object",
+                "properties": {
+                    "prompts": {
+                        "type": "string",
+                        "description": "提示词"
+                    },
+                    "tlmId": {
+                        "type": "string",
+                        "description": "背景对应大模型输出ID"
+                    },
+                    "bgPath": {
+                        "type": "string",
+                        "description": "背景图片的相对地址"
+                    },
+                    "category": {
+                        "type": "string",
+                        "description": "背景分类"
+                    },
+                    "referPic": {
+                        "type": "string",
+                        "description": "背景分类参考图"
+                    }
+                },
+                "required": [
+                    "prompts",
+                    "tlmId",
+                    "bgPath",
+                    "category",
+                    "referPic"
+                ]
+            },
+            "UploadImageDto": {
+                "type": "object",
+                "properties": {
+                    "imageName": {
+                        "type": "string",
+                        "description": "图片名称"
+                    },
+                    "imageUrl": {
+                        "type": "string",
+                        "description": "图片地址"
+                    },
+                    "imageRelevancy": {
+                        "type": "string",
+                        "description": "图片所属：用户"
+                    },
+                    "imageCategory": {
+                        "type": "string",
+                        "description": "图片类别"
+                    }
+                },
+                "required": [
+                    "imageName",
+                    "imageUrl",
+                    "imageRelevancy",
+                    "imageCategory"
+                ]
+            },
+            "CreateUserDto": {
+                "type": "object",
+                "properties": {
+                    "username": {
+                        "type": "string",
+                        "description": "用户名"
+                    },
+                    "password": {
+                        "type": "string",
+                        "description": "密码"
+                    },
+                    "nickname": {
+                        "type": "string",
+                        "description": "昵称（可选填）"
+                    }
+                },
+                "required": [
+                    "username",
+                    "password",
+                    "nickname"
+                ]
+            },
+            "DialogueDto": {
+                "type": "object",
+                "properties": {
+                    "gameName": {
+                        "type": "string",
+                        "description": "游戏名称"
+                    },
+                    "sectionName": {
+                        "type": "string",
+                        "description": "章节名称（文本编辑器忽略）"
+                    },
+                    "sceneName": {
+                        "type": "string",
+                        "description": "场景名称"
+                    },
+                    "editorType": {
+                        "type": "string",
+                        "description": "编辑器类型"
+                    },
+                    "dialogue": {
+                        "type": "string",
+                        "description": "更新对话"
+                    }
+                },
+                "required": [
+                    "gameName",
+                    "sectionName",
+                    "sceneName",
+                    "editorType",
+                    "dialogue"
+                ]
+            },
+            "SceneDto": {
+                "type": "object",
+                "properties": {
+                    "gameName": {
+                        "type": "string",
+                        "description": "游戏名称"
+                    },
+                    "sectionName": {
+                        "type": "string",
+                        "description": "章节名称（文本编辑器忽略）"
+                    },
+                    "sceneName": {
+                        "type": "string",
+                        "description": "场景名称"
+                    },
+                    "editorType": {
+                        "type": "string",
+                        "description": "编辑器类型"
+                    }
+                },
+                "required": [
+                    "gameName",
+                    "sectionName",
+                    "sceneName",
+                    "editorType"
+                ]
+            },
+            "SceneDetailDto": {
+                "type": "object",
+                "properties": {
+                    "gameName": {
+                        "type": "string",
+                        "description": "游戏名称"
+                    },
+                    "sectionName": {
+                        "type": "string",
+                        "description": "章节名称（文本编辑器忽略）"
+                    },
+                    "sceneName": {
+                        "type": "string",
+                        "description": "场景名称"
+                    },
+                    "editorType": {
+                        "type": "string",
+                        "description": "编辑器类型"
+                    },
+                    "sceneType": {
+                        "type": "string",
+                        "description": "场景类型"
+                    }
+                },
+                "required": [
+                    "gameName",
+                    "sectionName",
+                    "sceneName",
+                    "editorType",
+                    "sceneType"
+                ]
+            },
+            "UpdateUiResourceDto": {
+                "type": "object",
+                "properties": {
+                    "gameName": {
+                        "type": "string",
+                        "description": "游戏名称"
+                    },
+                    "sectionName": {
+                        "type": "string",
+                        "description": "章节名称（文本编辑器忽略）"
+                    },
+                    "sceneName": {
+                        "type": "string",
+                        "description": "场景名称"
+                    },
+                    "editorType": {
+                        "type": "string",
+                        "description": "编辑器类型"
+                    },
+                    "bg": {
+                        "type": "string",
+                        "description": "更新背景"
+                    },
+                    "bgm": {
+                        "type": "string",
+                        "description": "更新音乐"
+                    }
+                },
+                "required": [
+                    "gameName",
+                    "sectionName",
+                    "sceneName",
+                    "editorType",
+                    "bg",
+                    "bgm"
+                ]
+            },
+            "UpdateTxtSceneDto": {
+                "type": "object",
+                "properties": {
+                    "gameName": {
+                        "type": "string",
+                        "description": "游戏名称"
+                    },
+                    "sectionName": {
+                        "type": "string",
+                        "description": "章节名称（文本编辑器忽略）"
+                    },
+                    "sceneName": {
+                        "type": "string",
+                        "description": "场景名称"
+                    },
+                    "editorType": {
+                        "type": "string",
+                        "description": "编辑器类型"
+                    },
+                    "text": {
+                        "type": "string",
+                        "description": "编辑文本"
+                    }
+                },
+                "required": [
+                    "gameName",
+                    "sectionName",
+                    "sceneName",
+                    "editorType",
+                    "text"
+                ]
+            },
+            "SceneReNameDto": {
+                "type": "object",
+                "properties": {
+                    "gameName": {
+                        "type": "string",
+                        "description": "游戏名称"
+                    },
+                    "sectionName": {
+                        "type": "string",
+                        "description": "章节名称（文本编辑器忽略）"
+                    },
+                    "sceneName": {
+                        "type": "string",
+                        "description": "场景名称"
+                    },
+                    "editorType": {
+                        "type": "string",
+                        "description": "编辑器类型"
+                    },
+                    "newSectionName": {
+                        "type": "string",
+                        "description": "新章节名称"
+                    },
+                    "newSceneName": {
+                        "type": "string",
+                        "description": "新场景名称"
+                    }
+                },
+                "required": [
+                    "gameName",
+                    "sectionName",
+                    "sceneName",
+                    "editorType",
+                    "newSectionName",
+                    "newSceneName"
+                ]
+            }
+        }
+    }
+}
