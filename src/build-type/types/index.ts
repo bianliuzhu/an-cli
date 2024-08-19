@@ -5,6 +5,7 @@ export interface ConfigType {
 	apiListFilePath: string;
 	swaggerJsonUrl: string;
 	indent: string;
+	requestMethodsImportPath: string;
 	/** 追加请求头 */
 	headers?: Record<string, string>;
 }

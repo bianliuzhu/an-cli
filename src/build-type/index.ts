@@ -19,6 +19,7 @@ const configContent = {
 	saveTypeFolderPath: 'apps/types',
 	apiListFilePath: 'apps/services',
 	swaggerJsonUrl: '',
+	requestMethodsImportPath: './fetch',
 	indent: '\t',
 	headers: {},
 };
@@ -32,16 +33,16 @@ export class Main {
 	 * @param update 更新覆盖
 	 */
 	private handle(config: ConfigType) {
-		// return new Promise((resolve, reject) => {
-		// 	const response = DATA as unknown as OpenAPIV3.Document;
-		// 	this.schemas = response.components?.schemas;
-		// 	this.paths = response.paths;
-		// 	const components = new Components(this.schemas, config);
-		// 	components.handle();
-		// 	const paths = new PathParse(this.paths, config);
-		// 	paths.handle();
-		// 	return resolve(true);
-		// });
+		return new Promise((resolve, reject) => {
+			const response = DATA as unknown as OpenAPIV3.Document;
+			this.schemas = response.components?.schemas;
+			this.paths = response.paths;
+			const components = new Components(this.schemas, config);
+			components.handle();
+			const paths = new PathParse(this.paths, config);
+			paths.handle();
+			return resolve(true);
+		});
 
 		return new Promise((resolve) => {
 			if (!config.swaggerJsonUrl) return resolve({}); // reject map
@@ -103,5 +104,5 @@ export class Main {
 			});
 	}
 }
-// const int = new Main();
-// int.initialize();
+const int = new Main();
+int.initialize();

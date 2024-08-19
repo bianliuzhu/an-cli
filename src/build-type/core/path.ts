@@ -525,7 +525,7 @@ export class PathParse {
 		}
 
 		Promise.all(Plist).then(() => {
-			apiListFileContent.unshift(`import { ${methodList.join(', ')} } from './api';`, '\n');
+			apiListFileContent.unshift(`import { ${methodList.join(', ')} } from '${this.config.requestMethodsImportPath || './api'}';`, '\n');
 			clearDir(this.config.apiListFilePath + '/index.ts').finally(() => {
 				writeFileRecursive(this.config.apiListFilePath + '/index.ts', apiListFileContent.join('\n'))
 					.then(() => {

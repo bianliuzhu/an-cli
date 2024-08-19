@@ -1,7 +1,8 @@
 {
-  "saveTypeFolderPath": "apps/types",
-  "apiListFilePath": "apps/services",
-  "swaggerJsonUrl": "",
-  "indent": "\t",
-  "headers": {}
+	"saveTypeFolderPath": "apps/types",
+	"apiListFilePath": "apps/services",
+	"swaggerJsonUrl": "",
+	"requestMethodsImportPath": "./fetch",
+	"indent": "\t",
+	"headers": {}
 }
