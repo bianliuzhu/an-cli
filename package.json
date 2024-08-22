@@ -1,6 +1,6 @@
 {
 	"name": "anl",
-	"version": "1.3.12",
+	"version": "1.3.14",
 	"description": "FE command line tool",
 	"main": "bin/an-cli.js",
 	"scripts": {
@@ -27,7 +27,7 @@
 		"@typescript-eslint/parser": "^5.52.0",
 		"eslint": "^8.7.0",
 		"husky": "^8.0.3",
-		"openapi-types": "^9.3.0",
+		"openapi-types": "^12.1.3",
 		"prettier": "^3.3.2",
 		"rimraf": "^5.0.7",
 		"rollup": "^2.64.0",

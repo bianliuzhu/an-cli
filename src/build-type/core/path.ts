@@ -1,6 +1,6 @@
 import { OpenAPIV3 } from 'openapi-types';
 import { clearDir, writeFileRecursive } from '../../utils';
-import { ArraySchemaObject, ConfigType, NonArraySchemaObject, OperationObject, PathItemObject, PathsObject } from '../types';
+import { ArraySchemaObject, ConfigType, NonArraySchemaObject, OperationObject, PathItemObject } from '../types';
 
 const TIGHTEN = `\t`; // 缩进
 
@@ -10,7 +10,6 @@ type ParameterObject = OpenAPIV3.ParameterObject;
 type RequestBodyObject = OpenAPIV3.RequestBodyObject;
 type Schema = ReferenceObject | SchemaObject; // OpenAPIV3.ParameterBaseObject['schema'] ;
 type Properties = OpenAPIV3.BaseSchemaObject['properties'];
-type ResponsesObject = OpenAPIV3.ResponsesObject;
 type ResponseObject = OpenAPIV3.ResponseObject;
 
 type ContentBody = {
@@ -79,25 +78,23 @@ const contentBody: ContentBody = {
 };
 
 export class PathParse {
-	pathsObject: PathsObject = {};
+	pathsObject: OpenAPIV3.PathsObject = {};
 	nonArrayType = ['boolean', 'object', 'number', 'string', 'integer'];
 	pathKey = '';
 	contentBody: ContentBody = contentBody;
 	Map: MapType = new Map();
 	config: ConfigType;
 
-	constructor(pathsObject: PathsObject, config: ConfigType) {
+	constructor(pathsObject: OpenAPIV3.PathsObject, config: ConfigType) {
 		this.pathsObject = pathsObject;
 		this.config = config;
 	}
 
-	typeNameToFileName(name: string) {
-		const fileName = name
-			.replace(/([A-Z][a-z])/g, (str: string) => '-' + str.toLowerCase())
-			.replace(/([A-Z]{2,})/g, '-$1')
-			.toLowerCase()
-			.slice(1);
-		return fileName;
+	typeNameToFileName(str: string) {
+		str = str.replace(/_/g, '-');
+		str = str.replace(/([a-z])([A-Z])/g, '$1-$2').toLowerCase();
+		str = str.replace(/-+/g, '-');
+		return str;
 	}
 
 	propertiesParse(properties: Properties): string[] {
@@ -163,7 +160,6 @@ export class PathParse {
 		const typeName = refobj.$ref.replace('#/components/schemas/', '');
 		const fileName = this.typeNameToFileName(typeName);
 		const importStatements = `import('../models/${fileName}').${typeName}`;
-		// return { importStatements, typeName };
 		return importStatements;
 	}
 
@@ -185,7 +181,7 @@ export class PathParse {
 		return 'unknown';
 	}
 
-	responseObjectParse(responseObject: ResponseObject) {
+	responseObjectParse(responseObject: OpenAPIV3.ResponseObject) {
 		const content = responseObject.content;
 		if (!content) return '';
 
@@ -197,7 +193,7 @@ export class PathParse {
 		}
 	}
 
-	responseHandle(response: ResponsesObject) {
+	responseHandle(response: OpenAPIV3.ResponsesObject) {
 		const value = response['200'];
 		if (!value) return;
 		const responseObject = 'content' in (value as ResponseObject) ? (value as ResponseObject) : null;
@@ -400,8 +396,10 @@ export class PathParse {
 		return new Promise((resolve, reject) => {
 			try {
 				for (const requestPath in this.pathsObject) {
-					const itemObject = this.pathsObject[requestPath];
-					if (itemObject) this.parsePathItemObject(itemObject, requestPath);
+					const methodObject = this.pathsObject[requestPath];
+					// if (requestPath === '/api/canvas/{gameName}/view') {
+					if (methodObject) this.parsePathItemObject(methodObject, requestPath);
+					// }
 				}
 				resolve(this.Map);
 			} catch (error) {

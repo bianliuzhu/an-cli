@@ -1,7 +1,7 @@
 {
 	"saveTypeFolderPath": "apps/types",
 	"apiListFilePath": "apps/services",
-	"swaggerJsonUrl": "",
+	"swaggerJsonUrl": "http://10.10.77.121/dev-api/api-json",
 	"requestMethodsImportPath": "./fetch",
 	"indent": "\t",
 	"headers": {}

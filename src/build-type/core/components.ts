@@ -16,13 +16,11 @@ class Components {
 		this.config = config;
 	}
 
-	typeNameToFileName(name: string) {
-		const fileName = name
-			.replace(/([A-Z][a-z])/g, (str: string) => '-' + str.toLowerCase())
-			.replace(/([A-Z]{2,})/g, '-$1')
-			.toLowerCase()
-			.slice(1);
-		return fileName;
+	typeNameToFileName(str: string) {
+		str = str.replace(/_/g, '-');
+		str = str.replace(/([a-z])([A-Z])/g, '$1-$2').toLowerCase();
+		str = str.replace(/-+/g, '-');
+		return str;
 	}
 
 	nameTheHumpCenterStroke(str: string): { typeName: string; fileName: string } {
@@ -81,13 +79,13 @@ class Components {
 		return { headerRef, renderStr };
 	}
 
-	parseBoolean(schemaObject: any, key: string): string {
+	parseBoolean(schemaObject: NonArraySchemaObject, key: string): string {
 		if (schemaObject.type !== 'boolean') return '';
 		const renderStr = `${INDENT}${key}: boolean;`;
 		return renderStr;
 	}
 
-	parseEnum(value: any, key: string): string {
+	parseEnum(value: NonArraySchemaObject, key: string): string {
 		if (value.type !== 'integer') return '';
 		if (Array.isArray(value.enum)) {
 			const temp = value.enum.map((item: number) => `${INDENT}NUMBER_${item} = ${item},`);
@@ -97,7 +95,7 @@ class Components {
 		return '';
 	}
 
-	parseInteger(value: any, key: string): string {
+	parseInteger(value: NonArraySchemaObject, key: string): string {
 		if (value.type !== 'integer') return '';
 		if (Array.isArray(value.enum)) {
 			return this.parseEnum(value, key);
@@ -106,18 +104,19 @@ class Components {
 		}
 	}
 
-	parseNumber(value: any, key: string): string {
+	parseNumber(value: NonArraySchemaObject, key: string): string {
 		if (value.type !== 'number') return '';
 		const renderStr = `${INDENT}${key}: number;`;
 		return renderStr;
 	}
 
-	parseString(value: any, key: string): TReturnType {
+	parseString(value: NonArraySchemaObject, key: string): TReturnType {
 		if (value.type !== 'string') return null;
 		const renderStr = `${INDENT}${key}: string;`;
 		return { headerRef: '', renderStr };
 	}
 
+	// referenceObjectHandle() {}
 	parseProperties(properties: OpenAPIV3.BaseSchemaObject['properties'], interfaceKey?: string) {
 		try {
 			const content: string[] = [];
@@ -134,6 +133,16 @@ class Components {
 					continue;
 				}
 
+				if ('allOf' in schemaSource) {
+					const V1 = schemaSource['allOf']?.[0] as ReferenceObject;
+					if (V1?.$ref) {
+						const { headerRefStr, typeName } = this.parseRef(V1.$ref);
+						!headerRef.includes(headerRefStr) && headerRef.push(headerRefStr);
+						content.push(`${INDENT}${name}: ${typeName};`);
+						continue;
+					}
+				}
+
 				switch ((schemaSource as SchemaObject).type) {
 					case 'array':
 						{
@@ -145,25 +154,25 @@ class Components {
 						break;
 					case 'boolean':
 						{
-							const value = this.parseBoolean(schemaSource, name) ?? this.defalutReturn;
+							const value = this.parseBoolean(schemaSource as NonArraySchemaObject, name) ?? this.defalutReturn;
 							content.push(value);
 						}
 						break;
 					case 'integer':
 						{
-							const value = this.parseInteger(schemaSource, name) ?? this.defalutReturn;
+							const value = this.parseInteger(schemaSource as NonArraySchemaObject, name) ?? this.defalutReturn;
 							content.push(value);
 						}
 						break;
 					case 'number':
 						{
-							const value = this.parseNumber(schemaSource, name) ?? this.defalutReturn;
+							const value = this.parseNumber(schemaSource as NonArraySchemaObject, name) ?? this.defalutReturn;
 							content.push(value);
 						}
 						break;
 					case 'string':
 						{
-							const { renderStr } = this.parseString(schemaSource, name) ?? this.defalutReturn;
+							const { renderStr } = this.parseString(schemaSource as NonArraySchemaObject, name) ?? this.defalutReturn;
 							content.push(renderStr);
 						}
 						break;
