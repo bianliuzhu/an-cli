@@ -79,8 +79,8 @@ export class Main {
 					clearDir(config.saveTypeFolderPath).then(() => {
 						this.handle(config)
 							.then((res) => {
-								console.log('format: ', `prettier --write "${config.saveTypeFolderPath}/**/*.{ts,d.ts}"`);
-								exec(`prettier --write "${config.saveTypeFolderPath}/**/*.{ts,d.ts}"`);
+								console.log('format: ', `npx prettier --write "${config.saveTypeFolderPath}/**/*.{ts,d.ts}"`);
+								exec(`npx prettier --write "${config.saveTypeFolderPath}/**/*.{ts,d.ts}"`);
 
 								return;
 							})
