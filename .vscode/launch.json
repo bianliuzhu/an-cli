@@ -21,6 +21,9 @@
 			"protocol": "inspector",
 			"console": "integratedTerminal",
 			"internalConsoleOptions": "neverOpen",
+			"env": {
+				"NODE_ENV": "development",
+			},
 			"runtimeExecutable": "/Users/bianliuzhu/.nvm/versions/node/v22.5.1/bin/node"
 		}
 	]

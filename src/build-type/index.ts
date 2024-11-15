@@ -6,7 +6,8 @@ import Components from './core/components';
 import { getSwaggerJson } from './core/get-data';
 import PathParse from './core/path';
 import { ComponentsSchemas, ConfigType, PathsObject } from './types';
-import { exec, exit, which } from 'shelljs';
+import { exec } from 'shelljs';
+
 /**
 	"saveTypeFolderPath": "apps/types",
 	"apiListFilePath": "spps/services",
@@ -33,35 +34,37 @@ export class Main {
 	 * @param update 更新覆盖
 	 */
 	private handle(config: ConfigType) {
-		// return new Promise((resolve, reject) => {
-		// 	const response = DATA as unknown as OpenAPIV3.Document;
-		// 	this.schemas = response.components?.schemas;
-		// 	this.paths = response.paths;
-		// 	const components = new Components(this.schemas, config);
-		// 	components.handle();
-		// 	const paths = new PathParse(this.paths, config);
-		// 	paths.handle();
-		// 	return resolve(true);
-		// });
+		if (process.env.NODE_ENV === 'development') {
+			return new Promise((resolve, reject) => {
+				const response = DATA as unknown as OpenAPIV3.Document;
+				this.schemas = response.components?.schemas;
+				this.paths = response.paths;
+				const components = new Components(this.schemas, config);
+				components.handle();
+				const paths = new PathParse(this.paths, config);
+				paths.handle();
+				return resolve(true);
+			});
+		} else {
+			return new Promise((resolve) => {
+				if (!config.swaggerJsonUrl) return resolve({}); // reject map
+				getSwaggerJson(config)
+					.then((data) => {
+						const response = data as OpenAPIV3.Document;
+						this.schemas = response.components?.schemas;
+						this.paths = response.paths;
+						const components = new Components(this.schemas, config);
+						components.handle();
+						const paths = new PathParse(this.paths, config);
+						paths.handle();
 
-		return new Promise((resolve) => {
-			if (!config.swaggerJsonUrl) return resolve({}); // reject map
-			getSwaggerJson(config)
-				.then((data) => {
-					const response = data as OpenAPIV3.Document;
-					this.schemas = response.components?.schemas;
-					this.paths = response.paths;
-					const components = new Components(this.schemas, config);
-					components.handle();
-					const paths = new PathParse(this.paths, config);
-					paths.handle();
-
-					resolve({});
-				})
-				.catch(() => {
-					resolve({}); // reject map
-				});
-		});
+						resolve({});
+					})
+					.catch(() => {
+						resolve({}); // reject map
+					});
+			});
+		}
 	}
 
 	initialize() {
@@ -104,5 +107,8 @@ export class Main {
 			});
 	}
 }
-// const int = new Main();
-// int.initialize();
+
+if (process.env.NODE_ENV === 'development') {
+	const int = new Main();
+	int.initialize();
+}

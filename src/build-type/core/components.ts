@@ -35,7 +35,7 @@ class Components {
 	parseRef(ref: string): { headerRefStr: string; typeName: string } {
 		if (!ref) return { headerRefStr: '', typeName: '' };
 		const { fileName, typeName } = this.nameTheHumpCenterStroke(ref);
-		const header = `import { ${typeName} } from './${fileName}';`;
+		const header = `import type { ${typeName} } from './${fileName}';`;
 		return { headerRefStr: header, typeName };
 	}
 

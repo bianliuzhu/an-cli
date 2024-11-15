@@ -10,6 +10,7 @@ import commonjs from '@rollup/plugin-commonjs';
 /** rollup文件夹清除插件 */
 import { cleandir } from 'rollup-plugin-cleandir';
 import { terser } from 'rollup-plugin-terser';
+
 export default defineConfig({
 	/** 打包入口文件 */
 	input: './src/index.ts',
