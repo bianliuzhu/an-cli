@@ -14,7 +14,7 @@ export type ComponentsSchemas = OpenAPIV3.ComponentsObject['schemas'];
 export type ReferenceObject = OpenAPIV3.ReferenceObject;
 export type SchemaObject = OpenAPIV3.SchemaObject;
 export type ArraySchemaObject = OpenAPIV3.ArraySchemaObject;
-export type NonArraySchemaObject = OpenAPIV3.NonArraySchemaObject;
+export type NonArraySchemaObject = OpenAPIV3.NonArraySchemaObject & { description?: string };
 export type PathsObject = OpenAPIV3.PathsObject;
 export type HttpMethods = OpenAPIV3.HttpMethods;
 

@@ -64,10 +64,10 @@ export const writeFileRecursive = function (path: string, buffer: string): Promi
 
 export const log = {
 	info: (msg: string) => console.log(chalk.dim(msg)),
-	error: (msg: string) => console.log(chalk.red(`× ${msg}`)),
-	success: (msg: string) => console.log(chalk.green(`✔ ${msg}`)),
-	warning: (msg: string) => console.log(chalk.yellow(`⚠️ ${msg}`)),
-	load: (msg: string) => console.log(chalk.dim(`☯︎ ${msg}`)),
+	error: (msg: string) => console.log(chalk.red(`❌ ${msg}`)),
+	success: (msg: string) => console.log(chalk.green(`🥂 ${msg}`)),
+	warning: (msg: string) => console.log(chalk.yellow(`❗️ ${msg}`)),
+	load: (msg: string) => console.log(chalk.dim(`🌐 ${msg}`)),
 };
 
 // 在终端中显示 loading 动画图标。

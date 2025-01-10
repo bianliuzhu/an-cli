@@ -7,6 +7,7 @@ import { getSwaggerJson } from './core/get-data';
 import PathParse from './core/path';
 import { ComponentsSchemas, ConfigType, PathsObject } from './types';
 import { exec } from 'shelljs';
+import { log } from '../utils';
 
 /**
 	"saveTypeFolderPath": "apps/types",
@@ -77,14 +78,14 @@ export class Main {
 						return;
 					}
 					const config = JSON.parse(data) as ConfigType;
+
 					console.log('config ---->', config);
 
 					clearDir(config.saveTypeFolderPath).then(() => {
 						this.handle(config)
-							.then((res) => {
-								console.log('format: ', `npx prettier --write "${config.saveTypeFolderPath}/**/*.{ts,d.ts}"`);
+							.then(() => {
 								exec(`npx prettier --write "${config.saveTypeFolderPath}/**/*.{ts,d.ts}"`);
-
+								log.warning(`format: npx prettier --write "${config.saveTypeFolderPath}/**/*.{ts,d.ts}"`);
 								return;
 							})
 							.catch((err) => {
@@ -93,12 +94,12 @@ export class Main {
 					});
 				});
 			})
-			.catch((err) => {
-				console.error('配置文件不存在，将自动创建配置文件！');
+			.catch(() => {
+				log.warning('配置文件不存在，将自动创建配置文件！');
 				clearDir(configContent.saveTypeFolderPath).then(() => {
 					writeFileRecursive(configFilePath, JSON.stringify(configContent, null, 2))
 						.catch((err) => {
-							console.log(err);
+							log.error(err);
 						})
 						.finally(() => {
 							this.handle(configContent);

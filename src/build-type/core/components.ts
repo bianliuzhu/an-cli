@@ -4,7 +4,7 @@ import { ArraySchemaObject, ComponentsSchemas, ConfigType, NonArraySchemaObject,
 
 const INDENT = `\t`;
 
-type TReturnType = { headerRef: string; renderStr: string } | null;
+type TReturnType = { headerRef: string; renderStr: string; comment?: string } | null;
 type TrenderType = { fileName: string; content: string };
 
 class Components {
@@ -16,6 +16,15 @@ class Components {
 	constructor(schemas: ComponentsSchemas, config: ConfigType) {
 		this.schemas = schemas;
 		this.config = config;
+	}
+
+	fieldComment(schemaSource: NonArraySchemaObject) {
+		const { description } = schemaSource;
+		if (description) {
+			const Comment = ['\t', '/**', '\n', `\t * ${description}`, '\n', '\t */'].join('');
+			return Comment;
+		}
+		return '';
 	}
 
 	typeNameToFileName(str: string): string {
@@ -33,7 +42,7 @@ class Components {
 	}
 
 	parseRef(ref: string): { headerRefStr: string; typeName: string } {
-		if (!ref) return { headerRefStr: '', typeName: '' };
+		if (!ref?.trim()) return { headerRefStr: '', typeName: '' };
 		const { fileName, typeName } = this.nameTheHumpCenterStroke(ref);
 		const header = `import type { ${typeName} } from './${fileName}';`;
 		return { headerRefStr: header, typeName };
@@ -49,6 +58,8 @@ class Components {
 				const value = this.parseArray(nonArraySchema.additionalProperties as ArraySchemaObject, key) ?? this.defaultReturn;
 				headerRef = value.headerRef;
 				renderStr = value.renderStr;
+			} else {
+				renderStr = `${INDENT}${key}: ${obj.type};`;
 			}
 		}
 
@@ -56,24 +67,27 @@ class Components {
 	}
 
 	parseArray(schemaSource: OpenAPIV3.SchemaObject, name: string): TReturnType {
-		let headerRef = '';
-		let renderStr = '';
-		const v1 = schemaSource as OpenAPIV3.ArraySchemaObject;
+		const { items = {}, nullable } = schemaSource as OpenAPIV3.ArraySchemaObject;
+		const ref = (items as ReferenceObject)?.$ref;
 
-		if ((v1.items as ReferenceObject)?.$ref) {
-			const { headerRefStr, typeName } = this.parseRef((v1.items as ReferenceObject).$ref);
-			headerRef = headerRefStr;
-			renderStr = `${INDENT}${name}${schemaSource?.nullable ? '?:' : '?:'} Array<${typeName}>;`;
-		} else {
-			const items = v1.items as SchemaObject;
-			renderStr = `${INDENT}${name}${schemaSource?.nullable ? '?:' : '?:'} Array<${items.type === 'integer' ? 'number' : items.type}>;`;
+		if (ref) {
+			const { headerRefStr, typeName } = this.parseRef(ref);
+			return {
+				headerRef: headerRefStr,
+				renderStr: `${INDENT}${name}${nullable ? '?' : ''}: Array<${typeName}>;`,
+			};
 		}
 
-		return { headerRef, renderStr };
+		const itemType = (items as SchemaObject)?.type;
+		const finalType = itemType === 'integer' ? 'number' : itemType;
+		return {
+			headerRef: '',
+			renderStr: `${INDENT}${name}${nullable ? '?' : ''}: Array<${finalType}>;`,
+		};
 	}
 
 	parseBoolean(schemaObject: NonArraySchemaObject, key: string): string {
-		return schemaObject.type === 'boolean' ? `${INDENT}${key}?: boolean;` : '';
+		return schemaObject.type === 'boolean' ? `${INDENT}${key}: boolean;` : '';
 	}
 
 	parseEnum(value: NonArraySchemaObject, key: string): string {
@@ -85,15 +99,15 @@ class Components {
 	}
 
 	parseInteger(value: NonArraySchemaObject, key: string): string {
-		return Array.isArray(value.enum) ? this.parseEnum(value, key) : `${INDENT}${key}?: number;`;
+		return Array.isArray(value.enum) ? this.parseEnum(value, key) : `${INDENT}${key}: number;`;
 	}
 
 	parseNumber(value: NonArraySchemaObject, key: string): string {
-		return value.type === 'number' ? `${INDENT}${key}?: number;` : '';
+		return value.type === 'number' ? `${INDENT}${key}: number;` : '';
 	}
 
 	parseString(value: NonArraySchemaObject, key: string): TReturnType {
-		return value.type === 'string' ? { headerRef: '', renderStr: `${INDENT}${key}?: string;` } : null;
+		return value.type === 'string' ? { headerRef: '', renderStr: `${INDENT}${key}: string;` } : null;
 	}
 
 	parseProperties(properties: OpenAPIV3.BaseSchemaObject['properties'], interfaceKey?: string): string {
@@ -106,7 +120,7 @@ class Components {
 			if ((schemaSource as ReferenceObject)?.$ref) {
 				const { headerRefStr, typeName } = this.parseRef((schemaSource as ReferenceObject).$ref);
 				if (!headerRef.includes(headerRefStr)) headerRef.push(headerRefStr);
-				content.push(`${INDENT}${name}?: ${typeName};`);
+				content.push(`${INDENT}${name}: ${typeName};`);
 				continue;
 			}
 
@@ -115,10 +129,14 @@ class Components {
 				if (V1?.$ref) {
 					const { headerRefStr, typeName } = this.parseRef(V1.$ref);
 					if (!headerRef.includes(headerRefStr)) headerRef.push(headerRefStr);
-					content.push(`${INDENT}${name}?: ${typeName};`);
+					content.push(`${INDENT}${name}: ${typeName};`);
 					continue;
 				}
 			}
+
+			/** 添加注释 */
+			const comment = this.fieldComment(schemaSource as NonArraySchemaObject);
+			comment !== '' && content.push(comment);
 
 			switch ((schemaSource as SchemaObject).type) {
 				case 'array':
@@ -128,18 +146,31 @@ class Components {
 						if (!headerRef.includes(value.headerRef)) headerRef.push(value.headerRef);
 					}
 					break;
+
 				case 'boolean':
-					content.push(this.parseBoolean(schemaSource as NonArraySchemaObject, name));
+					{
+						content.push(this.parseBoolean(schemaSource as NonArraySchemaObject, name));
+					}
 					break;
+
 				case 'integer':
-					content.push(this.parseInteger(schemaSource as NonArraySchemaObject, name));
+					{
+						content.push(this.parseInteger(schemaSource as NonArraySchemaObject, name));
+					}
 					break;
+
 				case 'number':
-					content.push(this.parseNumber(schemaSource as NonArraySchemaObject, name));
+					{
+						content.push(this.parseNumber(schemaSource as NonArraySchemaObject, name));
+					}
 					break;
+
 				case 'string':
-					content.push(this.parseString(schemaSource as NonArraySchemaObject, name)?.renderStr ?? '');
+					{
+						content.push(this.parseString(schemaSource as NonArraySchemaObject, name)?.renderStr ?? '');
+					}
 					break;
+
 				case 'object':
 					{
 						const { headerRef: _headerObj, renderStr: _renderStr } = this.parseObject(schemaSource as SchemaObject, name) ?? this.defaultReturn;
@@ -151,48 +182,68 @@ class Components {
 		}
 
 		const interfaceName = `export interface ${interfaceKey} {`;
-		return [...headerRef, '\n', interfaceName, ...content, `}`].join('\n');
+
+		const result = [interfaceName, ...content, `}`];
+
+		if (headerRef.length > 0) {
+			const head = headerRef.filter((e) => e !== '');
+			if (head.length > 0) head.push('');
+			result.unshift(...head);
+		}
+		const v = result.join('\n');
+		return v;
 	}
 
 	async parse(): Promise<void> {
-		for (const key in this.schemas) {
-			const temp = this.schemas[key];
-			const V1 = temp as ReferenceObject;
-			const V2 = temp as SchemaObject;
-
-			if ('$ref' in V1) {
-				console.warn('ReferenceObject 未处理');
-				continue;
+		try {
+			if (!this.schemas) {
+				console.warn('schemas 为空');
+				return;
 			}
 
-			const schemaObject = ('type' in V2 ? V2 : null) as NonArraySchemaObject | ArraySchemaObject;
-			const fileName = this.typeNameToFileName(key);
-
-			if (!schemaObject) continue;
-
-			if ('items' in schemaObject) {
-				console.log('未处理--------------------------->', schemaObject.items);
-			} else {
-				let content = '';
-				switch (schemaObject.type) {
-					case 'boolean':
-						content = this.parseBoolean(schemaObject, key);
-						break;
-					case 'integer':
-						content = this.parseInteger(schemaObject, key);
-						break;
-					case 'number':
-						content = this.parseNumber(schemaObject, key);
-						break;
-					case 'object':
-						content = this.parseProperties(schemaObject.properties, key);
-						break;
-					case 'string':
-						content = this.parseString(schemaObject, key)?.renderStr ?? '';
-						break;
+			for (const [key, schema] of Object.entries(this.schemas)) {
+				if ('$ref' in schema) {
+					console.warn(`跳过 ReferenceObject: ${key}`);
+					continue;
 				}
-				this.schemasMap.set(key, { fileName, content });
+
+				const schemaObject = ('type' in schema ? schema : null) as NonArraySchemaObject | ArraySchemaObject;
+				if (!schemaObject?.type) {
+					console.warn(`无效的 schema 对象: ${key}`);
+					continue;
+				}
+
+				const fileName = this.typeNameToFileName(key);
+				const content = await this.generateContent(schemaObject, key);
+				if (content) {
+					this.schemasMap.set(key, { fileName, content });
+				}
 			}
+		} catch (error) {
+			console.error('解析过程出错:', error);
+			throw error;
+		}
+	}
+
+	private async generateContent(schemaObject: NonArraySchemaObject | ArraySchemaObject, key: string): Promise<string> {
+		if ('items' in schemaObject) {
+			console.warn(`数组类型未处理: ${key}`, schemaObject.items);
+			return '';
+		}
+
+		switch (schemaObject.type) {
+			case 'boolean':
+				return this.parseBoolean(schemaObject, key);
+			case 'integer':
+				return this.parseInteger(schemaObject, key);
+			case 'number':
+				return this.parseNumber(schemaObject, key);
+			case 'object':
+				return this.parseProperties(schemaObject.properties, key);
+			case 'string':
+				return this.parseString(schemaObject, key)?.renderStr ?? '';
+			default:
+				return '';
 		}
 	}
 

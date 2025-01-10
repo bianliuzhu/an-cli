@@ -15,34 +15,6 @@
 				]
 			}
 		},
-		"/api/lsp/compile": {
-			"post": {
-				"operationId": "LspController_compile",
-				"summary": "Get code completions based on given input",
-				"parameters": [],
-				"requestBody": {
-					"required": true,
-					"content": {
-						"application/json": {
-							"schema": {
-								"$ref": "#/components/schemas/CompletionDto"
-							}
-						}
-					}
-				},
-				"responses": {
-					"200": {
-						"description": "Successfully fetched the completion list."
-					},
-					"400": {
-						"description": "Failed to fetch the completion list."
-					}
-				},
-				"tags": [
-					"LSP"
-				]
-			}
-		},
 		"/api/manageGame/createGame": {
 			"post": {
 				"operationId": "ManageGameController_createGame",
@@ -50,7 +22,6 @@
 				"parameters": [],
 				"requestBody": {
 					"required": true,
-					"description": "创建游戏报文",
 					"content": {
 						"application/json": {
 							"schema": {
@@ -61,7 +32,14 @@
 				},
 				"responses": {
 					"200": {
-						"description": "游戏创建成功"
+						"description": "返回游戏列表",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/CreateGame"
+								}
+							}
+						}
 					}
 				},
 				"tags": [
@@ -84,7 +62,7 @@
 				]
 			}
 		},
-		"/api/manageGame/getGameConfig/{gameName}": {
+		"/api/manageGame/{gameName}/getGameConfig": {
 			"get": {
 				"operationId": "ManageGameController_getGameConfig",
 				"summary": "获取游戏的配置信息",
@@ -100,10 +78,14 @@
 				],
 				"responses": {
 					"200": {
-						"description": "返回游戏配置"
-					},
-					"400": {
-						"description": "获取游戏配置失败"
+						"description": "返回游戏配置",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/Config"
+								}
+							}
+						}
 					}
 				},
 				"tags": [
@@ -167,215 +149,15 @@
 				]
 			}
 		},
-		"/api/manageGame/readGameAssets/{readDirPath}": {
+		"/api/manageGame/{gameName}/relation": {
 			"get": {
-				"operationId": "ManageGameController_readGameAssets",
-				"summary": "Read Game Assets",
-				"parameters": [
-					{
-						"name": "readDirPath",
-						"required": true,
-						"in": "path",
-						"description": "Path of the game directory to read assets from, including subdirectories.",
-						"schema": {
-							"type": "string"
-						}
-					}
-				],
-				"responses": {
-					"200": {
-						"description": "Retrieve the assets of the specified game directory."
-					}
-				},
-				"tags": [
-					"Manage Game"
-				]
-			}
-		},
-		"/api/manageGame/readUserAssets/{readDirPath}": {
-			"get": {
-				"operationId": "ManageGameController_readUserAssets",
-				"summary": "读取用户资源",
-				"parameters": [
-					{
-						"name": "readDirPath",
-						"required": true,
-						"in": "path",
-						"description": "读取资产的用户目录路径，包括子目录.",
-						"schema": {
-							"type": "string"
-						}
-					}
-				],
-				"responses": {
-					"200": {
-						"description": "检索指定用户目录下的资源."
-					}
-				},
-				"tags": [
-					"Manage Game"
-				]
-			}
-		},
-		"/api/manageGame/setGameConfig": {
-			"post": {
-				"operationId": "ManageGameController_setGameConfig",
-				"summary": "Set Game Configuration",
-				"parameters": [],
-				"requestBody": {
-					"required": true,
-					"content": {
-						"application/json": {
-							"schema": {
-								"$ref": "#/components/schemas/GameConfigDto"
-							}
-						}
-					}
-				},
-				"responses": {
-					"200": {
-						"description": "Game configuration set successfully."
-					},
-					"400": {
-						"description": "Failed to set the game configuration."
-					}
-				},
-				"tags": [
-					"Manage Game"
-				]
-			}
-		},
-		"/api/manageGame/resource/uploadFiles": {
-			"post": {
-				"operationId": "ManageGameController_uploadUserResource",
-				"summary": "上传用户资源文件",
-				"parameters": [],
-				"requestBody": {
-					"required": true,
-					"content": {
-						"application/json": {
-							"schema": {
-								"$ref": "#/components/schemas/UploadResourceDto"
-							}
-						}
-					}
-				},
-				"responses": {
-					"200": {
-						"description": "Files uploaded successfully."
-					},
-					"400": {
-						"description": "Failed to upload files."
-					}
-				},
-				"tags": [
-					"Manage Game"
-				]
-			}
-		},
-		"/api/manageGame/resource/rename": {
-			"post": {
-				"operationId": "ManageGameController_resourceRename",
-				"summary": "用户资源文件重命名",
-				"parameters": [],
-				"requestBody": {
-					"required": true,
-					"content": {
-						"application/json": {
-							"schema": {
-								"$ref": "#/components/schemas/RenameDto"
-							}
-						}
-					}
-				},
-				"responses": {
-					"200": {
-						"description": "Successfully"
-					},
-					"400": {
-						"description": "Failed"
-					}
-				},
-				"tags": [
-					"Manage Game"
-				]
-			}
-		},
-		"/api/manageGame/resource/delete": {
-			"post": {
-				"operationId": "ManageGameController_resourceDelete",
-				"summary": "删除用户资源文件",
-				"parameters": [],
-				"requestBody": {
-					"required": true,
-					"content": {
-						"application/json": {
-							"schema": {
-								"$ref": "#/components/schemas/DeleteResourceDto"
-							}
-						}
-					}
-				},
-				"responses": {
-					"200": {
-						"description": "Successfully"
-					},
-					"400": {
-						"description": "Failed"
-					}
-				},
-				"tags": [
-					"Manage Game"
-				]
-			}
-		},
-		"/api/manageGame/resource/mkdir": {
-			"post": {
-				"operationId": "ManageGameController_resourceMkDir",
-				"summary": "新建用户资源文件夹",
-				"parameters": [
-					{
-						"name": "resource",
-						"required": true,
-						"in": "path",
-						"schema": {
-							"type": "string"
-						}
-					}
-				],
-				"requestBody": {
-					"required": true,
-					"content": {
-						"application/json": {
-							"schema": {
-								"$ref": "#/components/schemas/MkDirDto"
-							}
-						}
-					}
-				},
-				"responses": {
-					"200": {
-						"description": "Directory created successfully."
-					},
-					"400": {
-						"description": "Failed to create directory."
-					}
-				},
-				"tags": [
-					"Manage Game"
-				]
-			}
-		},
-		"/api/manageGame/openGameDict/{gameName}": {
-			"get": {
-				"operationId": "ManageGameController_openGameDict",
-				"summary": "Open Game Dictionary",
+				"operationId": "ManageGameController_gameRelation",
+				"summary": "游戏与资源的关联",
 				"parameters": [
 					{
 						"name": "gameName",
 						"required": true,
 						"in": "path",
-						"description": "Name of the game.",
 						"schema": {
 							"type": "string"
 						}
@@ -383,7 +165,14 @@
 				],
 				"responses": {
 					"200": {
-						"description": "Opens the dictionary for a specified game."
+						"description": "Successfully.",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/GameRelationVo"
+								}
+							}
+						}
 					}
 				},
 				"tags": [
@@ -391,353 +180,29 @@
 				]
 			}
 		},
-		"/api/manageGame/openGameAssetsDict/{gameName}": {
+		"/api/llm/{schema}/{type}/{id}/txt/v2": {
 			"get": {
-				"operationId": "ManageGameController_openGameAssetsDict",
-				"summary": "Open Game Assets Dictionary",
-				"parameters": [
-					{
-						"name": "gameName",
-						"required": true,
-						"in": "path",
-						"description": "Name of the game.",
-						"schema": {
-							"type": "string"
-						}
-					},
-					{
-						"name": "subFolder",
-						"required": true,
-						"in": "query",
-						"schema": {
-							"type": "string"
-						}
-					}
-				],
-				"responses": {
-					"200": {
-						"description": "Opens the assets dictionary for a specified game."
-					}
-				},
-				"tags": [
-					"Manage Game"
-				]
-			}
-		},
-		"/api/manageGame/ejectGameAsWeb/{gameName}": {
-			"get": {
-				"operationId": "ManageGameController_ejectGameAsWeb",
-				"summary": "Eject Game As Web App",
-				"parameters": [
-					{
-						"name": "gameName",
-						"required": true,
-						"in": "path",
-						"description": "Name of the game to be exported as web app.",
-						"schema": {
-							"type": "string"
-						}
-					}
-				],
-				"responses": {
-					"200": {
-						"description": "Exports the specified game as a web app."
-					}
-				},
-				"tags": [
-					"Manage Game"
-				]
-			}
-		},
-		"/api/manageGame/ejectGameAsExe/{gameName}": {
-			"get": {
-				"operationId": "ManageGameController_ejectGameAsExe",
-				"summary": "Eject Game As EXE",
-				"parameters": [
-					{
-						"name": "gameName",
-						"required": true,
-						"in": "path",
-						"description": "Name of the game to be exported as EXE.",
-						"schema": {
-							"type": "string"
-						}
-					}
-				],
-				"responses": {
-					"200": {
-						"description": "Exports the specified game as an EXE (Windows Electron App)."
-					}
-				},
-				"tags": [
-					"Manage Game"
-				]
-			}
-		},
-		"/api/manageGame/ejectGameAsAndroid/{gameName}": {
-			"get": {
-				"operationId": "ManageGameController_ejectGameAsAndroid",
-				"summary": "Eject Game As Android App",
-				"parameters": [
-					{
-						"name": "gameName",
-						"required": true,
-						"in": "path",
-						"description": "Name of the game to be exported as an Android app.",
-						"schema": {
-							"type": "string"
-						}
-					}
-				],
-				"responses": {
-					"200": {
-						"description": "Exports the specified game as an Android app."
-					}
-				},
-				"tags": [
-					"Manage Game"
-				]
-			}
-		},
-		"/api/manageGame/deleteFile": {
-			"post": {
-				"operationId": "ManageGameController_deleteFile",
-				"summary": "Delete File",
-				"parameters": [],
-				"requestBody": {
-					"required": true,
-					"description": "File deletion data",
-					"content": {
-						"application/json": {
-							"schema": {
-								"$ref": "#/components/schemas/DeleteFileDto"
-							}
-						}
-					}
-				},
-				"responses": {
-					"200": {
-						"description": "Successfully deleted the file."
-					},
-					"400": {
-						"description": "Failed to delete the file."
-					}
-				},
-				"tags": [
-					"Manage Game"
-				]
-			}
-		},
-		"/api/manageGame/createNewScene": {
-			"post": {
-				"operationId": "ManageGameController_createNewScene",
-				"summary": "Create a New Scene",
-				"parameters": [],
-				"requestBody": {
-					"required": true,
-					"description": "Scene creation data",
-					"content": {
-						"application/json": {
-							"schema": {
-								"$ref": "#/components/schemas/CreateNewSceneDto"
-							}
-						}
-					}
-				},
-				"responses": {
-					"200": {
-						"description": "Successfully created the scene."
-					},
-					"400": {
-						"description": "Failed to create the scene or scene already exists."
-					}
-				},
-				"tags": [
-					"Manage Game"
-				]
-			}
-		},
-		"/api/manageGame/editScene": {
-			"post": {
-				"operationId": "ManageGameController_editScene",
-				"summary": "Edit Scene",
-				"parameters": [],
-				"requestBody": {
-					"required": true,
-					"content": {
-						"application/json": {
-							"schema": {
-								"$ref": "#/components/schemas/EditSceneDto"
-							}
-						}
-					}
-				},
-				"responses": {
-					"200": {
-						"description": "Scene edited successfully."
-					},
-					"400": {
-						"description": "Failed to edit the scene."
-					}
-				},
-				"tags": [
-					"Manage Game"
-				]
-			}
-		},
-		"/api/manageGame/editTextFile": {
-			"post": {
-				"operationId": "ManageGameController_editTextFile",
-				"summary": "Edit TextFile",
-				"parameters": [],
-				"requestBody": {
-					"required": true,
-					"content": {
-						"application/json": {
-							"schema": {
-								"$ref": "#/components/schemas/EditTextFileDto"
-							}
-						}
-					}
-				},
-				"responses": {
-					"200": {
-						"description": "File edited successfully."
-					},
-					"400": {
-						"description": "Failed to edit the file."
-					}
-				},
-				"tags": [
-					"Manage Game"
-				]
-			}
-		},
-		"/api/manageGame/uploadFiles": {
-			"post": {
-				"operationId": "ManageGameController_uploadFiles",
-				"summary": "Upload Files",
-				"parameters": [],
-				"requestBody": {
-					"required": true,
-					"content": {
-						"application/json": {
-							"schema": {
-								"$ref": "#/components/schemas/UploadFilesDto"
-							}
-						}
-					}
-				},
-				"responses": {
-					"200": {
-						"description": "Files uploaded successfully."
-					},
-					"400": {
-						"description": "Failed to upload files."
-					}
-				},
-				"tags": [
-					"Manage Game"
-				]
-			}
-		},
-		"/api/manageGame/mkdir": {
-			"post": {
-				"operationId": "ManageGameController_mkDir",
-				"summary": "Create Directory",
-				"parameters": [],
-				"requestBody": {
-					"required": true,
-					"content": {
-						"application/json": {
-							"schema": {
-								"$ref": "#/components/schemas/MkDirDto"
-							}
-						}
-					}
-				},
-				"responses": {
-					"200": {
-						"description": "Directory created successfully."
-					},
-					"400": {
-						"description": "Failed to create directory."
-					}
-				},
-				"tags": [
-					"Manage Game"
-				]
-			}
-		},
-		"/api/manageGame/{gameName}/scene/{fileName}": {
-			"get": {
-				"operationId": "ManageGameController_laodSceneFile",
-				"summary": "read scene file",
-				"parameters": [
-					{
-						"name": "gameName",
-						"required": true,
-						"in": "path",
-						"description": "game name.",
-						"schema": {
-							"type": "string"
-						}
-					},
-					{
-						"name": "fileName",
-						"required": true,
-						"in": "path",
-						"description": "scene file name.",
-						"schema": {
-							"type": "string"
-						}
-					}
-				],
-				"responses": {
-					"200": {
-						"description": "return zh and en scene file"
-					}
-				},
-				"tags": [
-					"Manage Game"
-				]
-			}
-		},
-		"/api/llm/txt/v2/cache": {
-			"post": {
-				"operationId": "LlmController_mCache",
-				"summary": "Kimi模型资源存储",
-				"parameters": [],
-				"requestBody": {
-					"required": true,
-					"content": {
-						"application/json": {
-							"schema": {
-								"$ref": "#/components/schemas/Llm"
-							}
-						}
-					}
-				},
-				"responses": {
-					"200": {
-						"description": "Successfully."
-					},
-					"400": {
-						"description": "Failed."
-					}
-				},
-				"tags": [
-					"LLM"
-				]
-			}
-		},
-		"/api/llm/txt/v2/{tlmId}": {
-			"get": {
-				"operationId": "LlmController_txtV3",
+				"operationId": "LlmController_txtV2",
 				"summary": "Maas文生文",
 				"parameters": [
 					{
-						"name": "tlmId",
+						"name": "schema",
+						"required": true,
+						"in": "path",
+						"schema": {
+							"type": "string"
+						}
+					},
+					{
+						"name": "type",
+						"required": true,
+						"in": "path",
+						"schema": {
+							"type": "string"
+						}
+					},
+					{
+						"name": "id",
 						"required": true,
 						"in": "path",
 						"schema": {
@@ -758,11 +223,19 @@
 				]
 			}
 		},
-		"/api/llm/recommend/{rid}/features": {
+		"/api/llm/recommend/{schema}/{rid}/features": {
 			"get": {
 				"operationId": "LlmController_recommendFeatures",
 				"summary": "推荐角色人格",
 				"parameters": [
+					{
+						"name": "schema",
+						"required": true,
+						"in": "path",
+						"schema": {
+							"type": "string"
+						}
+					},
 					{
 						"name": "rid",
 						"required": true,
@@ -774,10 +247,17 @@
 				],
 				"responses": {
 					"200": {
-						"description": "Successfully."
-					},
-					"400": {
-						"description": "Failed."
+						"description": "",
+						"content": {
+							"application/json": {
+								"schema": {
+									"type": "array",
+									"items": {
+										"type": "string"
+									}
+								}
+							}
+						}
 					}
 				},
 				"tags": [
@@ -785,11 +265,19 @@
 				]
 			}
 		},
-		"/api/llm/recommend/{bgid}/category": {
+		"/api/llm/recommend/{schema}/{bgid}/category": {
 			"get": {
 				"operationId": "LlmController_recommendCategory",
 				"summary": "推荐背景分类",
 				"parameters": [
+					{
+						"name": "schema",
+						"required": true,
+						"in": "path",
+						"schema": {
+							"type": "string"
+						}
+					},
 					{
 						"name": "bgid",
 						"required": true,
@@ -801,10 +289,17 @@
 				],
 				"responses": {
 					"200": {
-						"description": "Successfully."
-					},
-					"400": {
-						"description": "Failed."
+						"description": "",
+						"content": {
+							"application/json": {
+								"schema": {
+									"type": "array",
+									"items": {
+										"type": "string"
+									}
+								}
+							}
+						}
 					}
 				},
 				"tags": [
@@ -840,10 +335,89 @@
 				]
 			}
 		},
-		"/api/llm/sseTest": {
-			"get": {
-				"operationId": "LlmController_sse",
+		"/api/llm/upload/text": {
+			"post": {
+				"operationId": "LlmController_uploadText",
+				"summary": "上传文本文件返回文本信息",
 				"parameters": [],
+				"responses": {
+					"201": {
+						"description": ""
+					}
+				},
+				"tags": [
+					"LLM"
+				]
+			}
+		},
+		"/api/llm/extract/file": {
+			"post": {
+				"operationId": "LlmController_extractFile",
+				"summary": "提取文件内容",
+				"parameters": [],
+				"requestBody": {
+					"required": true,
+					"content": {
+						"application/json": {
+							"schema": {
+								"$ref": "#/components/schemas/ExtractFileDto"
+							}
+						}
+					}
+				},
+				"responses": {
+					"default": {
+						"description": "",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/BatchExtraction"
+								}
+							}
+						}
+					}
+				},
+				"tags": [
+					"LLM"
+				]
+			}
+		},
+		"/api/llm/extract/task": {
+			"get": {
+				"operationId": "LlmController_extractTask",
+				"summary": "获取AI提取任务",
+				"parameters": [],
+				"responses": {
+					"200": {
+						"description": "",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/BatchExtraction"
+								}
+							}
+						}
+					}
+				},
+				"tags": [
+					"LLM"
+				]
+			}
+		},
+		"/api/llm/extract/{id}/destroy": {
+			"delete": {
+				"operationId": "LlmController_extractDestroy",
+				"summary": "删除AI提取任务",
+				"parameters": [
+					{
+						"name": "id",
+						"required": true,
+						"in": "path",
+						"schema": {
+							"type": "string"
+						}
+					}
+				],
 				"responses": {
 					"200": {
 						"description": ""
@@ -854,179 +428,15 @@
 				]
 			}
 		},
-		"/api/llm/upload/text": {
+		"/api/llm/extract/{batchId}/role/add": {
 			"post": {
-				"operationId": "LlmController_uploadText",
-				"summary": "上传文本文件返回文本，最大可接收5000字符",
-				"parameters": [],
-				"responses": {
-					"200": {
-						"description": "Successfully."
-					},
-					"501": {
-						"description": "Failed."
-					}
-				},
-				"tags": [
-					"LLM"
-				]
-			}
-		},
-		"/api/llm/get/expression/list": {
-			"get": {
-				"operationId": "LlmController_getExpressionList",
-				"summary": "获取表情标签列表",
-				"parameters": [],
-				"responses": {
-					"200": {
-						"description": "Successfully."
-					},
-					"501": {
-						"description": "Failed."
-					}
-				},
-				"tags": [
-					"LLM"
-				]
-			}
-		},
-		"/api/llm/draw/{event}/{reqId}": {
-			"get": {
-				"operationId": "LlmController_draw",
-				"summary": "获取绘图结果",
+				"operationId": "LlmController_extractAddRole",
+				"summary": "添加角色",
 				"parameters": [
 					{
-						"name": "event",
+						"name": "batchId",
 						"required": true,
 						"in": "path",
-						"schema": {
-							"type": "string"
-						}
-					},
-					{
-						"name": "reqId",
-						"required": true,
-						"in": "path",
-						"schema": {
-							"type": "string"
-						}
-					}
-				],
-				"responses": {
-					"200": {
-						"description": "Successfully."
-					},
-					"501": {
-						"description": "Failed."
-					}
-				},
-				"tags": [
-					"LLM"
-				]
-			}
-		},
-		"/api/llm/draw/task": {
-			"get": {
-				"operationId": "LlmController_drawing",
-				"summary": "获取该用户下正在绘图的Reqs",
-				"parameters": [],
-				"responses": {
-					"200": {
-						"description": "Successfully."
-					},
-					"501": {
-						"description": "Failed."
-					}
-				},
-				"tags": [
-					"LLM"
-				]
-			}
-		},
-		"/api/role/figure": {
-			"post": {
-				"operationId": "RoleController_createFigure",
-				"summary": "保存角色",
-				"parameters": [],
-				"requestBody": {
-					"required": true,
-					"content": {
-						"application/json": {
-							"schema": {
-								"$ref": "#/components/schemas/AddRoleDto"
-							}
-						}
-					}
-				},
-				"responses": {
-					"200": {
-						"description": "Successfully."
-					},
-					"501": {
-						"description": "Failed."
-					}
-				},
-				"tags": [
-					"Role"
-				]
-			}
-		},
-		"/api/role/figure/img": {
-			"post": {
-				"operationId": "RoleController_uploadFigureImg",
-				"summary": "保存立绘/表情差分图图片",
-				"parameters": [],
-				"requestBody": {
-					"required": true,
-					"content": {
-						"application/json": {
-							"schema": {
-								"$ref": "#/components/schemas/AddFigureDto"
-							}
-						}
-					}
-				},
-				"responses": {
-					"200": {
-						"description": "Successfully."
-					},
-					"501": {
-						"description": "Failed."
-					}
-				},
-				"tags": [
-					"Role"
-				]
-			}
-		},
-		"/api/role/list": {
-			"get": {
-				"operationId": "RoleController_listRole",
-				"summary": "获取该用户下角色列表",
-				"parameters": [],
-				"responses": {
-					"200": {
-						"description": "Successfully."
-					},
-					"501": {
-						"description": "Failed."
-					}
-				},
-				"tags": [
-					"Role"
-				]
-			}
-		},
-		"/api/role/{rid}": {
-			"put": {
-				"operationId": "RoleController_updateRole",
-				"summary": "更新角色",
-				"parameters": [
-					{
-						"name": "rid",
-						"required": true,
-						"in": "path",
-						"description": "角色ID",
 						"schema": {
 							"type": "string"
 						}
@@ -1044,16 +454,408 @@
 				},
 				"responses": {
 					"200": {
-						"description": "Successfully."
+						"description": "",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/IDRspDto"
+								}
+							}
+						}
+					}
+				},
+				"tags": [
+					"LLM"
+				]
+			}
+		},
+		"/api/llm/extract/{batchId}/role/update": {
+			"put": {
+				"operationId": "LlmController_extractUpdateRole",
+				"summary": "更新角色",
+				"parameters": [
+					{
+						"name": "batchId",
+						"required": true,
+						"in": "path",
+						"schema": {
+							"type": "string"
+						}
+					}
+				],
+				"requestBody": {
+					"required": true,
+					"content": {
+						"application/json": {
+							"schema": {
+								"$ref": "#/components/schemas/UpdateRoleDto"
+							}
+						}
+					}
+				},
+				"responses": {
+					"200": {
+						"description": ""
+					}
+				},
+				"tags": [
+					"LLM"
+				]
+			}
+		},
+		"/api/llm/extract/{batchId}/role/{id}/del": {
+			"delete": {
+				"operationId": "LlmController_extractDelRole",
+				"summary": "删除角色",
+				"parameters": [
+					{
+						"name": "id",
+						"required": true,
+						"in": "path",
+						"schema": {
+							"type": "string"
+						}
 					},
-					"501": {
-						"description": "Failed."
+					{
+						"name": "batchId",
+						"required": true,
+						"in": "path",
+						"schema": {
+							"type": "string"
+						}
+					}
+				],
+				"responses": {
+					"200": {
+						"description": ""
+					}
+				},
+				"tags": [
+					"LLM"
+				]
+			}
+		},
+		"/api/llm/extract/{batchId}/bg/add": {
+			"post": {
+				"operationId": "LlmController_extractAddBg",
+				"summary": "添加背景",
+				"parameters": [
+					{
+						"name": "batchId",
+						"required": true,
+						"in": "path",
+						"schema": {
+							"type": "string"
+						}
+					}
+				],
+				"requestBody": {
+					"required": true,
+					"content": {
+						"application/json": {
+							"schema": {
+								"$ref": "#/components/schemas/UpdateBgDto"
+							}
+						}
+					}
+				},
+				"responses": {
+					"200": {
+						"description": "",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/IDRspDto"
+								}
+							}
+						}
+					}
+				},
+				"tags": [
+					"LLM"
+				]
+			}
+		},
+		"/api/llm/extract/{batchId}/bg/update": {
+			"put": {
+				"operationId": "LlmController_extractUpdateBg",
+				"summary": "更新背景",
+				"parameters": [
+					{
+						"name": "batchId",
+						"required": true,
+						"in": "path",
+						"schema": {
+							"type": "string"
+						}
+					}
+				],
+				"requestBody": {
+					"required": true,
+					"content": {
+						"application/json": {
+							"schema": {
+								"$ref": "#/components/schemas/UpdateBgDto"
+							}
+						}
+					}
+				},
+				"responses": {
+					"200": {
+						"description": ""
+					}
+				},
+				"tags": [
+					"LLM"
+				]
+			}
+		},
+		"/api/llm/extract/{batchId}/bg/{id}/del": {
+			"delete": {
+				"operationId": "LlmController_extractDelBg",
+				"summary": "删除背景",
+				"parameters": [
+					{
+						"name": "id",
+						"required": true,
+						"in": "path",
+						"schema": {
+							"type": "string"
+						}
+					},
+					{
+						"name": "batchId",
+						"required": true,
+						"in": "path",
+						"schema": {
+							"type": "string"
+						}
+					}
+				],
+				"responses": {
+					"200": {
+						"description": ""
+					}
+				},
+				"tags": [
+					"LLM"
+				]
+			}
+		},
+		"/api/llm/extract/{batchId}/batchUpdate": {
+			"put": {
+				"operationId": "LlmController_extractBatchUpdate",
+				"summary": "批量更新角色和背景",
+				"parameters": [
+					{
+						"name": "batchId",
+						"required": true,
+						"in": "path",
+						"schema": {
+							"type": "string"
+						}
+					}
+				],
+				"requestBody": {
+					"required": true,
+					"content": {
+						"application/json": {
+							"schema": {
+								"$ref": "#/components/schemas/BatchBgRoleReqDto"
+							}
+						}
+					}
+				},
+				"responses": {
+					"200": {
+						"description": "",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/BatchBgRoleReqDto"
+								}
+							}
+						}
+					}
+				},
+				"tags": [
+					"LLM"
+				]
+			}
+		},
+		"/api/llm/extract/{batchId}/batchConfirm": {
+			"post": {
+				"operationId": "LlmController_extractBatchConfirm",
+				"summary": "批量确认保存",
+				"parameters": [
+					{
+						"name": "batchId",
+						"required": true,
+						"in": "path",
+						"schema": {
+							"type": "string"
+						}
+					}
+				],
+				"requestBody": {
+					"required": true,
+					"content": {
+						"application/json": {
+							"schema": {
+								"$ref": "#/components/schemas/BatchBgRoleReqDto"
+							}
+						}
+					}
+				},
+				"responses": {
+					"200": {
+						"description": "",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/BatchConfirmRspDto"
+								}
+							}
+						}
+					}
+				},
+				"tags": [
+					"LLM"
+				]
+			}
+		},
+		"/api/role/role": {
+			"post": {
+				"operationId": "RoleController_createRole",
+				"summary": "保存角色",
+				"parameters": [],
+				"requestBody": {
+					"required": true,
+					"content": {
+						"application/json": {
+							"schema": {
+								"$ref": "#/components/schemas/UpdateRoleDto"
+							}
+						}
+					}
+				},
+				"responses": {
+					"200": {
+						"description": "",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/IDRspDto"
+								}
+							}
+						}
 					}
 				},
 				"tags": [
 					"Role"
 				]
-			},
+			}
+		},
+		"/api/role/list": {
+			"post": {
+				"operationId": "RoleController_listRole",
+				"summary": "获取该用户下角色列表",
+				"parameters": [],
+				"requestBody": {
+					"required": true,
+					"description": "获取该用户下角色列表",
+					"content": {
+						"application/json": {
+							"schema": {
+								"$ref": "#/components/schemas/FindRoleDto"
+							}
+						}
+					}
+				},
+				"responses": {
+					"200": {
+						"description": "",
+						"content": {
+							"application/json": {
+								"schema": {
+									"type": "array",
+									"items": {
+										"$ref": "#/components/schemas/UpdateRoleDto"
+									}
+								}
+							}
+						}
+					}
+				},
+				"tags": [
+					"Role"
+				]
+			}
+		},
+		"/api/role/update": {
+			"put": {
+				"operationId": "RoleController_updateRole",
+				"summary": "更新角色",
+				"parameters": [],
+				"requestBody": {
+					"required": true,
+					"content": {
+						"application/json": {
+							"schema": {
+								"$ref": "#/components/schemas/UpdateRoleDto"
+							}
+						}
+					}
+				},
+				"responses": {
+					"200": {
+						"description": "Successfully."
+					}
+				},
+				"tags": [
+					"Role"
+				]
+			}
+		},
+		"/api/role/batchUpdate": {
+			"put": {
+				"operationId": "RoleController_batchUpdateRole",
+				"summary": "批量更新角色",
+				"parameters": [],
+				"requestBody": {
+					"required": true,
+					"content": {
+						"application/json": {
+							"schema": {
+								"type": "array",
+								"items": {
+									"$ref": "#/components/schemas/UpdateRoleDto"
+								}
+							}
+						}
+					}
+				},
+				"responses": {
+					"200": {
+						"description": "Successfully.",
+						"content": {
+							"application/json": {
+								"schema": {
+									"type": "array",
+									"items": {
+										"$ref": "#/components/schemas/UpdateRoleDto"
+									}
+								}
+							}
+						}
+					}
+				},
+				"tags": [
+					"Role"
+				]
+			}
+		},
+		"/api/role/{rid}": {
 			"delete": {
 				"operationId": "RoleController_deletedRole",
 				"summary": "删除角色",
@@ -1074,20 +876,6 @@
 					},
 					"501": {
 						"description": "Failed."
-					}
-				},
-				"tags": [
-					"Role"
-				]
-			}
-		},
-		"/api/role/test1": {
-			"get": {
-				"operationId": "RoleController_test",
-				"parameters": [],
-				"responses": {
-					"200": {
-						"description": ""
 					}
 				},
 				"tags": [
@@ -1205,17 +993,21 @@
 					"content": {
 						"application/json": {
 							"schema": {
-								"$ref": "#/components/schemas/CreateBgDto"
+								"$ref": "#/components/schemas/UpdateBgDto"
 							}
 						}
 					}
 				},
 				"responses": {
 					"200": {
-						"description": "Successfully."
-					},
-					"501": {
-						"description": "Failed."
+						"description": "",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/IDRspDto"
+								}
+							}
+						}
 					}
 				},
 				"tags": [
@@ -1224,16 +1016,24 @@
 			}
 		},
 		"/api/bg/list": {
-			"get": {
+			"post": {
 				"operationId": "BgController_list",
 				"summary": "获取背景信息列表",
 				"parameters": [],
+				"requestBody": {
+					"required": true,
+					"description": "获取背景信息列表",
+					"content": {
+						"application/json": {
+							"schema": {
+								"$ref": "#/components/schemas/FindBgDto"
+							}
+						}
+					}
+				},
 				"responses": {
 					"200": {
 						"description": "Successfully."
-					},
-					"501": {
-						"description": "Failed."
 					}
 				},
 				"tags": [
@@ -1241,20 +1041,11 @@
 				]
 			}
 		},
-		"/api/bg/update/{bid}": {
-			"post": {
+		"/api/bg/update": {
+			"put": {
 				"operationId": "BgController_updateBg",
 				"summary": "更新背景信息",
-				"parameters": [
-					{
-						"name": "bid",
-						"required": true,
-						"in": "path",
-						"schema": {
-							"type": "string"
-						}
-					}
-				],
+				"parameters": [],
 				"requestBody": {
 					"required": true,
 					"description": "更新背景信息",
@@ -1269,9 +1060,6 @@
 				"responses": {
 					"200": {
 						"description": "Successfully."
-					},
-					"501": {
-						"description": "Failed."
 					}
 				},
 				"tags": [
@@ -1279,36 +1067,38 @@
 				]
 			}
 		},
-		"/api/bg/uploadImage/{bid}": {
-			"post": {
-				"operationId": "BgController_uploadBgImg",
-				"summary": "保存背景图片",
-				"parameters": [
-					{
-						"name": "bid",
-						"required": true,
-						"in": "path",
-						"schema": {
-							"type": "string"
-						}
-					}
-				],
+		"/api/bg/batchUpdate": {
+			"put": {
+				"operationId": "BgController_batchUpdateBg",
+				"summary": "批量更新背景信息",
+				"parameters": [],
 				"requestBody": {
 					"required": true,
+					"description": "批量更新背景信息",
 					"content": {
 						"application/json": {
 							"schema": {
-								"$ref": "#/components/schemas/UploadImageDto"
+								"type": "array",
+								"items": {
+									"$ref": "#/components/schemas/UpdateBgDto"
+								}
 							}
 						}
 					}
 				},
 				"responses": {
 					"200": {
-						"description": "Successfully."
-					},
-					"501": {
-						"description": "Failed."
+						"description": "Successfully.",
+						"content": {
+							"application/json": {
+								"schema": {
+									"type": "array",
+									"items": {
+										"$ref": "#/components/schemas/UpdateBgDto"
+									}
+								}
+							}
+						}
 					}
 				},
 				"tags": [
@@ -1340,17 +1130,51 @@
 				]
 			}
 		},
-		"/api/user/login": {
+		"/api/prop/add": {
 			"post": {
-				"operationId": "UserController_login",
-				"summary": "用户登录",
+				"operationId": "PropController_createProp",
+				"summary": "保存道具信息",
 				"parameters": [],
 				"requestBody": {
 					"required": true,
+					"description": "保存道具信息",
 					"content": {
 						"application/json": {
 							"schema": {
-								"$ref": "#/components/schemas/CreateUserDto"
+								"$ref": "#/components/schemas/PropDto"
+							}
+						}
+					}
+				},
+				"responses": {
+					"200": {
+						"description": "",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/IDRspDto"
+								}
+							}
+						}
+					}
+				},
+				"tags": [
+					"Prop"
+				]
+			}
+		},
+		"/api/prop/list": {
+			"post": {
+				"operationId": "PropController_list",
+				"summary": "获取道具信息列表",
+				"parameters": [],
+				"requestBody": {
+					"required": true,
+					"description": "获取道具信息列表",
+					"content": {
+						"application/json": {
+							"schema": {
+								"$ref": "#/components/schemas/FindPropDto"
 							}
 						}
 					}
@@ -1361,31 +1185,254 @@
 					}
 				},
 				"tags": [
-					"User"
+					"Prop"
 				]
 			}
 		},
-		"/api/user": {
-			"post": {
-				"operationId": "UserController_create",
+		"/api/prop/update": {
+			"put": {
+				"operationId": "PropController_updateProp",
+				"summary": "更新道具信息",
 				"parameters": [],
 				"requestBody": {
 					"required": true,
+					"description": "更新道具信息",
 					"content": {
 						"application/json": {
 							"schema": {
-								"$ref": "#/components/schemas/CreateUserDto"
+								"$ref": "#/components/schemas/PropDto"
 							}
 						}
 					}
 				},
 				"responses": {
-					"201": {
+					"200": {
+						"description": "Successfully."
+					}
+				},
+				"tags": [
+					"Prop"
+				]
+			}
+		},
+		"/api/prop/batchUpdate": {
+			"put": {
+				"operationId": "PropController_batchUpdateProp",
+				"summary": "批量更新道具信息",
+				"parameters": [],
+				"requestBody": {
+					"required": true,
+					"description": "批量更新道具信息",
+					"content": {
+						"application/json": {
+							"schema": {
+								"type": "array",
+								"items": {
+									"$ref": "#/components/schemas/PropDto"
+								}
+							}
+						}
+					}
+				},
+				"responses": {
+					"200": {
+						"description": "Successfully.",
+						"content": {
+							"application/json": {
+								"schema": {
+									"type": "array",
+									"items": {
+										"$ref": "#/components/schemas/PropDto"
+									}
+								}
+							}
+						}
+					}
+				},
+				"tags": [
+					"Prop"
+				]
+			}
+		},
+		"/api/prop/remove/{id}": {
+			"delete": {
+				"operationId": "PropController_remove",
+				"summary": "删除道具信息",
+				"parameters": [
+					{
+						"name": "id",
+						"required": true,
+						"in": "path",
+						"schema": {
+							"type": "string"
+						}
+					}
+				],
+				"responses": {
+					"200": {
 						"description": ""
 					}
 				},
 				"tags": [
-					"User"
+					"Prop"
+				]
+			}
+		},
+		"/api/cg/add": {
+			"post": {
+				"operationId": "CgController_createCg",
+				"summary": "保存Cg信息",
+				"parameters": [],
+				"requestBody": {
+					"required": true,
+					"description": "保存Cg信息",
+					"content": {
+						"application/json": {
+							"schema": {
+								"$ref": "#/components/schemas/CgDto"
+							}
+						}
+					}
+				},
+				"responses": {
+					"200": {
+						"description": "",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/IDRspDto"
+								}
+							}
+						}
+					}
+				},
+				"tags": [
+					"Cg"
+				]
+			}
+		},
+		"/api/cg/list": {
+			"post": {
+				"operationId": "CgController_list",
+				"summary": "获取Cg信息列表",
+				"parameters": [],
+				"requestBody": {
+					"required": true,
+					"description": "获取Cg信息列表",
+					"content": {
+						"application/json": {
+							"schema": {
+								"$ref": "#/components/schemas/FindCgDto"
+							}
+						}
+					}
+				},
+				"responses": {
+					"200": {
+						"description": "",
+						"content": {
+							"application/json": {
+								"schema": {
+									"type": "array",
+									"items": {
+										"$ref": "#/components/schemas/CgDto"
+									}
+								}
+							}
+						}
+					}
+				},
+				"tags": [
+					"Cg"
+				]
+			}
+		},
+		"/api/cg/update": {
+			"put": {
+				"operationId": "CgController_updateCg",
+				"summary": "更新Cg信息",
+				"parameters": [],
+				"requestBody": {
+					"required": true,
+					"description": "更新Cg信息",
+					"content": {
+						"application/json": {
+							"schema": {
+								"$ref": "#/components/schemas/CgDto"
+							}
+						}
+					}
+				},
+				"responses": {
+					"200": {
+						"description": "Successfully."
+					}
+				},
+				"tags": [
+					"Cg"
+				]
+			}
+		},
+		"/api/cg/batchUpdate": {
+			"put": {
+				"operationId": "CgController_batchUpdateCg",
+				"summary": "批量更新Cg信息",
+				"parameters": [],
+				"requestBody": {
+					"required": true,
+					"description": "批量更新Cg信息",
+					"content": {
+						"application/json": {
+							"schema": {
+								"type": "array",
+								"items": {
+									"$ref": "#/components/schemas/CgDto"
+								}
+							}
+						}
+					}
+				},
+				"responses": {
+					"200": {
+						"description": "Successfully.",
+						"content": {
+							"application/json": {
+								"schema": {
+									"type": "array",
+									"items": {
+										"$ref": "#/components/schemas/CgDto"
+									}
+								}
+							}
+						}
+					}
+				},
+				"tags": [
+					"Cg"
+				]
+			}
+		},
+		"/api/cg/remove/{id}": {
+			"delete": {
+				"operationId": "CgController_remove",
+				"summary": "删除Cg信息",
+				"parameters": [
+					{
+						"name": "id",
+						"required": true,
+						"in": "path",
+						"schema": {
+							"type": "string"
+						}
+					}
+				],
+				"responses": {
+					"200": {
+						"description": ""
+					}
+				},
+				"tags": [
+					"Cg"
 				]
 			}
 		},
@@ -1425,64 +1472,6 @@
 				]
 			}
 		},
-		"/api/editor/createNewScene": {
-			"post": {
-				"operationId": "EditorController_createNewScene",
-				"summary": "创建章节/场景",
-				"parameters": [],
-				"requestBody": {
-					"required": true,
-					"description": "创建章节/场景",
-					"content": {
-						"application/json": {
-							"schema": {
-								"$ref": "#/components/schemas/DialogueDto"
-							}
-						}
-					}
-				},
-				"responses": {
-					"200": {
-						"description": "Successfully created the scene."
-					},
-					"400": {
-						"description": "Failed."
-					}
-				},
-				"tags": [
-					"Editor"
-				]
-			}
-		},
-		"/api/editor/deleteScene": {
-			"post": {
-				"operationId": "EditorController_deleteScene",
-				"summary": "删除章节/场景",
-				"parameters": [],
-				"requestBody": {
-					"required": true,
-					"description": "删除章节/场景",
-					"content": {
-						"application/json": {
-							"schema": {
-								"$ref": "#/components/schemas/SceneDto"
-							}
-						}
-					}
-				},
-				"responses": {
-					"200": {
-						"description": "Successfully delete the scene."
-					},
-					"400": {
-						"description": "Failed."
-					}
-				},
-				"tags": [
-					"Editor"
-				]
-			}
-		},
 		"/api/editor/sceneDetail": {
 			"post": {
 				"operationId": "EditorController_getSceneDetail",
@@ -1512,17 +1501,50 @@
 				]
 			}
 		},
-		"/api/editor/editUiScene/upload": {
+		"/api/editor/editScene/dialogue": {
 			"post": {
-				"operationId": "EditorController_uploadUiSceneDialogue",
-				"summary": "上传文本更新UI对话资源",
+				"operationId": "EditorController_editUiSceneDialogue",
+				"summary": "更新编辑器对话资源",
 				"parameters": [],
 				"requestBody": {
 					"required": true,
 					"content": {
 						"application/json": {
 							"schema": {
-								"$ref": "#/components/schemas/DialogueDto"
+								"$ref": "#/components/schemas/DialogueReq"
+							}
+						}
+					}
+				},
+				"responses": {
+					"200": {
+						"description": "",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/SceneDetailRsp"
+								}
+							}
+						}
+					}
+				},
+				"tags": [
+					"Editor"
+				]
+			}
+		},
+		"/api/editor/editUiScene/resource": {
+			"post": {
+				"operationId": "EditorController_editUiSceneResource",
+				"summary": "更新UI编辑器场景资源",
+				"parameters": [],
+				"requestBody": {
+					"required": true,
+					"description": "更新UI编辑器场景资源",
+					"content": {
+						"application/json": {
+							"schema": {
+								"$ref": "#/components/schemas/UpdateUiResourceDto"
 							}
 						}
 					}
@@ -1540,18 +1562,46 @@
 				]
 			}
 		},
-		"/api/editor/editUiScene/dialogue": {
+		"/api/editor/editUiScene/upload": {
 			"post": {
-				"operationId": "EditorController_editUiSceneDialogue",
-				"summary": "更新UI编辑器对话资源",
+				"operationId": "EditorController_uploadUiSceneDialogue",
+				"summary": "上传文本更新UI对话资源",
 				"parameters": [],
 				"requestBody": {
 					"required": true,
-					"description": "更新UI编辑器对话资源",
 					"content": {
 						"application/json": {
 							"schema": {
-								"$ref": "#/components/schemas/DialogueDto"
+								"$ref": "#/components/schemas/SceneInfoReq"
+							}
+						}
+					}
+				},
+				"responses": {
+					"200": {
+						"description": "Successfully."
+					},
+					"400": {
+						"description": "Failed."
+					}
+				},
+				"tags": [
+					"Editor"
+				]
+			}
+		},
+		"/api/editor/editTxtScene/upload": {
+			"post": {
+				"operationId": "EditorController_uploadTxtSceneDialogue",
+				"summary": "上传文本更新TXT对话资源",
+				"parameters": [],
+				"requestBody": {
+					"required": true,
+					"description": "更新文本编辑器内容",
+					"content": {
+						"application/json": {
+							"schema": {
+								"$ref": "#/components/schemas/SceneInfoReq"
 							}
 						}
 					}
@@ -1608,188 +1658,135 @@
 				]
 			}
 		},
-		"/api/editor/scene/check": {
-			"post": {
-				"operationId": "EditorController_checkScene",
-				"summary": "校验场景信息",
-				"parameters": [],
-				"requestBody": {
-					"required": true,
-					"description": "校验场景信息",
-					"content": {
-						"application/json": {
-							"schema": {
-								"$ref": "#/components/schemas/SceneDto"
-							}
-						}
-					}
-				},
-				"responses": {
-					"200": {
-						"description": "Successfully."
-					},
-					"400": {
-						"description": "Failed."
-					}
-				},
-				"tags": [
-					"Editor"
-				]
-			}
-		},
-		"/api/editor/editUiScene/resource": {
-			"post": {
-				"operationId": "EditorController_editUiSceneResource",
-				"summary": "更新UI编辑器场景资源",
-				"parameters": [],
-				"requestBody": {
-					"required": true,
-					"description": "更新UI编辑器场景资源",
-					"content": {
-						"application/json": {
-							"schema": {
-								"$ref": "#/components/schemas/UpdateUiResourceDto"
-							}
-						}
-					}
-				},
-				"responses": {
-					"200": {
-						"description": "Successfully."
-					},
-					"400": {
-						"description": "Failed."
-					}
-				},
-				"tags": [
-					"Editor"
-				]
-			}
-		},
-		"/api/editor/editTxtScene/upload": {
-			"post": {
-				"operationId": "EditorController_uploadTxtSceneDialogue",
-				"summary": "上传文本更新TXT对话资源",
-				"parameters": [],
-				"requestBody": {
-					"required": true,
-					"description": "更新文本编辑器内容",
-					"content": {
-						"application/json": {
-							"schema": {
-								"$ref": "#/components/schemas/UpdateTxtSceneDto"
-							}
-						}
-					}
-				},
-				"responses": {
-					"200": {
-						"description": "Successfully."
-					},
-					"400": {
-						"description": "Failed."
-					}
-				},
-				"tags": [
-					"Editor"
-				]
-			}
-		},
-		"/api/editor/editTxtScene": {
-			"post": {
-				"operationId": "EditorController_editTxtScene",
-				"summary": "更新文本编辑器内容",
-				"parameters": [],
-				"requestBody": {
-					"required": true,
-					"description": "更新文本编辑器内容",
-					"content": {
-						"application/json": {
-							"schema": {
-								"$ref": "#/components/schemas/UpdateTxtSceneDto"
-							}
-						}
-					}
-				},
-				"responses": {
-					"200": {
-						"description": "Successfully."
-					},
-					"400": {
-						"description": "Failed."
-					}
-				},
-				"tags": [
-					"Editor"
-				]
-			}
-		},
-		"/api/editor/rename": {
-			"post": {
-				"operationId": "EditorController_sceneFileRename",
-				"summary": "场景文件重命名",
-				"parameters": [],
-				"requestBody": {
-					"required": true,
-					"content": {
-						"application/json": {
-							"schema": {
-								"$ref": "#/components/schemas/SceneReNameDto"
-							}
-						}
-					}
-				},
-				"responses": {
-					"200": {
-						"description": "Rename successfully."
-					},
-					"400": {
-						"description": "Failed"
-					}
-				},
-				"tags": [
-					"Editor"
-				]
-			}
-		},
-		"/api/editor/getSectionSceneList/{gameName}": {
-			"post": {
-				"operationId": "EditorController_getSectionSceneList",
-				"summary": "获取章节场景列表数据",
-				"parameters": [
-					{
-						"name": "gameName",
-						"required": true,
-						"in": "path",
-						"description": "游戏名称",
-						"schema": {
-							"type": "string"
-						}
-					}
-				],
-				"responses": {
-					"200": {
-						"description": "Successfully."
-					},
-					"400": {
-						"description": "Failed."
-					}
-				},
-				"tags": [
-					"Editor"
-				]
-			}
-		},
-		"/api/editor/launch/{gameName}": {
+		"/api/bgm/{category}/table": {
 			"get": {
-				"operationId": "EditorController_launchGame",
-				"summary": "发布游戏",
+				"operationId": "BgmController_table",
+				"summary": "获取音乐库数据",
 				"parameters": [
 					{
-						"name": "gameName",
+						"name": "category",
 						"required": true,
 						"in": "path",
-						"description": "游戏名称",
+						"schema": {
+							"type": "string"
+						}
+					}
+				],
+				"responses": {
+					"default": {
+						"description": "",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/BgmTableDto"
+								}
+							}
+						}
+					}
+				},
+				"tags": [
+					"Bgm"
+				]
+			}
+		},
+		"/api/bgm/all": {
+			"get": {
+				"operationId": "BgmController_all",
+				"summary": "获取音乐搜索列表",
+				"parameters": [],
+				"responses": {
+					"default": {
+						"description": "",
+						"content": {
+							"application/json": {
+								"schema": {
+									"type": "array",
+									"items": {
+										"$ref": "#/components/schemas/BgmListDto"
+									}
+								}
+							}
+						}
+					}
+				},
+				"tags": [
+					"Bgm"
+				]
+			}
+		},
+		"/api/bgm/link/scene": {
+			"post": {
+				"operationId": "BgmController_linkScene",
+				"summary": "音乐裁剪",
+				"parameters": [],
+				"requestBody": {
+					"required": true,
+					"content": {
+						"application/json": {
+							"schema": {
+								"$ref": "#/components/schemas/AudioCutDto"
+							}
+						}
+					}
+				},
+				"responses": {
+					"200": {
+						"description": "Successfully."
+					},
+					"501": {
+						"description": "Failed."
+					}
+				},
+				"tags": [
+					"Bgm"
+				]
+			}
+		},
+		"/api/bgm/excelConvertDb": {
+			"post": {
+				"operationId": "BgmController_excelConvertDb",
+				"parameters": [],
+				"responses": {
+					"201": {
+						"description": ""
+					}
+				},
+				"tags": [
+					"Bgm"
+				]
+			}
+		},
+		"/api/bgm/clearBgm": {
+			"post": {
+				"operationId": "BgmController_clearBgm",
+				"parameters": [],
+				"responses": {
+					"201": {
+						"description": ""
+					}
+				},
+				"tags": [
+					"Bgm"
+				]
+			}
+		},
+		"/api/dict/{type}/{name}": {
+			"get": {
+				"operationId": "DictController_create",
+				"summary": "添加字典数据",
+				"parameters": [
+					{
+						"name": "type",
+						"required": true,
+						"in": "path",
+						"schema": {
+							"type": "string"
+						}
+					},
+					{
+						"name": "name",
+						"required": true,
+						"in": "path",
 						"schema": {
 							"type": "string"
 						}
@@ -1797,14 +1794,214 @@
 				],
 				"responses": {
 					"200": {
-						"description": "Successfully."
-					},
-					"400": {
-						"description": "Failed."
+						"description": ""
 					}
 				},
 				"tags": [
-					"Editor"
+					"Dict"
+				]
+			}
+		},
+		"/api/dict/list": {
+			"get": {
+				"operationId": "DictController_findAll",
+				"summary": "字典列表",
+				"parameters": [],
+				"responses": {
+					"200": {
+						"description": ""
+					}
+				},
+				"tags": [
+					"Dict"
+				]
+			}
+		},
+		"/api/canvas/record": {
+			"post": {
+				"operationId": "CanvasController_record",
+				"summary": "记录画布数据",
+				"parameters": [],
+				"requestBody": {
+					"required": true,
+					"content": {
+						"application/json": {
+							"schema": {
+								"$ref": "#/components/schemas/RecordCanvasDto"
+							}
+						}
+					}
+				},
+				"responses": {
+					"200": {
+						"description": ""
+					},
+					"500": {
+						"description": "",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/ValidateCanvas"
+								}
+							}
+						}
+					}
+				},
+				"tags": [
+					"Canvas"
+				]
+			}
+		},
+		"/api/canvas/{gameName}/view": {
+			"get": {
+				"operationId": "CanvasController_view",
+				"summary": "获取最新的画布节点数据",
+				"parameters": [
+					{
+						"name": "gameName",
+						"required": true,
+						"in": "path",
+						"schema": {
+							"type": "string"
+						}
+					}
+				],
+				"responses": {
+					"200": {
+						"description": "",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/CanvasView"
+								}
+							}
+						}
+					}
+				},
+				"tags": [
+					"Canvas"
+				]
+			}
+		},
+		"/api/canvas/{gameName}/revise/history": {
+			"get": {
+				"operationId": "CanvasController_history",
+				"summary": "获取历史修订列表",
+				"parameters": [
+					{
+						"name": "gameName",
+						"required": true,
+						"in": "path",
+						"schema": {
+							"type": "string"
+						}
+					}
+				],
+				"responses": {
+					"200": {
+						"description": "",
+						"content": {
+							"application/json": {
+								"schema": {
+									"type": "array",
+									"items": {
+										"$ref": "#/components/schemas/CanvasHistory"
+									}
+								}
+							}
+						}
+					}
+				},
+				"tags": [
+					"Canvas"
+				]
+			}
+		},
+		"/api/canvas/{id}/revise/detail": {
+			"get": {
+				"operationId": "CanvasController_detail",
+				"summary": "获取指定修订详情",
+				"parameters": [
+					{
+						"name": "id",
+						"required": true,
+						"in": "path",
+						"schema": {
+							"type": "string"
+						}
+					}
+				],
+				"responses": {
+					"200": {
+						"description": "",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/CanvasBody"
+								}
+							}
+						}
+					}
+				},
+				"tags": [
+					"Canvas"
+				]
+			}
+		},
+		"/api/canvas/{gameName}/node/preview": {
+			"post": {
+				"operationId": "CanvasController_nodePreview",
+				"summary": "节点预览",
+				"parameters": [
+					{
+						"name": "gameName",
+						"required": true,
+						"in": "path",
+						"schema": {
+							"type": "string"
+						}
+					}
+				],
+				"requestBody": {
+					"required": true,
+					"content": {
+						"application/json": {
+							"schema": {
+								"$ref": "#/components/schemas/Node"
+							}
+						}
+					}
+				},
+				"responses": {
+					"200": {
+						"description": ""
+					}
+				},
+				"tags": [
+					"Canvas"
+				]
+			}
+		},
+		"/api/canvas/{gameName}/revise/remove": {
+			"delete": {
+				"operationId": "CanvasController_update",
+				"parameters": [
+					{
+						"name": "gameName",
+						"required": true,
+						"in": "path",
+						"schema": {
+							"type": "string"
+						}
+					}
+				],
+				"responses": {
+					"200": {
+						"description": ""
+					}
+				},
+				"tags": [
+					"Canvas"
 				]
 			}
 		},
@@ -1917,134 +2114,132 @@
 				]
 			}
 		},
-		"/api/canvas/record": {
+		"/api/user/login": {
 			"post": {
-				"operationId": "CanvasController_record",
-				"summary": "记录画布数据",
+				"operationId": "UserController_login",
+				"summary": "用户登录",
 				"parameters": [],
 				"requestBody": {
 					"required": true,
 					"content": {
 						"application/json": {
 							"schema": {
-								"$ref": "#/components/schemas/RecordCanvasDto"
+								"$ref": "#/components/schemas/CreateUserDto"
 							}
 						}
 					}
 				},
+				"responses": {
+					"200": {
+						"description": "Successfully."
+					}
+				},
+				"tags": [
+					"User"
+				]
+			}
+		},
+		"/api/user": {
+			"post": {
+				"operationId": "UserController_create",
+				"parameters": [],
+				"requestBody": {
+					"required": true,
+					"content": {
+						"application/json": {
+							"schema": {
+								"$ref": "#/components/schemas/CreateUserDto"
+							}
+						}
+					}
+				},
+				"responses": {
+					"201": {
+						"description": ""
+					}
+				},
+				"tags": [
+					"User"
+				]
+			}
+		},
+		"/api/vocal/binding": {
+			"post": {
+				"operationId": "VocalController_binding",
+				"summary": "配音绑定",
+				"parameters": [],
+				"requestBody": {
+					"required": true,
+					"description": "配音绑定",
+					"content": {
+						"application/json": {
+							"schema": {
+								"$ref": "#/components/schemas/VocalBindingDto"
+							}
+						}
+					}
+				},
+				"responses": {
+					"201": {
+						"description": ""
+					}
+				},
+				"tags": [
+					"Vocal"
+				]
+			}
+		},
+		"/api/vocal/record/{event}/{reqId}": {
+			"get": {
+				"operationId": "VocalController_record",
+				"summary": "获取配音结果",
+				"parameters": [
+					{
+						"name": "event",
+						"required": true,
+						"in": "path",
+						"schema": {
+							"type": "string"
+						}
+					},
+					{
+						"name": "reqId",
+						"required": true,
+						"in": "path",
+						"schema": {
+							"type": "string"
+						}
+					}
+				],
 				"responses": {
 					"200": {
 						"description": ""
-					},
-					"500": {
-						"description": "",
-						"content": {
-							"application/json": {
-								"schema": {
-									"$ref": "#/components/schemas/ValidateCanvas"
-								}
-							}
-						}
 					}
 				},
 				"tags": [
-					"Canvas"
+					"Vocal"
 				]
 			}
 		},
-		"/api/canvas/{gameName}/view": {
+		"/api/auth/captcha": {
 			"get": {
-				"operationId": "CanvasController_view",
-				"summary": "获取最新的画布节点数据",
-				"parameters": [
-					{
-						"name": "gameName",
-						"required": true,
-						"in": "path",
-						"schema": {
-							"type": "string"
-						}
-					}
-				],
+				"operationId": "AuthController_getCaptcha",
+				"summary": "获取图形验证码",
+				"parameters": [],
 				"responses": {
-					"200": {
+					"default": {
 						"description": "",
 						"content": {
 							"application/json": {
 								"schema": {
-									"$ref": "#/components/schemas/CanvasBody"
+									"$ref": "#/components/schemas/CaptchaRsp"
 								}
 							}
 						}
 					}
 				},
 				"tags": [
-					"Canvas"
-				]
-			}
-		},
-		"/api/canvas/{gameName}/revise/history": {
-			"get": {
-				"operationId": "CanvasController_history",
-				"summary": "获取历史修订列表",
-				"parameters": [
-					{
-						"name": "gameName",
-						"required": true,
-						"in": "path",
-						"schema": {
-							"type": "string"
-						}
-					}
-				],
-				"responses": {
-					"200": {
-						"description": "",
-						"content": {
-							"application/json": {
-								"schema": {
-									"type": "array",
-									"items": {
-										"$ref": "#/components/schemas/CanvasHistory"
-									}
-								}
-							}
-						}
-					}
-				},
-				"tags": [
-					"Canvas"
-				]
-			}
-		},
-		"/api/canvas/{id}/revise/detail": {
-			"get": {
-				"operationId": "CanvasController_detail",
-				"summary": "获取指定修订详情",
-				"parameters": [
-					{
-						"name": "id",
-						"required": true,
-						"in": "path",
-						"schema": {
-							"type": "string"
-						}
-					}
-				],
-				"responses": {
-					"200": {
-						"description": "",
-						"content": {
-							"application/json": {
-								"schema": {
-									"$ref": "#/components/schemas/CanvasBody"
-								}
-							}
-						}
-					}
-				},
-				"tags": [
-					"Canvas"
+					"身份鉴权"
 				]
 			}
 		}
@@ -2090,11 +2285,612 @@
 				"properties": {
 					"gameName": {
 						"type": "string",
-						"description": "The name of the game to be created"
+						"description": "游戏名称"
+					},
+					"sectionName": {
+						"type": "string",
+						"description": "章节名称（文本编辑器忽略）"
+					},
+					"sceneName": {
+						"type": "string",
+						"description": "场景名称"
+					},
+					"editorType": {
+						"type": "string",
+						"description": "编辑器类型"
+					},
+					"gameType": {
+						"type": "string",
+						"description": "游戏类型"
+					},
+					"renderMode": {
+						"type": "string",
+						"description": "编辑器模式"
 					}
 				},
 				"required": [
-					"gameName"
+					"gameName",
+					"sectionName",
+					"sceneName",
+					"editorType",
+					"gameType",
+					"renderMode"
+				]
+			},
+			"Config": {
+				"type": "object",
+				"properties": {
+					"Game_name": {
+						"type": "string",
+						"description": "游戏名称"
+					},
+					"Game_key": {
+						"type": "string",
+						"description": "游戏标识"
+					},
+					"Package_name": {
+						"type": "string",
+						"description": "所属包名"
+					},
+					"Description": {
+						"type": "string",
+						"description": "游戏描述"
+					},
+					"Title_img": {
+						"type": "string",
+						"description": "标题背景"
+					},
+					"Title_bgm": {
+						"type": "string",
+						"description": "标题背景音乐"
+					},
+					"Game_Logo": {
+						"type": "string",
+						"description": "游戏LOGO"
+					},
+					"Debug": {
+						"type": "string",
+						"description": ""
+					},
+					"GameNum": {
+						"type": "string",
+						"description": ""
+					},
+					"GameNum_Double": {
+						"type": "string",
+						"description": ""
+					},
+					"Render_mode": {
+						"type": "string",
+						"description": "编辑器模式"
+					},
+					"Game_type": {
+						"type": "string",
+						"description": "游戏类型"
+					},
+					"Start_node": {
+						"type": "string",
+						"description": "开始节点"
+					}
+				},
+				"required": [
+					"Game_name",
+					"Game_key",
+					"Package_name",
+					"Description",
+					"Title_img",
+					"Title_bgm",
+					"Game_Logo",
+					"Debug",
+					"GameNum",
+					"GameNum_Double",
+					"Render_mode",
+					"Game_type",
+					"Start_node"
+				]
+			},
+			"GameInfo": {
+				"type": "object",
+				"properties": {
+					"name": {
+						"type": "string",
+						"description": "游戏名称"
+					},
+					"path": {
+						"type": "string",
+						"description": "游戏路径"
+					},
+					"config": {
+						"description": "游戏配置",
+						"allOf": [
+							{
+								"$ref": "#/components/schemas/Config"
+							}
+						]
+					}
+				},
+				"required": [
+					"name",
+					"path",
+					"config"
+				]
+			},
+			"Progress": {
+				"type": "object",
+				"properties": {
+					"current": {
+						"type": "number",
+						"description": "进度"
+					},
+					"status": {
+						"type": "string",
+						"description": "进度状态",
+						"enum": [
+							"0",
+							"1",
+							"2",
+							"3"
+						]
+					},
+					"msg": {
+						"type": "string",
+						"description": "生成信息"
+					}
+				},
+				"required": [
+					"current",
+					"status",
+					"msg"
+				]
+			},
+			"Picture": {
+				"type": "object",
+				"properties": {
+					"url": {
+						"type": "string",
+						"description": "图片地址"
+					},
+					"check": {
+						"type": "boolean",
+						"description": "是否选中"
+					}
+				},
+				"required": [
+					"url",
+					"check"
+				]
+			},
+			"UpdateBgDto": {
+				"type": "object",
+				"properties": {
+					"id": {
+						"type": "string",
+						"description": "背景ID"
+					},
+					"uid": {
+						"type": "string",
+						"description": "用户ID"
+					},
+					"name": {
+						"type": "string",
+						"description": "背景名称"
+					},
+					"style": {
+						"type": "string",
+						"description": "背景风格"
+					},
+					"original": {
+						"type": "string",
+						"description": "原文（背景描述）"
+					},
+					"prompts": {
+						"type": "string",
+						"description": "提示词"
+					},
+					"url": {
+						"type": "string",
+						"description": "背景图片"
+					},
+					"list": {
+						"description": "背景图片列表",
+						"type": "array",
+						"items": {
+							"$ref": "#/components/schemas/Picture"
+						}
+					},
+					"word": {
+						"type": "string",
+						"description": "背景正向提示词"
+					},
+					"tlmId": {
+						"type": "string",
+						"description": "背景对应大模型输出ID"
+					},
+					"category": {
+						"description": "背景分类",
+						"example": [
+							"生活",
+							"娱乐场所",
+							"都市酒吧"
+						],
+						"type": "array",
+						"items": {
+							"type": "string"
+						}
+					},
+					"stage": {
+						"type": "string",
+						"description": "生成阶段",
+						"enum": [
+							"prompts",
+							"bg"
+						]
+					},
+					"progress": {
+						"description": "进度",
+						"allOf": [
+							{
+								"$ref": "#/components/schemas/Progress"
+							}
+						]
+					}
+				},
+				"required": [
+					"id",
+					"uid",
+					"name",
+					"style",
+					"original",
+					"prompts",
+					"url",
+					"list",
+					"word",
+					"tlmId",
+					"category",
+					"stage",
+					"progress"
+				]
+			},
+			"BatchBg": {
+				"type": "object",
+				"properties": {
+					"progress": {
+						"description": "进度",
+						"allOf": [
+							{
+								"$ref": "#/components/schemas/Progress"
+							}
+						]
+					},
+					"list": {
+						"description": "背景数据列表",
+						"type": "array",
+						"items": {
+							"$ref": "#/components/schemas/UpdateBgDto"
+						}
+					}
+				},
+				"required": [
+					"progress",
+					"list"
+				]
+			},
+			"Frame": {
+				"type": "object",
+				"properties": {
+					"eyesHalfOpen": {
+						"type": "string",
+						"description": "半闭眼"
+					},
+					"eyesClose": {
+						"type": "string",
+						"description": "闭眼"
+					},
+					"mouthHalfOpen": {
+						"type": "string",
+						"description": "半张嘴"
+					},
+					"mouthOpen": {
+						"type": "string",
+						"description": "张嘴"
+					}
+				},
+				"required": [
+					"eyesHalfOpen",
+					"eyesClose",
+					"mouthHalfOpen",
+					"mouthOpen"
+				]
+			},
+			"Category": {
+				"type": "object",
+				"properties": {
+					"categoryValue": {
+						"type": "string",
+						"description": "表情差分类别值（一级）"
+					},
+					"categoryLabel": {
+						"type": "string",
+						"description": "表情差分类别标签（一级）"
+					},
+					"value": {
+						"type": "string",
+						"description": "表情差分值（二级）"
+					},
+					"label": {
+						"type": "string",
+						"description": "表情差分标签（二级）"
+					}
+				},
+				"required": [
+					"categoryValue",
+					"categoryLabel",
+					"value",
+					"label"
+				]
+			},
+			"Expression": {
+				"type": "object",
+				"properties": {
+					"url": {
+						"type": "string",
+						"description": "差分图片"
+					},
+					"list": {
+						"description": "表情变体图",
+						"type": "array",
+						"items": {
+							"$ref": "#/components/schemas/Picture"
+						}
+					},
+					"frame": {
+						"description": "差分帧图",
+						"allOf": [
+							{
+								"$ref": "#/components/schemas/Frame"
+							}
+						]
+					},
+					"category": {
+						"description": "差分类别",
+						"allOf": [
+							{
+								"$ref": "#/components/schemas/Category"
+							}
+						]
+					},
+					"applyGame": {
+						"description": "序列帧应用游戏列表",
+						"type": "array",
+						"items": {
+							"type": "string"
+						}
+					}
+				},
+				"required": [
+					"url",
+					"list",
+					"frame",
+					"category",
+					"applyGame"
+				]
+			},
+			"UpdateRoleDto": {
+				"type": "object",
+				"properties": {
+					"uid": {
+						"type": "string",
+						"description": "用户ID"
+					},
+					"id": {
+						"type": "string",
+						"description": "角色ID"
+					},
+					"name": {
+						"type": "string",
+						"description": "角色名字"
+					},
+					"gender": {
+						"type": "string",
+						"description": "性别",
+						"enum": [
+							"male",
+							"female"
+						]
+					},
+					"style": {
+						"type": "string",
+						"description": "风格"
+					},
+					"age": {
+						"type": "string",
+						"description": "年纪",
+						"enum": [
+							"child",
+							"adult",
+							"hoariness"
+						]
+					},
+					"original": {
+						"type": "string",
+						"description": "原文（角色描述）"
+					},
+					"url": {
+						"type": "string",
+						"description": "主立绘图片"
+					},
+					"list": {
+						"description": "备选角色变体",
+						"type": "array",
+						"items": {
+							"$ref": "#/components/schemas/Picture"
+						}
+					},
+					"tlmId": {
+						"type": "string",
+						"description": "角色对应的大模型信息ID"
+					},
+					"feature": {
+						"type": "string",
+						"description": "人格"
+					},
+					"word": {
+						"type": "string",
+						"description": "角色正向提示词"
+					},
+					"prompts": {
+						"type": "string",
+						"description": "提示词（修饰词）"
+					},
+					"expressions": {
+						"description": "表情差分图",
+						"type": "array",
+						"items": {
+							"$ref": "#/components/schemas/Expression"
+						}
+					},
+					"stage": {
+						"type": "string",
+						"description": "生成阶段",
+						"enum": [
+							"prompts",
+							"figure",
+							"expression",
+							"frame"
+						]
+					},
+					"progress": {
+						"description": "进度",
+						"allOf": [
+							{
+								"$ref": "#/components/schemas/Progress"
+							}
+						]
+					}
+				},
+				"required": [
+					"uid",
+					"id",
+					"name",
+					"gender",
+					"style",
+					"age",
+					"original",
+					"url",
+					"list",
+					"tlmId",
+					"feature",
+					"word",
+					"prompts",
+					"expressions",
+					"stage",
+					"progress"
+				]
+			},
+			"BatchRole": {
+				"type": "object",
+				"properties": {
+					"list": {
+						"description": "角色数据列表",
+						"type": "array",
+						"items": {
+							"$ref": "#/components/schemas/UpdateRoleDto"
+						}
+					},
+					"progress": {
+						"description": "进度",
+						"allOf": [
+							{
+								"$ref": "#/components/schemas/Progress"
+							}
+						]
+					}
+				},
+				"required": [
+					"list",
+					"progress"
+				]
+			},
+			"BatchExtraction": {
+				"type": "object",
+				"properties": {
+					"bg": {
+						"description": "背景数据",
+						"allOf": [
+							{
+								"$ref": "#/components/schemas/BatchBg"
+							}
+						]
+					},
+					"role": {
+						"description": "角色数据",
+						"allOf": [
+							{
+								"$ref": "#/components/schemas/BatchRole"
+							}
+						]
+					},
+					"progress": {
+						"description": "总进度",
+						"allOf": [
+							{
+								"$ref": "#/components/schemas/Progress"
+							}
+						]
+					},
+					"id": {
+						"type": "string",
+						"description": "批量提取ID"
+					},
+					"uid": {
+						"type": "string",
+						"description": "用户ID"
+					},
+					"gameName": {
+						"type": "string",
+						"description": "游戏名称"
+					},
+					"type": {
+						"type": "string",
+						"description": "批处理类型",
+						"enum": [
+							"extract",
+							"picture"
+						]
+					}
+				},
+				"required": [
+					"bg",
+					"role",
+					"progress",
+					"id",
+					"uid",
+					"gameName",
+					"type"
+				]
+			},
+			"CreateGame": {
+				"type": "object",
+				"properties": {
+					"gameList": {
+						"description": "游戏信息",
+						"type": "array",
+						"items": {
+							"$ref": "#/components/schemas/GameInfo"
+						}
+					},
+					"batch": {
+						"description": "批量提取任务",
+						"allOf": [
+							{
+								"$ref": "#/components/schemas/BatchExtraction"
+							}
+						]
+					}
+				},
+				"required": [
+					"gameList",
+					"batch"
 				]
 			},
 			"RenameDto": {
@@ -2126,153 +2922,42 @@
 					"gameName"
 				]
 			},
-			"GameConfigDto": {
+			"RoleRelation": {
 				"type": "object",
 				"properties": {
-					"gameName": {
+					"id": {
 						"type": "string",
-						"description": "The name of the game"
-					},
-					"newConfig": {
-						"type": "string",
-						"description": "New game configuration"
-					}
-				},
-				"required": [
-					"gameName",
-					"newConfig"
-				]
-			},
-			"UploadResourceDto": {
-				"type": "object",
-				"properties": {
-					"folder": {
-						"type": "string",
-						"description": "资源所属文件夹"
-					}
-				},
-				"required": [
-					"folder"
-				]
-			},
-			"DeleteResourceDto": {
-				"type": "object",
-				"properties": {
-					"name": {
-						"type": "string",
-						"description": "资源名称"
-					}
-				},
-				"required": [
-					"name"
-				]
-			},
-			"MkDirDto": {
-				"type": "object",
-				"properties": {
-					"source": {
-						"type": "string",
-						"description": "已有的资源文件夹"
+						"description": "id"
 					},
 					"name": {
 						"type": "string",
-						"description": "Name for the new directory"
+						"description": "角色名字"
+					},
+					"url": {
+						"type": "string",
+						"description": "地址"
 					}
 				},
 				"required": [
-					"source",
-					"name"
+					"id",
+					"name",
+					"url"
 				]
 			},
-			"DeleteFileDto": {
+			"GameRelationVo": {
 				"type": "object",
 				"properties": {
-					"path": {
-						"type": "string",
-						"description": "The path to the file to be deleted"
+					"role": {
+						"description": "角色关联信息",
+						"type": "array",
+						"items": {
+							"$ref": "#/components/schemas/RoleRelation"
+						}
 					}
 				},
 				"required": [
-					"path"
+					"role"
 				]
-			},
-			"CreateNewSceneDto": {
-				"type": "object",
-				"properties": {
-					"gameName": {
-						"type": "string",
-						"description": "The name of the game"
-					},
-					"sceneName": {
-						"type": "string",
-						"description": "The name of the scene"
-					}
-				},
-				"required": [
-					"gameName",
-					"sceneName"
-				]
-			},
-			"EditSceneDto": {
-				"type": "object",
-				"properties": {
-					"gameName": {
-						"type": "string",
-						"description": "The name of the game"
-					},
-					"sceneName": {
-						"type": "string",
-						"description": "The name of the scene"
-					},
-					"type": {
-						"type": "string",
-						"description": "Scene data type en or zh"
-					},
-					"sceneData": {
-						"type": "string",
-						"description": "Scene data content",
-						"format": "{ value: string }"
-					}
-				},
-				"required": [
-					"gameName",
-					"sceneName",
-					"type",
-					"sceneData"
-				]
-			},
-			"EditTextFileDto": {
-				"type": "object",
-				"properties": {
-					"path": {
-						"type": "string",
-						"description": "The path of textfile"
-					},
-					"textFile": {
-						"type": "string",
-						"description": "Text data content"
-					}
-				},
-				"required": [
-					"path",
-					"textFile"
-				]
-			},
-			"UploadFilesDto": {
-				"type": "object",
-				"properties": {
-					"targetDirectory": {
-						"type": "string",
-						"description": "Target directory for the uploaded files"
-					}
-				},
-				"required": [
-					"targetDirectory"
-				]
-			},
-			"Llm": {
-				"type": "object",
-				"properties": {}
 			},
 			"ImageUploadDto": {
 				"type": "object",
@@ -2291,101 +2976,110 @@
 					"original"
 				]
 			},
-			"AddRoleDto": {
+			"ExtractFileDto": {
+				"type": "object",
+				"properties": {
+					"gameName": {
+						"type": "string",
+						"description": "游戏名"
+					}
+				},
+				"required": [
+					"gameName"
+				]
+			},
+			"IDRspDto": {
+				"type": "object",
+				"properties": {
+					"id": {
+						"type": "string",
+						"description": "ID"
+					}
+				},
+				"required": [
+					"id"
+				]
+			},
+			"BatchBgRoleReqDto": {
+				"type": "object",
+				"properties": {
+					"bg": {
+						"description": "背景数据",
+						"type": "array",
+						"items": {
+							"$ref": "#/components/schemas/UpdateBgDto"
+						}
+					},
+					"role": {
+						"description": "角色数据",
+						"type": "array",
+						"items": {
+							"$ref": "#/components/schemas/UpdateRoleDto"
+						}
+					}
+				},
+				"required": [
+					"bg",
+					"role"
+				]
+			},
+			"IdNameDto": {
+				"type": "object",
+				"properties": {
+					"id": {
+						"type": "string",
+						"description": "ID"
+					},
+					"name": {
+						"type": "string",
+						"description": "名称"
+					}
+				},
+				"required": [
+					"id",
+					"name"
+				]
+			},
+			"BatchConfirmRspDto": {
+				"type": "object",
+				"properties": {
+					"success": {
+						"description": "成功数据",
+						"type": "array",
+						"items": {
+							"$ref": "#/components/schemas/IdNameDto"
+						}
+					},
+					"fail": {
+						"description": "失败数据",
+						"type": "array",
+						"items": {
+							"$ref": "#/components/schemas/IdNameDto"
+						}
+					}
+				},
+				"required": [
+					"success",
+					"fail"
+				]
+			},
+			"FindRoleDto": {
 				"type": "object",
 				"properties": {
 					"name": {
 						"type": "string",
-						"description": "角色名字"
-					},
-					"gender": {
-						"type": "string",
-						"description": "性别",
-						"enum": [
-							"male",
-							"female"
-						]
-					},
-					"style": {
-						"type": "string",
-						"description": "立绘风格"
-					},
-					"age": {
-						"type": "string",
-						"description": "年纪",
-						"enum": [
-							"child",
-							"adult",
-							"hoariness"
-						]
+						"description": "角色名称"
 					}
 				},
 				"required": [
-					"name",
-					"gender",
-					"style",
-					"age"
+					"name"
 				]
 			},
-			"AddFigureDto": {
+			"Remark": {
 				"type": "object",
 				"properties": {
-					"fileUrl": {
-						"type": "string",
-						"description": "需要保存的文件地址"
-					},
-					"rid": {
-						"type": "string",
-						"description": "角色ID"
-					},
-					"expression": {
-						"type": "string",
-						"description": "差分名"
-					}
-				},
-				"required": [
-					"fileUrl",
-					"rid",
-					"expression"
-				]
-			},
-			"UpdateRoleDto": {
-				"type": "object",
-				"properties": {
-					"fileUrl": {
-						"type": "string",
-						"description": "主立绘的图片地址"
-					},
-					"fileLink": {
-						"type": "string",
-						"description": "主立绘图片链接"
-					},
-					"seed": {
-						"type": "string",
-						"description": "主立绘随机种子"
-					},
-					"tlmId": {
-						"type": "string",
-						"description": "角色对应的大模型信息ID"
-					},
-					"feature": {
-						"type": "string",
-						"description": "人格"
-					},
-					"referPic": {
-						"type": "string",
-						"description": "人格参考图"
-					},
-					"expression": {
-						"type": "string",
-						"description": "差分名"
-					},
-					"prompts": {
-						"type": "string",
-						"description": "提示词"
-					},
-					"figures": {
-						"description": "表情差分图",
+					"applyFrame": {
+						"description": "应用差分帧图",
 						"type": "array",
 						"items": {
 							"type": "string"
@@ -2393,15 +3087,7 @@
 					}
 				},
 				"required": [
-					"fileUrl",
-					"fileLink",
-					"seed",
-					"tlmId",
-					"feature",
-					"referPic",
-					"expression",
-					"prompts",
-					"figures"
+					"applyFrame"
 				]
 			},
 			"CreateResourceDto": {
@@ -2415,9 +3101,29 @@
 						"type": "string",
 						"description": "资源路径"
 					},
+					"list": {
+						"description": "备选图",
+						"type": "array",
+						"items": {
+							"type": "string"
+						}
+					},
+					"frame": {
+						"description": "差分帧图",
+						"allOf": [
+							{
+								"$ref": "#/components/schemas/Frame"
+							}
+						]
+					},
 					"type": {
 						"type": "string",
-						"description": "资源类型"
+						"description": "资源类型",
+						"enum": [
+							"figure",
+							"background",
+							"bgm"
+						]
 					},
 					"uid": {
 						"type": "string",
@@ -2427,17 +3133,32 @@
 						"type": "string",
 						"description": "父级资源ID"
 					},
+					"category": {
+						"description": "分类",
+						"allOf": [
+							{
+								"$ref": "#/components/schemas/Category"
+							}
+						]
+					},
 					"remark": {
-						"type": "string",
-						"description": "备注"
+						"description": "备注",
+						"allOf": [
+							{
+								"$ref": "#/components/schemas/Remark"
+							}
+						]
 					}
 				},
 				"required": [
 					"name",
 					"path",
+					"list",
+					"frame",
 					"type",
 					"uid",
 					"pid",
+					"category",
 					"remark"
 				]
 			},
@@ -2445,102 +3166,231 @@
 				"type": "object",
 				"properties": {}
 			},
-			"CreateBgDto": {
+			"FindBgDto": {
 				"type": "object",
 				"properties": {
 					"name": {
 						"type": "string",
 						"description": "背景名称"
-					},
-					"style": {
-						"type": "string",
-						"description": "背景风格"
 					}
 				},
 				"required": [
-					"name",
-					"style"
+					"name"
 				]
 			},
-			"UpdateBgDto": {
+			"PropDto": {
 				"type": "object",
 				"properties": {
+					"id": {
+						"type": "string",
+						"description": "道具ID"
+					},
+					"uid": {
+						"type": "string",
+						"description": "用户ID"
+					},
+					"name": {
+						"type": "string",
+						"description": "道具名称"
+					},
+					"style": {
+						"type": "string",
+						"description": "道具风格"
+					},
+					"original": {
+						"type": "string",
+						"description": "原文（道具描述）"
+					},
+					"prompts": {
+						"type": "string",
+						"description": "提示词"
+					},
+					"url": {
+						"type": "string",
+						"description": "道具图片"
+					},
+					"list": {
+						"description": "道具图片列表",
+						"type": "array",
+						"items": {
+							"$ref": "#/components/schemas/Picture"
+						}
+					},
+					"tlmId": {
+						"type": "string",
+						"description": "道具对应大模型输出ID"
+					},
+					"category": {
+						"description": "道具分类",
+						"example": [
+							"生活",
+							"娱乐场所",
+							"都市酒吧"
+						],
+						"type": "array",
+						"items": {
+							"type": "string"
+						}
+					},
+					"size": {
+						"type": "string",
+						"description": "道具大小",
+						"example": "middle"
+					},
+					"stage": {
+						"type": "string",
+						"description": "生成阶段",
+						"enum": [
+							"prompts",
+							"prop"
+						]
+					},
+					"progress": {
+						"description": "进度",
+						"allOf": [
+							{
+								"$ref": "#/components/schemas/Progress"
+							}
+						]
+					}
+				},
+				"required": [
+					"id",
+					"uid",
+					"name",
+					"style",
+					"original",
+					"prompts",
+					"url",
+					"list",
+					"tlmId",
+					"category",
+					"size",
+					"stage",
+					"progress"
+				]
+			},
+			"FindPropDto": {
+				"type": "object",
+				"properties": {
+					"name": {
+						"type": "string",
+						"description": "道具名称"
+					}
+				},
+				"required": [
+					"name"
+				]
+			},
+			"CgDto": {
+				"type": "object",
+				"properties": {
+					"id": {
+						"type": "string",
+						"description": "Cg ID"
+					},
+					"uid": {
+						"type": "string",
+						"description": "用户ID"
+					},
+					"name": {
+						"type": "string",
+						"description": "Cg名称"
+					},
+					"style": {
+						"type": "string",
+						"description": "Cg风格"
+					},
+					"original": {
+						"type": "string",
+						"description": "原文（Cg描述）"
+					},
 					"prompts": {
 						"type": "string",
 						"description": "提示词"
 					},
 					"tlmId": {
 						"type": "string",
-						"description": "背景对应大模型输出ID"
+						"description": "Cg对应大模型输出ID"
 					},
-					"bgPath": {
-						"type": "string",
-						"description": "背景图片的相对地址"
+					"mood": {
+						"description": "角色情绪",
+						"type": "array",
+						"items": {
+							"type": "string"
+						}
 					},
-					"category": {
+					"role": {
 						"type": "string",
-						"description": "背景分类"
+						"description": "关联角色ID"
 					},
-					"referPic": {
+					"factor": {
+						"description": "影响因子",
+						"type": "array",
+						"items": {
+							"type": "string"
+						}
+					},
+					"atmosphere": {
 						"type": "string",
-						"description": "背景分类参考图"
+						"description": "画面氛围"
+					},
+					"url": {
+						"type": "string",
+						"description": "Cg图片"
+					},
+					"list": {
+						"description": "Cg图片列表",
+						"type": "array",
+						"items": {
+							"$ref": "#/components/schemas/Picture"
+						}
+					},
+					"stage": {
+						"type": "string",
+						"description": "生成阶段",
+						"enum": [
+							"prompts",
+							"cg"
+						]
+					},
+					"progress": {
+						"description": "进度",
+						"allOf": [
+							{
+								"$ref": "#/components/schemas/Progress"
+							}
+						]
 					}
 				},
 				"required": [
+					"id",
+					"uid",
+					"name",
+					"style",
+					"original",
 					"prompts",
 					"tlmId",
-					"bgPath",
-					"category",
-					"referPic"
+					"mood",
+					"role",
+					"factor",
+					"atmosphere",
+					"url",
+					"list",
+					"stage",
+					"progress"
 				]
 			},
-			"UploadImageDto": {
+			"FindCgDto": {
 				"type": "object",
 				"properties": {
-					"imageName": {
+					"name": {
 						"type": "string",
-						"description": "图片名称"
-					},
-					"imageUrl": {
-						"type": "string",
-						"description": "图片地址"
-					},
-					"imageRelevancy": {
-						"type": "string",
-						"description": "图片所属：用户"
-					},
-					"imageCategory": {
-						"type": "string",
-						"description": "图片类别"
+						"description": "Cg名称"
 					}
 				},
 				"required": [
-					"imageName",
-					"imageUrl",
-					"imageRelevancy",
-					"imageCategory"
-				]
-			},
-			"CreateUserDto": {
-				"type": "object",
-				"properties": {
-					"username": {
-						"type": "string",
-						"description": "用户名"
-					},
-					"password": {
-						"type": "string",
-						"description": "密码"
-					},
-					"nickname": {
-						"type": "string",
-						"description": "昵称（可选填）"
-					}
-				},
-				"required": [
-					"username",
-					"password",
-					"nickname"
+					"name"
 				]
 			},
 			"ResultData": {
@@ -2573,6 +3423,10 @@
 						"type": "string",
 						"description": "游戏名称"
 					},
+					"sectionName": {
+						"type": "string",
+						"description": "章节名称"
+					},
 					"sceneName": {
 						"description": "场景列表",
 						"type": "array",
@@ -2583,66 +3437,8 @@
 				},
 				"required": [
 					"gameName",
+					"sectionName",
 					"sceneName"
-				]
-			},
-			"DialogueDto": {
-				"type": "object",
-				"properties": {
-					"gameName": {
-						"type": "string",
-						"description": "游戏名称"
-					},
-					"sectionName": {
-						"type": "string",
-						"description": "章节名称（文本编辑器忽略）"
-					},
-					"sceneName": {
-						"type": "string",
-						"description": "场景名称"
-					},
-					"editorType": {
-						"type": "string",
-						"description": "编辑器类型"
-					},
-					"dialogue": {
-						"type": "string",
-						"description": "更新对话"
-					}
-				},
-				"required": [
-					"gameName",
-					"sectionName",
-					"sceneName",
-					"editorType",
-					"dialogue"
-				]
-			},
-			"SceneDto": {
-				"type": "object",
-				"properties": {
-					"gameName": {
-						"type": "string",
-						"description": "游戏名称"
-					},
-					"sectionName": {
-						"type": "string",
-						"description": "章节名称（文本编辑器忽略）"
-					},
-					"sceneName": {
-						"type": "string",
-						"description": "场景名称"
-					},
-					"editorType": {
-						"type": "string",
-						"description": "编辑器类型"
-					}
-				},
-				"required": [
-					"gameName",
-					"sectionName",
-					"sceneName",
-					"editorType"
 				]
 			},
 			"SceneDetailDto": {
@@ -2677,6 +3473,279 @@
 					"sceneType"
 				]
 			},
+			"Role": {
+				"type": "object",
+				"properties": {
+					"id": {
+						"type": "string",
+						"description": "角色ID"
+					},
+					"emotion": {
+						"type": "string",
+						"description": "表情"
+					},
+					"name": {
+						"type": "string",
+						"description": "角色名称"
+					},
+					"gender": {
+						"type": "string",
+						"description": "角色性别",
+						"enum": [
+							"male",
+							"female"
+						]
+					}
+				},
+				"required": [
+					"id",
+					"emotion",
+					"name",
+					"gender"
+				]
+			},
+			"Vocal": {
+				"type": "object",
+				"properties": {
+					"hash": {
+						"type": "string",
+						"description": "hash"
+					},
+					"timbre": {
+						"type": "string",
+						"description": "音色"
+					},
+					"vocal": {
+						"type": "string",
+						"description": "配音文件（不包含路径）"
+					},
+					"url": {
+						"type": "string",
+						"description": "配音地址"
+					}
+				},
+				"required": [
+					"hash",
+					"timbre",
+					"vocal",
+					"url"
+				]
+			},
+			"Prop": {
+				"type": "object",
+				"properties": {
+					"id": {
+						"type": "string",
+						"description": "道具ID"
+					},
+					"name": {
+						"type": "string",
+						"description": "道具名称"
+					}
+				},
+				"required": [
+					"id",
+					"name"
+				]
+			},
+			"LineDto": {
+				"type": "object",
+				"properties": {
+					"id": {
+						"type": "string",
+						"description": "行ID"
+					},
+					"content": {
+						"type": "string",
+						"description": "内容"
+					},
+					"command": {
+						"type": "array",
+						"description": "命令",
+						"items": {
+							"type": "string",
+							"enum": [
+								"prop",
+								"narr",
+								"clp",
+								"bst",
+								"bgi",
+								"bgm",
+								"cg",
+								"cp"
+							]
+						}
+					},
+					"role": {
+						"description": "角色",
+						"allOf": [
+							{
+								"$ref": "#/components/schemas/Role"
+							}
+						]
+					},
+					"vocal": {
+						"description": "配音",
+						"allOf": [
+							{
+								"$ref": "#/components/schemas/Vocal"
+							}
+						]
+					},
+					"prop": {
+						"description": "道具",
+						"allOf": [
+							{
+								"$ref": "#/components/schemas/Prop"
+							}
+						]
+					}
+				},
+				"required": [
+					"id",
+					"content",
+					"command",
+					"role",
+					"vocal",
+					"prop"
+				]
+			},
+			"DialogueReq": {
+				"type": "object",
+				"properties": {
+					"gameName": {
+						"type": "string",
+						"description": "游戏名称"
+					},
+					"sectionName": {
+						"type": "string",
+						"description": "章节名称（文本编辑器忽略）"
+					},
+					"sceneName": {
+						"type": "string",
+						"description": "场景名称"
+					},
+					"editorType": {
+						"type": "string",
+						"description": "编辑器类型"
+					},
+					"dialogues": {
+						"description": "对话框内容",
+						"type": "array",
+						"items": {
+							"$ref": "#/components/schemas/LineDto"
+						}
+					}
+				},
+				"required": [
+					"gameName",
+					"sectionName",
+					"sceneName",
+					"editorType",
+					"dialogues"
+				]
+			},
+			"Figure": {
+				"type": "object",
+				"properties": {
+					"name": {
+						"type": "string",
+						"description": "立绘名称"
+					},
+					"path": {
+						"type": "string",
+						"description": "图片路径"
+					}
+				},
+				"required": [
+					"name",
+					"path"
+				]
+			},
+			"BgmVO": {
+				"type": "object",
+				"properties": {
+					"audio": {
+						"type": "string",
+						"description": "音乐"
+					},
+					"url": {
+						"type": "string",
+						"description": "URL"
+					},
+					"loop": {
+						"type": "boolean",
+						"description": "是否循环"
+					},
+					"volume": {
+						"type": "number",
+						"description": "音量0-100"
+					},
+					"rate": {
+						"type": "number",
+						"description": "播放速度"
+					}
+				},
+				"required": [
+					"audio",
+					"url",
+					"loop",
+					"volume",
+					"rate"
+				]
+			},
+			"SceneDetailRsp": {
+				"type": "object",
+				"properties": {
+					"scene": {
+						"type": "string",
+						"description": "场景文件名"
+					},
+					"dialogues": {
+						"description": "对话框内容",
+						"type": "array",
+						"items": {
+							"$ref": "#/components/schemas/LineDto"
+						}
+					},
+					"figures": {
+						"description": "立绘信息（拥有资源的角色）",
+						"type": "array",
+						"items": {
+							"$ref": "#/components/schemas/Figure"
+						}
+					},
+					"bg": {
+						"type": "string",
+						"description": "背景"
+					},
+					"cg": {
+						"type": "string",
+						"description": "CG"
+					},
+					"bgm": {
+						"description": "音乐",
+						"allOf": [
+							{
+								"$ref": "#/components/schemas/BgmVO"
+							}
+						]
+					},
+					"isBatchVocal": {
+						"type": "boolean",
+						"description": "批量配音"
+					}
+				},
+				"required": [
+					"scene",
+					"dialogues",
+					"figures",
+					"bg",
+					"cg",
+					"bgm",
+					"isBatchVocal"
+				]
+			},
 			"UpdateUiResourceDto": {
 				"type": "object",
 				"properties": {
@@ -2700,9 +3769,17 @@
 						"type": "string",
 						"description": "更新背景"
 					},
-					"bgm": {
+					"cg": {
 						"type": "string",
-						"description": "更新音乐"
+						"description": "更新CG"
+					},
+					"clearBg": {
+						"type": "boolean",
+						"description": "清除背景"
+					},
+					"clearCg": {
+						"type": "boolean",
+						"description": "清除CG"
 					}
 				},
 				"required": [
@@ -2711,10 +3788,12 @@
 					"sceneName",
 					"editorType",
 					"bg",
-					"bgm"
+					"cg",
+					"clearBg",
+					"clearCg"
 				]
 			},
-			"UpdateTxtSceneDto": {
+			"SceneInfoReq": {
 				"type": "object",
 				"properties": {
 					"gameName": {
@@ -2732,21 +3811,16 @@
 					"editorType": {
 						"type": "string",
 						"description": "编辑器类型"
-					},
-					"text": {
-						"type": "string",
-						"description": "编辑文本"
 					}
 				},
 				"required": [
 					"gameName",
 					"sectionName",
 					"sceneName",
-					"editorType",
-					"text"
+					"editorType"
 				]
 			},
-			"SceneReNameDto": {
+			"SceneDto": {
 				"type": "object",
 				"properties": {
 					"gameName": {
@@ -2764,35 +3838,199 @@
 					"editorType": {
 						"type": "string",
 						"description": "编辑器类型"
-					},
-					"newSectionName": {
-						"type": "string",
-						"description": "新章节名称"
-					},
-					"newSceneName": {
-						"type": "string",
-						"description": "新场景名称"
 					}
 				},
 				"required": [
 					"gameName",
 					"sectionName",
 					"sceneName",
-					"editorType",
-					"newSectionName",
-					"newSceneName"
+					"editorType"
 				]
 			},
-			"UpdateVariableDto": {
+			"Title": {
 				"type": "object",
 				"properties": {
+					"column": {
+						"type": "string",
+						"description": "列标签"
+					},
+					"name": {
+						"type": "string",
+						"description": "列名称"
+					}
+				},
+				"required": [
+					"column",
+					"name"
+				]
+			},
+			"StockColumnData": {
+				"type": "object",
+				"properties": {
+					"locationId": {
+						"type": "string",
+						"description": "位置ID"
+					},
 					"id": {
 						"type": "string",
-						"description": "变量表ID"
+						"description": "音乐ID"
+					},
+					"name": {
+						"type": "string",
+						"description": "音乐名称"
+					},
+					"url": {
+						"type": "string",
+						"description": "音乐相对地址"
 					}
 				},
 				"required": [
-					"id"
+					"locationId",
+					"id",
+					"name",
+					"url"
+				]
+			},
+			"StockColumn": {
+				"type": "object",
+				"properties": {
+					"column": {
+						"type": "string",
+						"description": "列值"
+					},
+					"data": {
+						"description": "行标签对应列数据",
+						"type": "array",
+						"items": {
+							"$ref": "#/components/schemas/StockColumnData"
+						}
+					}
+				},
+				"required": [
+					"column",
+					"data"
+				]
+			},
+			"Stock": {
+				"type": "object",
+				"properties": {
+					"name": {
+						"type": "string",
+						"description": "行标签名称"
+					},
+					"columns": {
+						"description": "行标签对应列数据",
+						"type": "array",
+						"items": {
+							"$ref": "#/components/schemas/StockColumn"
+						}
+					}
+				},
+				"required": [
+					"name",
+					"columns"
+				]
+			},
+			"BgmTableDto": {
+				"type": "object",
+				"properties": {
+					"title": {
+						"description": "音乐库表头",
+						"type": "array",
+						"items": {
+							"$ref": "#/components/schemas/Title"
+						}
+					},
+					"stock": {
+						"description": "音乐库数据",
+						"type": "array",
+						"items": {
+							"$ref": "#/components/schemas/Stock"
+						}
+					}
+				},
+				"required": [
+					"title",
+					"stock"
+				]
+			},
+			"BgmListDto": {
+				"type": "object",
+				"properties": {
+					"locationId": {
+						"type": "string",
+						"description": "位置ID"
+					},
+					"id": {
+						"type": "string",
+						"description": "音乐ID"
+					},
+					"name": {
+						"type": "string",
+						"description": "音乐名称"
+					},
+					"url": {
+						"type": "string",
+						"description": "音乐地址"
+					},
+					"category": {
+						"type": "string",
+						"description": "音乐类型"
+					}
+				},
+				"required": [
+					"locationId",
+					"id",
+					"name",
+					"url",
+					"category"
+				]
+			},
+			"AudioCutDto": {
+				"type": "object",
+				"properties": {
+					"uid": {
+						"type": "string",
+						"description": "用户ID"
+					},
+					"gameName": {
+						"type": "string",
+						"description": "游戏名"
+					},
+					"sceneName": {
+						"type": "string",
+						"description": "场景名称"
+					},
+					"audio": {
+						"type": "string",
+						"description": "音乐名"
+					},
+					"url": {
+						"type": "string",
+						"description": "音乐库地址"
+					},
+					"loop": {
+						"type": "string",
+						"description": "是否循环"
+					},
+					"volume": {
+						"type": "number",
+						"description": "音量0-100"
+					},
+					"rate": {
+						"type": "number",
+						"description": "播放速度"
+					}
+				},
+				"required": [
+					"uid",
+					"gameName",
+					"sceneName",
+					"audio",
+					"url",
+					"loop",
+					"volume",
+					"rate"
 				]
 			},
 			"Variable": {
@@ -2801,12 +4039,16 @@
 					"id": {
 						"type": "string"
 					},
+					"alias": {
+						"type": "string"
+					},
 					"name": {
 						"type": "string"
 					}
 				},
 				"required": [
 					"id",
+					"alias",
 					"name"
 				]
 			},
@@ -2841,7 +4083,7 @@
 						]
 					},
 					"lower": {
-						"description": "下限",
+						"description": "条件一",
 						"allOf": [
 							{
 								"$ref": "#/components/schemas/ExpValue"
@@ -2849,7 +4091,7 @@
 						]
 					},
 					"upper": {
-						"description": "上限",
+						"description": "条件二",
 						"allOf": [
 							{
 								"$ref": "#/components/schemas/ExpValue"
@@ -2886,6 +4128,10 @@
 					},
 					"varId": {
 						"type": "string",
+						"description": "选定的变量ID"
+					},
+					"alias": {
+						"type": "string",
 						"description": "选定的变量"
 					},
 					"varValue": {
@@ -2906,6 +4152,7 @@
 					"nodeId",
 					"sound",
 					"varId",
+					"alias",
 					"varValue",
 					"advanced"
 				]
@@ -2982,7 +4229,7 @@
 						]
 					},
 					"lower": {
-						"description": "下限",
+						"description": "条件一",
 						"allOf": [
 							{
 								"$ref": "#/components/schemas/ExpValue"
@@ -2990,7 +4237,7 @@
 						]
 					},
 					"upper": {
-						"description": "上限",
+						"description": "条件二",
 						"allOf": [
 							{
 								"$ref": "#/components/schemas/ExpValue"
@@ -3039,19 +4286,17 @@
 				"properties": {
 					"nodes": {
 						"description": "节点信息",
-						"allOf": [
-							{
-								"$ref": "#/components/schemas/Node"
-							}
-						]
+						"type": "array",
+						"items": {
+							"$ref": "#/components/schemas/Node"
+						}
 					},
 					"edges": {
 						"description": "边信息",
-						"allOf": [
-							{
-								"$ref": "#/components/schemas/Edge"
-							}
-						]
+						"type": "array",
+						"items": {
+							"$ref": "#/components/schemas/Edge"
+						}
 					}
 				},
 				"required": [
@@ -3067,11 +4312,15 @@
 					},
 					"msg": {
 						"type": "string"
+					},
+					"type": {
+						"type": "string"
 					}
 				},
 				"required": [
 					"id",
-					"msg"
+					"msg",
+					"type"
 				]
 			},
 			"ValidateCanvas": {
@@ -3165,6 +4414,191 @@
 					"gameName",
 					"nodes",
 					"edges"
+				]
+			},
+			"CanvasView": {
+				"type": "object",
+				"properties": {
+					"canvas": {
+						"description": "节点信息",
+						"allOf": [
+							{
+								"$ref": "#/components/schemas/CanvasBody"
+							}
+						]
+					},
+					"valid": {
+						"description": "校验信息",
+						"allOf": [
+							{
+								"$ref": "#/components/schemas/ValidateCanvas"
+							}
+						]
+					}
+				},
+				"required": [
+					"canvas",
+					"valid"
+				]
+			},
+			"UpdateVariableDto": {
+				"type": "object",
+				"properties": {
+					"id": {
+						"type": "string",
+						"description": "变量表ID"
+					}
+				},
+				"required": [
+					"id"
+				]
+			},
+			"CreateUserDto": {
+				"type": "object",
+				"properties": {
+					"_id": {
+						"type": "string",
+						"description": "ID"
+					},
+					"username": {
+						"type": "string",
+						"description": "用户名"
+					},
+					"password": {
+						"type": "string",
+						"description": "密码"
+					},
+					"nickname": {
+						"type": "string",
+						"description": "昵称（可选填）"
+					},
+					"caId": {
+						"type": "string",
+						"description": "验证码ID"
+					},
+					"captcha": {
+						"type": "string",
+						"description": "用户输入验证码"
+					},
+					"secret": {
+						"type": "string",
+						"description": ""
+					}
+				},
+				"required": [
+					"_id",
+					"username",
+					"password",
+					"nickname",
+					"caId",
+					"captcha",
+					"secret"
+				]
+			},
+			"VocalBindingDto": {
+				"type": "object",
+				"properties": {
+					"gameName": {
+						"type": "string",
+						"description": "游戏名称"
+					},
+					"sectionName": {
+						"type": "string",
+						"description": "章节名称（文本编辑器忽略）"
+					},
+					"sceneName": {
+						"type": "string",
+						"description": "场景名称"
+					},
+					"editorType": {
+						"type": "string",
+						"description": "编辑器类型"
+					},
+					"uid": {
+						"type": "string",
+						"description": "用户标识"
+					},
+					"sentence": {
+						"type": "string",
+						"description": "行标识"
+					},
+					"timbre": {
+						"type": "string",
+						"description": "音色"
+					},
+					"url": {
+						"type": "string",
+						"description": "配音相对地址"
+					}
+				},
+				"required": [
+					"gameName",
+					"sectionName",
+					"sceneName",
+					"editorType",
+					"uid",
+					"sentence",
+					"timbre",
+					"url"
+				]
+			},
+			"VocalUntieDto": {
+				"type": "object",
+				"properties": {
+					"gameName": {
+						"type": "string",
+						"description": "游戏名称"
+					},
+					"sectionName": {
+						"type": "string",
+						"description": "章节名称（文本编辑器忽略）"
+					},
+					"sceneName": {
+						"type": "string",
+						"description": "场景名称"
+					},
+					"editorType": {
+						"type": "string",
+						"description": "编辑器类型"
+					},
+					"uid": {
+						"type": "string",
+						"description": "用户标识"
+					},
+					"sentence": {
+						"type": "string",
+						"description": "行标识"
+					},
+					"url": {
+						"type": "string",
+						"description": "解绑配音相对地址"
+					}
+				},
+				"required": [
+					"gameName",
+					"sectionName",
+					"sceneName",
+					"editorType",
+					"uid",
+					"sentence",
+					"url"
+				]
+			},
+			"CaptchaRsp": {
+				"type": "object",
+				"properties": {
+					"id": {
+						"type": "string",
+						"description": "id"
+					},
+					"data": {
+						"type": "string",
+						"description": "svg image"
+					}
+				},
+				"required": [
+					"id",
+					"data"
 				]
 			}
 		}
