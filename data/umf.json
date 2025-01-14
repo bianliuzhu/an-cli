@@ -1436,7 +1436,7 @@
 				]
 			}
 		},
-		"/api/editor/addScenes": {
+		"/api/editor/scene/add": {
 			"post": {
 				"operationId": "EditorController_addScenes",
 				"summary": "创建章节/场景",
@@ -1472,7 +1472,7 @@
 				]
 			}
 		},
-		"/api/editor/sceneDetail": {
+		"/api/editor/scene": {
 			"post": {
 				"operationId": "EditorController_getSceneDetail",
 				"summary": "查询场景详情内容",
@@ -1501,17 +1501,18 @@
 				]
 			}
 		},
-		"/api/editor/editScene/dialogue": {
-			"post": {
-				"operationId": "EditorController_editUiSceneDialogue",
+		"/api/editor/scene/dialogue": {
+			"put": {
+				"operationId": "EditorController_editSceneDialogue",
 				"summary": "更新编辑器对话资源",
 				"parameters": [],
 				"requestBody": {
 					"required": true,
+					"description": "更新编辑器对话资源",
 					"content": {
 						"application/json": {
 							"schema": {
-								"$ref": "#/components/schemas/DialogueReq"
+								"$ref": "#/components/schemas/SceneReq"
 							}
 						}
 					}
@@ -1533,8 +1534,8 @@
 				]
 			}
 		},
-		"/api/editor/editUiScene/resource": {
-			"post": {
+		"/api/editor/uiScene/resource": {
+			"put": {
 				"operationId": "EditorController_editUiSceneResource",
 				"summary": "更新UI编辑器场景资源",
 				"parameters": [],
@@ -1552,9 +1553,6 @@
 				"responses": {
 					"200": {
 						"description": "Successfully."
-					},
-					"400": {
-						"description": "Failed."
 					}
 				},
 				"tags": [
@@ -1562,27 +1560,31 @@
 				]
 			}
 		},
-		"/api/editor/editUiScene/upload": {
-			"post": {
+		"/api/editor/uiScene/upload": {
+			"put": {
 				"operationId": "EditorController_uploadUiSceneDialogue",
 				"summary": "上传文本更新UI对话资源",
 				"parameters": [],
 				"requestBody": {
 					"required": true,
 					"content": {
-						"application/json": {
+						"multipart/form-data": {
 							"schema": {
-								"$ref": "#/components/schemas/SceneInfoReq"
+								"$ref": "#/components/schemas/SceneDto"
 							}
 						}
 					}
 				},
 				"responses": {
 					"200": {
-						"description": "Successfully."
-					},
-					"400": {
-						"description": "Failed."
+						"description": "",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/SceneDetailRsp"
+								}
+							}
+						}
 					}
 				},
 				"tags": [
@@ -1590,28 +1592,31 @@
 				]
 			}
 		},
-		"/api/editor/editTxtScene/upload": {
-			"post": {
+		"/api/editor/txtScene/upload": {
+			"put": {
 				"operationId": "EditorController_uploadTxtSceneDialogue",
 				"summary": "上传文本更新TXT对话资源",
 				"parameters": [],
 				"requestBody": {
 					"required": true,
-					"description": "更新文本编辑器内容",
 					"content": {
-						"application/json": {
+						"multipart/form-data": {
 							"schema": {
-								"$ref": "#/components/schemas/SceneInfoReq"
+								"$ref": "#/components/schemas/SceneDto"
 							}
 						}
 					}
 				},
 				"responses": {
 					"200": {
-						"description": "Successfully."
-					},
-					"400": {
-						"description": "Failed."
+						"description": "",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/SceneDetailRsp"
+								}
+							}
+						}
 					}
 				},
 				"tags": [
@@ -1982,29 +1987,6 @@
 				]
 			}
 		},
-		"/api/canvas/{gameName}/revise/remove": {
-			"delete": {
-				"operationId": "CanvasController_update",
-				"parameters": [
-					{
-						"name": "gameName",
-						"required": true,
-						"in": "path",
-						"schema": {
-							"type": "string"
-						}
-					}
-				],
-				"responses": {
-					"200": {
-						"description": ""
-					}
-				},
-				"tags": [
-					"Canvas"
-				]
-			}
-		},
 		"/api/variable/global/record": {
 			"post": {
 				"operationId": "VariableController_recordVariable",
@@ -2253,7 +2235,7 @@
 	"tags": [],
 	"servers": [
 		{
-			"url": "http://10.10.77.121/dev-api"
+			"url": "http://10.10.77.121:5001"
 		}
 	],
 	"components": {
@@ -2287,17 +2269,9 @@
 						"type": "string",
 						"description": "游戏名称"
 					},
-					"sectionName": {
-						"type": "string",
-						"description": "章节名称（文本编辑器忽略）"
-					},
 					"sceneName": {
 						"type": "string",
 						"description": "场景名称"
-					},
-					"editorType": {
-						"type": "string",
-						"description": "编辑器类型"
 					},
 					"gameType": {
 						"type": "string",
@@ -2310,9 +2284,7 @@
 				},
 				"required": [
 					"gameName",
-					"sectionName",
 					"sceneName",
-					"editorType",
 					"gameType",
 					"renderMode"
 				]
@@ -3448,17 +3420,9 @@
 						"type": "string",
 						"description": "游戏名称"
 					},
-					"sectionName": {
-						"type": "string",
-						"description": "章节名称（文本编辑器忽略）"
-					},
 					"sceneName": {
 						"type": "string",
 						"description": "场景名称"
-					},
-					"editorType": {
-						"type": "string",
-						"description": "编辑器类型"
 					},
 					"sceneType": {
 						"type": "string",
@@ -3467,9 +3431,7 @@
 				},
 				"required": [
 					"gameName",
-					"sectionName",
 					"sceneName",
-					"editorType",
 					"sceneType"
 				]
 			},
@@ -3565,7 +3527,6 @@
 						"items": {
 							"type": "string",
 							"enum": [
-								"prop",
 								"narr",
 								"clp",
 								"bst",
@@ -3610,24 +3571,16 @@
 					"prop"
 				]
 			},
-			"DialogueReq": {
+			"SceneReq": {
 				"type": "object",
 				"properties": {
 					"gameName": {
 						"type": "string",
 						"description": "游戏名称"
 					},
-					"sectionName": {
-						"type": "string",
-						"description": "章节名称（文本编辑器忽略）"
-					},
 					"sceneName": {
 						"type": "string",
 						"description": "场景名称"
-					},
-					"editorType": {
-						"type": "string",
-						"description": "编辑器类型"
 					},
 					"dialogues": {
 						"description": "对话框内容",
@@ -3639,9 +3592,7 @@
 				},
 				"required": [
 					"gameName",
-					"sectionName",
 					"sceneName",
-					"editorType",
 					"dialogues"
 				]
 			},
@@ -3753,17 +3704,9 @@
 						"type": "string",
 						"description": "游戏名称"
 					},
-					"sectionName": {
-						"type": "string",
-						"description": "章节名称（文本编辑器忽略）"
-					},
 					"sceneName": {
 						"type": "string",
 						"description": "场景名称"
-					},
-					"editorType": {
-						"type": "string",
-						"description": "编辑器类型"
 					},
 					"bg": {
 						"type": "string",
@@ -3784,40 +3727,11 @@
 				},
 				"required": [
 					"gameName",
-					"sectionName",
 					"sceneName",
-					"editorType",
 					"bg",
 					"cg",
 					"clearBg",
 					"clearCg"
-				]
-			},
-			"SceneInfoReq": {
-				"type": "object",
-				"properties": {
-					"gameName": {
-						"type": "string",
-						"description": "游戏名称"
-					},
-					"sectionName": {
-						"type": "string",
-						"description": "章节名称（文本编辑器忽略）"
-					},
-					"sceneName": {
-						"type": "string",
-						"description": "场景名称"
-					},
-					"editorType": {
-						"type": "string",
-						"description": "编辑器类型"
-					}
-				},
-				"required": [
-					"gameName",
-					"sectionName",
-					"sceneName",
-					"editorType"
 				]
 			},
 			"SceneDto": {
@@ -3827,24 +3741,14 @@
 						"type": "string",
 						"description": "游戏名称"
 					},
-					"sectionName": {
-						"type": "string",
-						"description": "章节名称（文本编辑器忽略）"
-					},
 					"sceneName": {
 						"type": "string",
 						"description": "场景名称"
-					},
-					"editorType": {
-						"type": "string",
-						"description": "编辑器类型"
 					}
 				},
 				"required": [
 					"gameName",
-					"sectionName",
-					"sceneName",
-					"editorType"
+					"sceneName"
 				]
 			},
 			"Title": {
@@ -4502,21 +4406,9 @@
 						"type": "string",
 						"description": "游戏名称"
 					},
-					"sectionName": {
-						"type": "string",
-						"description": "章节名称（文本编辑器忽略）"
-					},
 					"sceneName": {
 						"type": "string",
 						"description": "场景名称"
-					},
-					"editorType": {
-						"type": "string",
-						"description": "编辑器类型"
-					},
-					"uid": {
-						"type": "string",
-						"description": "用户标识"
 					},
 					"sentence": {
 						"type": "string",
@@ -4533,10 +4425,7 @@
 				},
 				"required": [
 					"gameName",
-					"sectionName",
 					"sceneName",
-					"editorType",
-					"uid",
 					"sentence",
 					"timbre",
 					"url"
@@ -4549,21 +4438,9 @@
 						"type": "string",
 						"description": "游戏名称"
 					},
-					"sectionName": {
-						"type": "string",
-						"description": "章节名称（文本编辑器忽略）"
-					},
 					"sceneName": {
 						"type": "string",
 						"description": "场景名称"
-					},
-					"editorType": {
-						"type": "string",
-						"description": "编辑器类型"
-					},
-					"uid": {
-						"type": "string",
-						"description": "用户标识"
 					},
 					"sentence": {
 						"type": "string",
@@ -4576,10 +4453,7 @@
 				},
 				"required": [
 					"gameName",
-					"sectionName",
 					"sceneName",
-					"editorType",
-					"uid",
 					"sentence",
 					"url"
 				]

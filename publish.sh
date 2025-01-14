@@ -1,11 +1,5 @@
 #!/bin/bash
 
-echo -e "${BLUE}start build..${NC}"
-
-npm run build
-
-
-echo -e "${BLUE}update package.json version...${NC}"
 
 # 定义颜色变量
 RED='\033[0;31m'
@@ -19,6 +13,9 @@ NC='\033[0m' # 无颜色
 # echo -e "${GREEN}这是绿色文字${NC}"
 # echo -e "${YELLOW}这是黄色文字${NC}"
 # echo -e "${BLUE}这是蓝色文字${NC}"
+
+echo -e "${BLUE}update package.json version...${NC}"
+
 
 # 提取当前版本号
 current_version=$(grep -o '"version": *"[0-9]\+\.[0-9]\+\.[0-9]\+"' package.json | grep -o '[0-9]\+\.[0-9]\+\.[0-9]\+')
@@ -38,10 +35,13 @@ sed -i '' "s/\"version\": \"$current_version\"/\"version\": \"$new_version\"/" p
 echo -e "${GREEN}Version updated to $new_version ${NC}"
 
 
+echo -e "${BLUE}start build..${NC}"
+
+npm run build
+
+
 echo -e "${BLUE}publish...${NC}"
 
 npm publish --access public
 
 echo -e "${GREEN} all done ${NC}"
-
-
