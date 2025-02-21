@@ -1,5 +1,5 @@
 import { OpenAPIV3 } from 'openapi-types';
-import { clearDir, writeFileRecursive } from '../../utils';
+import { clearDir, log, writeFileRecursive } from '../../utils';
 import { ArraySchemaObject, ConfigType, NonArraySchemaObject, OperationObject, PathItemObject } from '../types';
 
 const TIGHTEN = `\t`; // 缩进
@@ -527,7 +527,6 @@ export class PathParse {
 			clearDir(this.config.apiListFilePath + '/index.ts').finally(() => {
 				writeFileRecursive(this.config.apiListFilePath + '/index.ts', apiListFileContent.join('\n'))
 					.then(() => {
-						console.log('path parse done!');
 						this.Map = new Map();
 					})
 					.catch((err: any) => {
@@ -537,8 +536,10 @@ export class PathParse {
 		});
 	}
 
-	handle() {
-		this.initialize().then(() => this.writeFileHabdler());
+	async handle() {
+		await this.initialize();
+		await this.writeFileHabdler();
+		log.success('path parse & write done!');
 	}
 }
 

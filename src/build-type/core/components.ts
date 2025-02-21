@@ -1,5 +1,5 @@
 import { OpenAPIV3 } from 'openapi-types';
-import { writeFileRecursive } from '../../utils';
+import { log, writeFileRecursive } from '../../utils';
 import { ArraySchemaObject, ComponentsSchemas, ConfigType, NonArraySchemaObject, ReferenceObject, SchemaObject } from '../types';
 
 const INDENT = `\t`;
@@ -262,12 +262,12 @@ class Components {
 
 		await Promise.all(Plist);
 		await writeFileRecursive(`${saveTypeFolderPath}/index.ts`, exportFileContent.join('\n'));
-		console.log('components done!');
 	}
 
 	async handle(): Promise<void> {
 		await this.parse();
 		await this.writeFileHandler();
+		log.success('Component parse & write done!');
 	}
 }
 

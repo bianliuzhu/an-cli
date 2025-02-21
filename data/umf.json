@@ -1,20 +1,6 @@
 {
 	"openapi": "3.0.0",
 	"paths": {
-		"/api/test": {
-			"get": {
-				"operationId": "AppController_apiTest",
-				"parameters": [],
-				"responses": {
-					"200": {
-						"description": ""
-					}
-				},
-				"tags": [
-					"Test Server"
-				]
-			}
-		},
 		"/api/manageGame/createGame": {
 			"post": {
 				"operationId": "ManageGameController_createGame",
@@ -265,6 +251,45 @@
 				]
 			}
 		},
+		"/api/llm/recommend/{schema}/{rid}/role/union": {
+			"get": {
+				"operationId": "LlmController_recommends",
+				"summary": "推荐角色信息",
+				"parameters": [
+					{
+						"name": "schema",
+						"required": true,
+						"in": "path",
+						"schema": {
+							"type": "string"
+						}
+					},
+					{
+						"name": "rid",
+						"required": true,
+						"in": "path",
+						"schema": {
+							"type": "string"
+						}
+					}
+				],
+				"responses": {
+					"200": {
+						"description": "",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/RecommendRoleDTO"
+								}
+							}
+						}
+					}
+				},
+				"tags": [
+					"LLM"
+				]
+			}
+		},
 		"/api/llm/recommend/{schema}/{bgid}/category": {
 			"get": {
 				"operationId": "LlmController_recommendCategory",
@@ -280,6 +305,48 @@
 					},
 					{
 						"name": "bgid",
+						"required": true,
+						"in": "path",
+						"schema": {
+							"type": "string"
+						}
+					}
+				],
+				"responses": {
+					"200": {
+						"description": "",
+						"content": {
+							"application/json": {
+								"schema": {
+									"type": "array",
+									"items": {
+										"type": "string"
+									}
+								}
+							}
+						}
+					}
+				},
+				"tags": [
+					"LLM"
+				]
+			}
+		},
+		"/api/llm/recommend/{schema}/{rid}/timbre": {
+			"get": {
+				"operationId": "LlmController_recommendTimbre",
+				"summary": "推荐音色",
+				"parameters": [
+					{
+						"name": "schema",
+						"required": true,
+						"in": "path",
+						"schema": {
+							"type": "string"
+						}
+					},
+					{
+						"name": "rid",
 						"required": true,
 						"in": "path",
 						"schema": {
@@ -672,7 +739,7 @@
 						"content": {
 							"application/json": {
 								"schema": {
-									"$ref": "#/components/schemas/BatchBgRoleReqDto"
+									"$ref": "#/components/schemas/BatchUpdateRspDto"
 								}
 							}
 						}
@@ -1130,6 +1197,652 @@
 				]
 			}
 		},
+		"/api/bgm/{category}/table": {
+			"get": {
+				"operationId": "BgmController_table",
+				"summary": "获取音乐库数据",
+				"parameters": [
+					{
+						"name": "category",
+						"required": true,
+						"in": "path",
+						"schema": {
+							"type": "string"
+						}
+					}
+				],
+				"responses": {
+					"default": {
+						"description": "",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/BgmTableDto"
+								}
+							}
+						}
+					}
+				},
+				"tags": [
+					"Bgm"
+				]
+			}
+		},
+		"/api/bgm/all": {
+			"get": {
+				"operationId": "BgmController_all",
+				"summary": "获取音乐搜索列表",
+				"parameters": [],
+				"responses": {
+					"default": {
+						"description": "",
+						"content": {
+							"application/json": {
+								"schema": {
+									"type": "array",
+									"items": {
+										"$ref": "#/components/schemas/BgmListDto"
+									}
+								}
+							}
+						}
+					}
+				},
+				"tags": [
+					"Bgm"
+				]
+			}
+		},
+		"/api/bgm/link/scene": {
+			"post": {
+				"operationId": "BgmController_linkScene",
+				"summary": "音乐裁剪",
+				"parameters": [],
+				"requestBody": {
+					"required": true,
+					"content": {
+						"application/json": {
+							"schema": {
+								"$ref": "#/components/schemas/AudioCutDto"
+							}
+						}
+					}
+				},
+				"responses": {
+					"200": {
+						"description": "Successfully."
+					},
+					"501": {
+						"description": "Failed."
+					}
+				},
+				"tags": [
+					"Bgm"
+				]
+			}
+		},
+		"/api/bgm/excelConvertDb": {
+			"post": {
+				"operationId": "BgmController_excelConvertDb",
+				"parameters": [],
+				"responses": {
+					"201": {
+						"description": ""
+					}
+				},
+				"tags": [
+					"Bgm"
+				]
+			}
+		},
+		"/api/bgm/clearBgm": {
+			"post": {
+				"operationId": "BgmController_clearBgm",
+				"parameters": [],
+				"responses": {
+					"201": {
+						"description": ""
+					}
+				},
+				"tags": [
+					"Bgm"
+				]
+			}
+		},
+		"/api/dict/{type}/{name}": {
+			"get": {
+				"operationId": "DictController_create",
+				"summary": "添加字典数据",
+				"parameters": [
+					{
+						"name": "type",
+						"required": true,
+						"in": "path",
+						"schema": {
+							"type": "string"
+						}
+					},
+					{
+						"name": "name",
+						"required": true,
+						"in": "path",
+						"schema": {
+							"type": "string"
+						}
+					}
+				],
+				"responses": {
+					"200": {
+						"description": ""
+					}
+				},
+				"tags": [
+					"Dict"
+				]
+			}
+		},
+		"/api/dict/list": {
+			"get": {
+				"operationId": "DictController_findAll",
+				"summary": "字典列表",
+				"parameters": [],
+				"responses": {
+					"200": {
+						"description": ""
+					}
+				},
+				"tags": [
+					"Dict"
+				]
+			}
+		},
+		"/api/editor/scene/add": {
+			"post": {
+				"operationId": "EditorController_addScenes",
+				"summary": "创建章节/场景",
+				"parameters": [],
+				"requestBody": {
+					"required": true,
+					"description": "请求体",
+					"content": {
+						"application/json": {
+							"schema": {
+								"$ref": "#/components/schemas/AddSceneDto"
+							}
+						}
+					}
+				},
+				"responses": {
+					"200": {
+						"description": "",
+						"content": {
+							"application/json": {
+								"schema": {
+									"type": "array",
+									"items": {
+										"type": "string"
+									}
+								}
+							}
+						}
+					}
+				},
+				"tags": [
+					"Editor"
+				]
+			}
+		},
+		"/api/editor/scene": {
+			"post": {
+				"operationId": "EditorController_getSceneDetail",
+				"summary": "查询场景详情内容",
+				"parameters": [],
+				"requestBody": {
+					"required": true,
+					"description": "查询场景详情内容",
+					"content": {
+						"application/json": {
+							"schema": {
+								"$ref": "#/components/schemas/SceneDetailDto"
+							}
+						}
+					}
+				},
+				"responses": {
+					"200": {
+						"description": "",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/SceneDetailRsp"
+								}
+							}
+						}
+					}
+				},
+				"tags": [
+					"Editor"
+				]
+			}
+		},
+		"/api/editor/scene/dialogue": {
+			"put": {
+				"operationId": "EditorController_editSceneDialogue",
+				"summary": "更新编辑器对话资源",
+				"parameters": [],
+				"requestBody": {
+					"required": true,
+					"description": "更新编辑器对话资源",
+					"content": {
+						"application/json": {
+							"schema": {
+								"$ref": "#/components/schemas/SceneReq"
+							}
+						}
+					}
+				},
+				"responses": {
+					"200": {
+						"description": "",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/SceneDetailRsp"
+								}
+							}
+						}
+					}
+				},
+				"tags": [
+					"Editor"
+				]
+			}
+		},
+		"/api/editor/uiScene/resource": {
+			"put": {
+				"operationId": "EditorController_editUiSceneResource",
+				"summary": "更新UI编辑器场景资源",
+				"parameters": [],
+				"requestBody": {
+					"required": true,
+					"description": "更新UI编辑器场景资源",
+					"content": {
+						"application/json": {
+							"schema": {
+								"$ref": "#/components/schemas/UpdateUiResourceDto"
+							}
+						}
+					}
+				},
+				"responses": {
+					"200": {
+						"description": "Successfully."
+					}
+				},
+				"tags": [
+					"Editor"
+				]
+			}
+		},
+		"/api/editor/scene/upload": {
+			"post": {
+				"operationId": "EditorController_uploadSceneDialogue",
+				"summary": "上传文本更新对话资源",
+				"parameters": [],
+				"requestBody": {
+					"required": true,
+					"content": {
+						"multipart/form-data": {
+							"schema": {
+								"$ref": "#/components/schemas/SceneDto"
+							}
+						}
+					}
+				},
+				"responses": {
+					"200": {
+						"description": "",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/SceneDetailRsp"
+								}
+							}
+						}
+					}
+				},
+				"tags": [
+					"Editor"
+				]
+			}
+		},
+		"/api/editor/scene/command/{id}": {
+			"post": {
+				"operationId": "EditorController_commandLine",
+				"summary": "根据行ID获取指令行",
+				"parameters": [
+					{
+						"name": "id",
+						"required": true,
+						"in": "path",
+						"description": "id",
+						"schema": {
+							"type": "string"
+						}
+					}
+				],
+				"requestBody": {
+					"required": true,
+					"description": "场景信息",
+					"content": {
+						"application/json": {
+							"schema": {
+								"$ref": "#/components/schemas/SceneDto"
+							}
+						}
+					}
+				},
+				"responses": {
+					"200": {
+						"description": "Successfully."
+					},
+					"400": {
+						"description": "Failed."
+					}
+				},
+				"tags": [
+					"Editor"
+				]
+			}
+		},
+		"/api/vocal/binding": {
+			"post": {
+				"operationId": "VocalController_binding",
+				"summary": "配音绑定",
+				"parameters": [],
+				"requestBody": {
+					"required": true,
+					"description": "配音绑定",
+					"content": {
+						"application/json": {
+							"schema": {
+								"$ref": "#/components/schemas/VocalBindingDto"
+							}
+						}
+					}
+				},
+				"responses": {
+					"201": {
+						"description": ""
+					}
+				},
+				"tags": [
+					"Vocal"
+				]
+			}
+		},
+		"/api/vocal/record/{event}/{reqId}": {
+			"get": {
+				"operationId": "VocalController_record",
+				"summary": "获取配音结果",
+				"parameters": [
+					{
+						"name": "event",
+						"required": true,
+						"in": "path",
+						"schema": {
+							"type": "string"
+						}
+					},
+					{
+						"name": "reqId",
+						"required": true,
+						"in": "path",
+						"schema": {
+							"type": "string"
+						}
+					}
+				],
+				"responses": {
+					"200": {
+						"description": ""
+					}
+				},
+				"tags": [
+					"Vocal"
+				]
+			}
+		},
+		"/api/vocal/ready/{gameName}/{sceneid}": {
+			"get": {
+				"operationId": "VocalController_getReadyVocalList",
+				"summary": "获取准备配音的列表",
+				"parameters": [
+					{
+						"name": "gameName",
+						"required": true,
+						"in": "path",
+						"schema": {
+							"type": "string"
+						}
+					},
+					{
+						"name": "sceneid",
+						"required": true,
+						"in": "path",
+						"schema": {
+							"type": "string"
+						}
+					}
+				],
+				"responses": {
+					"200": {
+						"description": "",
+						"content": {
+							"application/json": {
+								"schema": {
+									"type": "array",
+									"items": {
+										"$ref": "#/components/schemas/VocalReadyDTO"
+									}
+								}
+							}
+						}
+					}
+				},
+				"tags": [
+					"Vocal"
+				]
+			}
+		},
+		"/api/vocal/start/{sceneid}": {
+			"post": {
+				"operationId": "VocalController_startVocalList",
+				"summary": "开始批量配音任务",
+				"parameters": [
+					{
+						"name": "sceneid",
+						"required": true,
+						"in": "path",
+						"schema": {
+							"type": "string"
+						}
+					}
+				],
+				"requestBody": {
+					"required": true,
+					"description": "需要配音的数据",
+					"content": {
+						"application/json": {
+							"schema": {
+								"type": "array",
+								"items": {
+									"$ref": "#/components/schemas/VocalReadyDTO"
+								}
+							}
+						}
+					}
+				},
+				"responses": {
+					"201": {
+						"description": ""
+					}
+				},
+				"tags": [
+					"Vocal"
+				]
+			}
+		},
+		"/api/vocal/batch/{sceneid}": {
+			"get": {
+				"operationId": "VocalController_getBatchVocal",
+				"summary": "获取正在配音列表",
+				"parameters": [
+					{
+						"name": "sceneid",
+						"required": true,
+						"in": "path",
+						"schema": {
+							"type": "string"
+						}
+					}
+				],
+				"responses": {
+					"200": {
+						"description": "",
+						"content": {
+							"application/json": {
+								"schema": {
+									"type": "array",
+									"items": {
+										"$ref": "#/components/schemas/BatchGenerateVocal"
+									}
+								}
+							}
+						}
+					}
+				},
+				"tags": [
+					"Vocal"
+				]
+			},
+			"post": {
+				"operationId": "VocalController_saveBatchVocal",
+				"summary": "保存配音",
+				"parameters": [
+					{
+						"name": "sceneid",
+						"required": true,
+						"in": "path",
+						"schema": {
+							"type": "string"
+						}
+					}
+				],
+				"responses": {
+					"201": {
+						"description": ""
+					}
+				},
+				"tags": [
+					"Vocal"
+				]
+			}
+		},
+		"/api/vocal/retry/{sceneid}": {
+			"put": {
+				"operationId": "VocalController_retryBatchVocal",
+				"summary": "重试单条配音",
+				"parameters": [
+					{
+						"name": "sceneid",
+						"required": true,
+						"in": "path",
+						"schema": {
+							"type": "string"
+						}
+					}
+				],
+				"requestBody": {
+					"required": true,
+					"description": "需要重试的配音",
+					"content": {
+						"application/json": {
+							"schema": {
+								"type": "array",
+								"items": {
+									"$ref": "#/components/schemas/VocalBaseLineDTO"
+								}
+							}
+						}
+					}
+				},
+				"responses": {
+					"200": {
+						"description": ""
+					}
+				},
+				"tags": [
+					"Vocal"
+				]
+			}
+		},
+		"/api/vocal/batch/{sceneid}/{lineId}": {
+			"delete": {
+				"operationId": "VocalController_deleteLineVocalForBatchVocal",
+				"summary": "删除单条配音",
+				"parameters": [
+					{
+						"name": "sceneid",
+						"required": true,
+						"in": "path",
+						"schema": {
+							"type": "string"
+						}
+					},
+					{
+						"name": "lineId",
+						"required": true,
+						"in": "path",
+						"schema": {
+							"type": "string"
+						}
+					}
+				],
+				"responses": {
+					"200": {
+						"description": ""
+					}
+				},
+				"tags": [
+					"Vocal"
+				]
+			}
+		},
+		"/api/vocal/cancel/{sceneid}": {
+			"post": {
+				"operationId": "VocalController_cancelBatchVocal",
+				"summary": "取消配音",
+				"parameters": [
+					{
+						"name": "sceneid",
+						"required": true,
+						"in": "path",
+						"schema": {
+							"type": "string"
+						}
+					}
+				],
+				"responses": {
+					"201": {
+						"description": ""
+					}
+				},
+				"tags": [
+					"Vocal"
+				]
+			}
+		},
 		"/api/prop/add": {
 			"post": {
 				"operationId": "PropController_createProp",
@@ -1433,392 +2146,6 @@
 				},
 				"tags": [
 					"Cg"
-				]
-			}
-		},
-		"/api/editor/scene/add": {
-			"post": {
-				"operationId": "EditorController_addScenes",
-				"summary": "创建章节/场景",
-				"parameters": [],
-				"requestBody": {
-					"required": true,
-					"description": "请求体",
-					"content": {
-						"application/json": {
-							"schema": {
-								"$ref": "#/components/schemas/AddSceneDto"
-							}
-						}
-					}
-				},
-				"responses": {
-					"200": {
-						"description": "",
-						"content": {
-							"application/json": {
-								"schema": {
-									"type": "array",
-									"items": {
-										"type": "string"
-									}
-								}
-							}
-						}
-					}
-				},
-				"tags": [
-					"Editor"
-				]
-			}
-		},
-		"/api/editor/scene": {
-			"post": {
-				"operationId": "EditorController_getSceneDetail",
-				"summary": "查询场景详情内容",
-				"parameters": [],
-				"requestBody": {
-					"required": true,
-					"description": "查询场景详情内容",
-					"content": {
-						"application/json": {
-							"schema": {
-								"$ref": "#/components/schemas/SceneDetailDto"
-							}
-						}
-					}
-				},
-				"responses": {
-					"200": {
-						"description": "Successfully."
-					},
-					"400": {
-						"description": "Failed."
-					}
-				},
-				"tags": [
-					"Editor"
-				]
-			}
-		},
-		"/api/editor/scene/dialogue": {
-			"put": {
-				"operationId": "EditorController_editSceneDialogue",
-				"summary": "更新编辑器对话资源",
-				"parameters": [],
-				"requestBody": {
-					"required": true,
-					"description": "更新编辑器对话资源",
-					"content": {
-						"application/json": {
-							"schema": {
-								"$ref": "#/components/schemas/SceneReq"
-							}
-						}
-					}
-				},
-				"responses": {
-					"200": {
-						"description": "",
-						"content": {
-							"application/json": {
-								"schema": {
-									"$ref": "#/components/schemas/SceneDetailRsp"
-								}
-							}
-						}
-					}
-				},
-				"tags": [
-					"Editor"
-				]
-			}
-		},
-		"/api/editor/uiScene/resource": {
-			"put": {
-				"operationId": "EditorController_editUiSceneResource",
-				"summary": "更新UI编辑器场景资源",
-				"parameters": [],
-				"requestBody": {
-					"required": true,
-					"description": "更新UI编辑器场景资源",
-					"content": {
-						"application/json": {
-							"schema": {
-								"$ref": "#/components/schemas/UpdateUiResourceDto"
-							}
-						}
-					}
-				},
-				"responses": {
-					"200": {
-						"description": "Successfully."
-					}
-				},
-				"tags": [
-					"Editor"
-				]
-			}
-		},
-		"/api/editor/uiScene/upload": {
-			"put": {
-				"operationId": "EditorController_uploadUiSceneDialogue",
-				"summary": "上传文本更新UI对话资源",
-				"parameters": [],
-				"requestBody": {
-					"required": true,
-					"content": {
-						"multipart/form-data": {
-							"schema": {
-								"$ref": "#/components/schemas/SceneDto"
-							}
-						}
-					}
-				},
-				"responses": {
-					"200": {
-						"description": "",
-						"content": {
-							"application/json": {
-								"schema": {
-									"$ref": "#/components/schemas/SceneDetailRsp"
-								}
-							}
-						}
-					}
-				},
-				"tags": [
-					"Editor"
-				]
-			}
-		},
-		"/api/editor/txtScene/upload": {
-			"put": {
-				"operationId": "EditorController_uploadTxtSceneDialogue",
-				"summary": "上传文本更新TXT对话资源",
-				"parameters": [],
-				"requestBody": {
-					"required": true,
-					"content": {
-						"multipart/form-data": {
-							"schema": {
-								"$ref": "#/components/schemas/SceneDto"
-							}
-						}
-					}
-				},
-				"responses": {
-					"200": {
-						"description": "",
-						"content": {
-							"application/json": {
-								"schema": {
-									"$ref": "#/components/schemas/SceneDetailRsp"
-								}
-							}
-						}
-					}
-				},
-				"tags": [
-					"Editor"
-				]
-			}
-		},
-		"/api/editor/scene/command/{id}": {
-			"post": {
-				"operationId": "EditorController_commandLine",
-				"summary": "根据行ID获取指令行",
-				"parameters": [
-					{
-						"name": "id",
-						"required": true,
-						"in": "path",
-						"description": "id",
-						"schema": {
-							"type": "string"
-						}
-					}
-				],
-				"requestBody": {
-					"required": true,
-					"description": "场景信息",
-					"content": {
-						"application/json": {
-							"schema": {
-								"$ref": "#/components/schemas/SceneDto"
-							}
-						}
-					}
-				},
-				"responses": {
-					"200": {
-						"description": "Successfully."
-					},
-					"400": {
-						"description": "Failed."
-					}
-				},
-				"tags": [
-					"Editor"
-				]
-			}
-		},
-		"/api/bgm/{category}/table": {
-			"get": {
-				"operationId": "BgmController_table",
-				"summary": "获取音乐库数据",
-				"parameters": [
-					{
-						"name": "category",
-						"required": true,
-						"in": "path",
-						"schema": {
-							"type": "string"
-						}
-					}
-				],
-				"responses": {
-					"default": {
-						"description": "",
-						"content": {
-							"application/json": {
-								"schema": {
-									"$ref": "#/components/schemas/BgmTableDto"
-								}
-							}
-						}
-					}
-				},
-				"tags": [
-					"Bgm"
-				]
-			}
-		},
-		"/api/bgm/all": {
-			"get": {
-				"operationId": "BgmController_all",
-				"summary": "获取音乐搜索列表",
-				"parameters": [],
-				"responses": {
-					"default": {
-						"description": "",
-						"content": {
-							"application/json": {
-								"schema": {
-									"type": "array",
-									"items": {
-										"$ref": "#/components/schemas/BgmListDto"
-									}
-								}
-							}
-						}
-					}
-				},
-				"tags": [
-					"Bgm"
-				]
-			}
-		},
-		"/api/bgm/link/scene": {
-			"post": {
-				"operationId": "BgmController_linkScene",
-				"summary": "音乐裁剪",
-				"parameters": [],
-				"requestBody": {
-					"required": true,
-					"content": {
-						"application/json": {
-							"schema": {
-								"$ref": "#/components/schemas/AudioCutDto"
-							}
-						}
-					}
-				},
-				"responses": {
-					"200": {
-						"description": "Successfully."
-					},
-					"501": {
-						"description": "Failed."
-					}
-				},
-				"tags": [
-					"Bgm"
-				]
-			}
-		},
-		"/api/bgm/excelConvertDb": {
-			"post": {
-				"operationId": "BgmController_excelConvertDb",
-				"parameters": [],
-				"responses": {
-					"201": {
-						"description": ""
-					}
-				},
-				"tags": [
-					"Bgm"
-				]
-			}
-		},
-		"/api/bgm/clearBgm": {
-			"post": {
-				"operationId": "BgmController_clearBgm",
-				"parameters": [],
-				"responses": {
-					"201": {
-						"description": ""
-					}
-				},
-				"tags": [
-					"Bgm"
-				]
-			}
-		},
-		"/api/dict/{type}/{name}": {
-			"get": {
-				"operationId": "DictController_create",
-				"summary": "添加字典数据",
-				"parameters": [
-					{
-						"name": "type",
-						"required": true,
-						"in": "path",
-						"schema": {
-							"type": "string"
-						}
-					},
-					{
-						"name": "name",
-						"required": true,
-						"in": "path",
-						"schema": {
-							"type": "string"
-						}
-					}
-				],
-				"responses": {
-					"200": {
-						"description": ""
-					}
-				},
-				"tags": [
-					"Dict"
-				]
-			}
-		},
-		"/api/dict/list": {
-			"get": {
-				"operationId": "DictController_findAll",
-				"summary": "字典列表",
-				"parameters": [],
-				"responses": {
-					"200": {
-						"description": ""
-					}
-				},
-				"tags": [
-					"Dict"
 				]
 			}
 		},
@@ -2145,64 +2472,6 @@
 				]
 			}
 		},
-		"/api/vocal/binding": {
-			"post": {
-				"operationId": "VocalController_binding",
-				"summary": "配音绑定",
-				"parameters": [],
-				"requestBody": {
-					"required": true,
-					"description": "配音绑定",
-					"content": {
-						"application/json": {
-							"schema": {
-								"$ref": "#/components/schemas/VocalBindingDto"
-							}
-						}
-					}
-				},
-				"responses": {
-					"201": {
-						"description": ""
-					}
-				},
-				"tags": [
-					"Vocal"
-				]
-			}
-		},
-		"/api/vocal/record/{event}/{reqId}": {
-			"get": {
-				"operationId": "VocalController_record",
-				"summary": "获取配音结果",
-				"parameters": [
-					{
-						"name": "event",
-						"required": true,
-						"in": "path",
-						"schema": {
-							"type": "string"
-						}
-					},
-					{
-						"name": "reqId",
-						"required": true,
-						"in": "path",
-						"schema": {
-							"type": "string"
-						}
-					}
-				],
-				"responses": {
-					"200": {
-						"description": ""
-					}
-				},
-				"tags": [
-					"Vocal"
-				]
-			}
-		},
 		"/api/auth/captcha": {
 			"get": {
 				"operationId": "AuthController_getCaptcha",
@@ -2233,11 +2502,7 @@
 		"contact": {}
 	},
 	"tags": [],
-	"servers": [
-		{
-			"url": "http://10.10.77.121:5001"
-		}
-	],
+	"servers": [],
 	"components": {
 		"schemas": {
 			"CompletionDto": {
@@ -2275,7 +2540,12 @@
 					},
 					"gameType": {
 						"type": "string",
-						"description": "游戏类型"
+						"description": "游戏类型",
+						"enum": [
+							"solvePuzzles",
+							"otome"
+						],
+						"default": "solvePuzzles"
 					},
 					"renderMode": {
 						"type": "string",
@@ -2449,7 +2719,11 @@
 					},
 					"style": {
 						"type": "string",
-						"description": "背景风格"
+						"description": "背景风格",
+						"enum": [
+							"anime",
+							"romantic"
+						]
 					},
 					"original": {
 						"type": "string",
@@ -2672,7 +2946,11 @@
 					},
 					"style": {
 						"type": "string",
-						"description": "风格"
+						"description": "风格",
+						"enum": [
+							"anime",
+							"romantic"
+						]
 					},
 					"age": {
 						"type": "string",
@@ -2680,8 +2958,13 @@
 						"enum": [
 							"child",
 							"adult",
-							"hoariness"
+							"youth",
+							"elder"
 						]
+					},
+					"timbre": {
+						"type": "string",
+						"description": "音色"
 					},
 					"original": {
 						"type": "string",
@@ -2747,6 +3030,7 @@
 					"gender",
 					"style",
 					"age",
+					"timbre",
 					"original",
 					"url",
 					"list",
@@ -2783,6 +3067,57 @@
 					"progress"
 				]
 			},
+			"Title": {
+				"type": "object",
+				"properties": {
+					"column": {
+						"type": "string",
+						"description": "列标签"
+					},
+					"name": {
+						"type": "string",
+						"description": "列名称"
+					}
+				},
+				"required": [
+					"column",
+					"name"
+				]
+			},
+			"BatchBgm": {
+				"type": "object",
+				"properties": {
+					"progress": {
+						"description": "进度",
+						"allOf": [
+							{
+								"$ref": "#/components/schemas/Progress"
+							}
+						]
+					},
+					"title": {
+						"description": "音乐表头",
+						"type": "array",
+						"items": {
+							"$ref": "#/components/schemas/Title"
+						}
+					},
+					"stock": {
+						"type": "object",
+						"description": "音乐数据"
+					},
+					"more": {
+						"type": "object",
+						"description": "More"
+					}
+				},
+				"required": [
+					"progress",
+					"title",
+					"stock",
+					"more"
+				]
+			},
 			"BatchExtraction": {
 				"type": "object",
 				"properties": {
@@ -2799,6 +3134,14 @@
 						"allOf": [
 							{
 								"$ref": "#/components/schemas/BatchRole"
+							}
+						]
+					},
+					"bgm": {
+						"description": "BGM",
+						"allOf": [
+							{
+								"$ref": "#/components/schemas/BatchBgm"
 							}
 						]
 					},
@@ -2834,6 +3177,7 @@
 				"required": [
 					"bg",
 					"role",
+					"bgm",
 					"progress",
 					"id",
 					"uid",
@@ -2931,6 +3275,26 @@
 					"role"
 				]
 			},
+			"RecommendRoleDTO": {
+				"type": "object",
+				"properties": {
+					"features": {
+						"description": "推荐人格",
+						"type": "array",
+						"items": {
+							"type": "string"
+						}
+					},
+					"timbre": {
+						"type": "string",
+						"description": "推荐音色"
+					}
+				},
+				"required": [
+					"features",
+					"timbre"
+				]
+			},
 			"ImageUploadDto": {
 				"type": "object",
 				"properties": {
@@ -2972,6 +3336,26 @@
 					"id"
 				]
 			},
+			"BgmConfirm": {
+				"type": "object",
+				"properties": {
+					"column": {
+						"type": "string",
+						"description": "列名"
+					},
+					"locationId": {
+						"description": "位置ID",
+						"type": "array",
+						"items": {
+							"type": "string"
+						}
+					}
+				},
+				"required": [
+					"column",
+					"locationId"
+				]
+			},
 			"BatchBgRoleReqDto": {
 				"type": "object",
 				"properties": {
@@ -2988,11 +3372,51 @@
 						"items": {
 							"$ref": "#/components/schemas/UpdateRoleDto"
 						}
+					},
+					"bgm": {
+						"description": "确认BGM",
+						"type": "array",
+						"items": {
+							"$ref": "#/components/schemas/BgmConfirm"
+						}
 					}
 				},
 				"required": [
 					"bg",
-					"role"
+					"role",
+					"bgm"
+				]
+			},
+			"BatchUpdateRspDto": {
+				"type": "object",
+				"properties": {
+					"bg": {
+						"description": "背景数据",
+						"type": "array",
+						"items": {
+							"$ref": "#/components/schemas/UpdateBgDto"
+						}
+					},
+					"role": {
+						"description": "角色数据",
+						"type": "array",
+						"items": {
+							"$ref": "#/components/schemas/UpdateRoleDto"
+						}
+					},
+					"bgm": {
+						"description": "确认BGM",
+						"allOf": [
+							{
+								"$ref": "#/components/schemas/BatchBgm"
+							}
+						]
+					}
+				},
+				"required": [
+					"bg",
+					"role",
+					"bgm"
 				]
 			},
 			"IdNameDto": {
@@ -3150,6 +3574,827 @@
 					"name"
 				]
 			},
+			"StockColumnData": {
+				"type": "object",
+				"properties": {
+					"id": {
+						"type": "string",
+						"description": "音乐ID"
+					},
+					"name": {
+						"type": "string",
+						"description": "音乐名称"
+					},
+					"url": {
+						"type": "string",
+						"description": "音乐相对地址"
+					},
+					"locationId": {
+						"type": "string",
+						"description": "位置ID"
+					},
+					"checked": {
+						"type": "boolean",
+						"description": "勾选"
+					}
+				},
+				"required": [
+					"id",
+					"name",
+					"url",
+					"locationId",
+					"checked"
+				]
+			},
+			"StockColumn": {
+				"type": "object",
+				"properties": {
+					"column": {
+						"type": "string",
+						"description": "列值"
+					},
+					"data": {
+						"description": "行标签对应列数据",
+						"type": "array",
+						"items": {
+							"$ref": "#/components/schemas/StockColumnData"
+						}
+					}
+				},
+				"required": [
+					"column",
+					"data"
+				]
+			},
+			"Stock": {
+				"type": "object",
+				"properties": {
+					"name": {
+						"type": "string",
+						"description": "行标签名称"
+					},
+					"columns": {
+						"description": "行标签对应列数据",
+						"type": "array",
+						"items": {
+							"$ref": "#/components/schemas/StockColumn"
+						}
+					}
+				},
+				"required": [
+					"name",
+					"columns"
+				]
+			},
+			"BgmTableDto": {
+				"type": "object",
+				"properties": {
+					"title": {
+						"description": "音乐库表头",
+						"type": "array",
+						"items": {
+							"$ref": "#/components/schemas/Title"
+						}
+					},
+					"stock": {
+						"description": "音乐库数据",
+						"type": "array",
+						"items": {
+							"$ref": "#/components/schemas/Stock"
+						}
+					}
+				},
+				"required": [
+					"title",
+					"stock"
+				]
+			},
+			"BgmListDto": {
+				"type": "object",
+				"properties": {
+					"locationId": {
+						"type": "string",
+						"description": "位置ID"
+					},
+					"id": {
+						"type": "string",
+						"description": "音乐ID"
+					},
+					"name": {
+						"type": "string",
+						"description": "音乐名称"
+					},
+					"url": {
+						"type": "string",
+						"description": "音乐地址"
+					},
+					"category": {
+						"type": "string",
+						"description": "音乐类型"
+					}
+				},
+				"required": [
+					"locationId",
+					"id",
+					"name",
+					"url",
+					"category"
+				]
+			},
+			"AudioCutDto": {
+				"type": "object",
+				"properties": {
+					"uid": {
+						"type": "string",
+						"description": "用户ID"
+					},
+					"gameName": {
+						"type": "string",
+						"description": "游戏名"
+					},
+					"sceneName": {
+						"type": "string",
+						"description": "场景名称"
+					},
+					"audio": {
+						"type": "string",
+						"description": "音乐名"
+					},
+					"url": {
+						"type": "string",
+						"description": "音乐库地址"
+					},
+					"loop": {
+						"type": "string",
+						"description": "是否循环"
+					},
+					"volume": {
+						"type": "number",
+						"description": "音量0-100"
+					},
+					"rate": {
+						"type": "number",
+						"description": "播放速度"
+					}
+				},
+				"required": [
+					"uid",
+					"gameName",
+					"sceneName",
+					"audio",
+					"url",
+					"loop",
+					"volume",
+					"rate"
+				]
+			},
+			"ResultData": {
+				"type": "object",
+				"properties": {
+					"code": {
+						"type": "number",
+						"default": 200
+					},
+					"msg": {
+						"type": "string",
+						"default": "ok"
+					},
+					"data": {
+						"type": "any",
+						"default": null,
+						"nullable": true
+					}
+				},
+				"required": [
+					"code",
+					"msg",
+					"data"
+				]
+			},
+			"AddSceneDto": {
+				"type": "object",
+				"properties": {
+					"gameName": {
+						"type": "string",
+						"description": "游戏名称"
+					},
+					"sectionName": {
+						"type": "string",
+						"description": "章节名称"
+					},
+					"sceneName": {
+						"description": "场景列表",
+						"type": "array",
+						"items": {
+							"type": "string"
+						}
+					}
+				},
+				"required": [
+					"gameName",
+					"sectionName",
+					"sceneName"
+				]
+			},
+			"SceneDetailDto": {
+				"type": "object",
+				"properties": {
+					"gameName": {
+						"type": "string",
+						"description": "游戏名称"
+					},
+					"sceneName": {
+						"type": "string",
+						"description": "场景名称"
+					},
+					"sceneType": {
+						"type": "string",
+						"description": "场景类型"
+					}
+				},
+				"required": [
+					"gameName",
+					"sceneName",
+					"sceneType"
+				]
+			},
+			"Role": {
+				"type": "object",
+				"properties": {
+					"id": {
+						"type": "string",
+						"description": "角色ID"
+					},
+					"emotion": {
+						"type": "string",
+						"description": "表情"
+					},
+					"name": {
+						"type": "string",
+						"description": "角色名称"
+					},
+					"gender": {
+						"type": "string",
+						"description": "角色性别",
+						"enum": [
+							"male",
+							"female"
+						]
+					},
+					"style": {
+						"type": "string",
+						"description": "角色风格",
+						"enum": [
+							"anime",
+							"romantic"
+						]
+					}
+				},
+				"required": [
+					"id",
+					"emotion",
+					"name",
+					"gender",
+					"style"
+				]
+			},
+			"Vocal": {
+				"type": "object",
+				"properties": {
+					"hash": {
+						"type": "string",
+						"description": "hash"
+					},
+					"timbre": {
+						"type": "string",
+						"description": "音色"
+					},
+					"vocal": {
+						"type": "string",
+						"description": "配音文件（不包含路径）"
+					},
+					"url": {
+						"type": "string",
+						"description": "配音地址"
+					}
+				},
+				"required": [
+					"hash",
+					"timbre",
+					"vocal",
+					"url"
+				]
+			},
+			"Prop": {
+				"type": "object",
+				"properties": {
+					"id": {
+						"type": "string",
+						"description": "道具ID"
+					},
+					"name": {
+						"type": "string",
+						"description": "道具名称"
+					}
+				},
+				"required": [
+					"id",
+					"name"
+				]
+			},
+			"LineDto": {
+				"type": "object",
+				"properties": {
+					"id": {
+						"type": "string",
+						"description": "行ID"
+					},
+					"content": {
+						"type": "string",
+						"description": "内容"
+					},
+					"command": {
+						"type": "array",
+						"description": "命令",
+						"items": {
+							"type": "string",
+							"enum": [
+								"narr",
+								"clp",
+								"bst",
+								"bgi",
+								"bgm",
+								"cg",
+								"cp"
+							]
+						}
+					},
+					"role": {
+						"description": "角色",
+						"allOf": [
+							{
+								"$ref": "#/components/schemas/Role"
+							}
+						]
+					},
+					"vocal": {
+						"description": "配音",
+						"allOf": [
+							{
+								"$ref": "#/components/schemas/Vocal"
+							}
+						]
+					},
+					"prop": {
+						"description": "道具",
+						"allOf": [
+							{
+								"$ref": "#/components/schemas/Prop"
+							}
+						]
+					}
+				},
+				"required": [
+					"id",
+					"content",
+					"command",
+					"role",
+					"vocal",
+					"prop"
+				]
+			},
+			"Figure": {
+				"type": "object",
+				"properties": {
+					"name": {
+						"type": "string",
+						"description": "立绘名称"
+					},
+					"path": {
+						"type": "string",
+						"description": "图片路径"
+					}
+				},
+				"required": [
+					"name",
+					"path"
+				]
+			},
+			"BgmVO": {
+				"type": "object",
+				"properties": {
+					"audio": {
+						"type": "string",
+						"description": "音乐"
+					},
+					"url": {
+						"type": "string",
+						"description": "URL"
+					},
+					"loop": {
+						"type": "boolean",
+						"description": "是否循环",
+						"default": true
+					},
+					"volume": {
+						"type": "number",
+						"description": "音量0-100",
+						"default": 100
+					},
+					"rate": {
+						"type": "number",
+						"description": "播放速度",
+						"default": 1
+					}
+				},
+				"required": [
+					"audio",
+					"url",
+					"loop",
+					"volume",
+					"rate"
+				]
+			},
+			"SceneDetailRsp": {
+				"type": "object",
+				"properties": {
+					"scene": {
+						"type": "string",
+						"description": "场景文件名"
+					},
+					"dialogues": {
+						"description": "对话框内容",
+						"type": "array",
+						"items": {
+							"$ref": "#/components/schemas/LineDto"
+						}
+					},
+					"figures": {
+						"description": "立绘信息（拥有资源的角色）",
+						"type": "array",
+						"items": {
+							"$ref": "#/components/schemas/Figure"
+						}
+					},
+					"bg": {
+						"type": "string",
+						"description": "背景"
+					},
+					"cg": {
+						"type": "string",
+						"description": "CG"
+					},
+					"bgm": {
+						"description": "音乐",
+						"allOf": [
+							{
+								"$ref": "#/components/schemas/BgmVO"
+							}
+						]
+					},
+					"isBatchVocal": {
+						"type": "boolean",
+						"description": "批量配音"
+					},
+					"recommendBgm": {
+						"description": "推荐音乐",
+						"type": "array",
+						"items": {
+							"$ref": "#/components/schemas/BgmListDto"
+						}
+					}
+				},
+				"required": [
+					"scene",
+					"dialogues",
+					"figures",
+					"bg",
+					"cg",
+					"bgm",
+					"isBatchVocal",
+					"recommendBgm"
+				]
+			},
+			"SceneReq": {
+				"type": "object",
+				"properties": {
+					"gameName": {
+						"type": "string",
+						"description": "游戏名称"
+					},
+					"sceneName": {
+						"type": "string",
+						"description": "场景名称"
+					},
+					"dialogues": {
+						"description": "对话框内容",
+						"type": "array",
+						"items": {
+							"$ref": "#/components/schemas/LineDto"
+						}
+					}
+				},
+				"required": [
+					"gameName",
+					"sceneName",
+					"dialogues"
+				]
+			},
+			"UpdateUiResourceDto": {
+				"type": "object",
+				"properties": {
+					"gameName": {
+						"type": "string",
+						"description": "游戏名称"
+					},
+					"sceneName": {
+						"type": "string",
+						"description": "场景名称"
+					},
+					"bg": {
+						"type": "string",
+						"description": "更新背景"
+					},
+					"cg": {
+						"type": "string",
+						"description": "更新CG"
+					},
+					"clearBg": {
+						"type": "boolean",
+						"description": "清除背景"
+					},
+					"clearCg": {
+						"type": "boolean",
+						"description": "清除CG"
+					}
+				},
+				"required": [
+					"gameName",
+					"sceneName",
+					"bg",
+					"cg",
+					"clearBg",
+					"clearCg"
+				]
+			},
+			"SceneDto": {
+				"type": "object",
+				"properties": {
+					"gameName": {
+						"type": "string",
+						"description": "游戏名称"
+					},
+					"sceneName": {
+						"type": "string",
+						"description": "场景名称"
+					}
+				},
+				"required": [
+					"gameName",
+					"sceneName"
+				]
+			},
+			"VocalBindingDto": {
+				"type": "object",
+				"properties": {
+					"gameName": {
+						"type": "string",
+						"description": "游戏名称"
+					},
+					"sceneName": {
+						"type": "string",
+						"description": "场景名称"
+					},
+					"id": {
+						"type": "string",
+						"description": "行标识"
+					},
+					"timbre": {
+						"type": "string",
+						"description": "音色"
+					},
+					"url": {
+						"type": "string",
+						"description": "配音相对地址"
+					}
+				},
+				"required": [
+					"gameName",
+					"sceneName",
+					"id",
+					"timbre",
+					"url"
+				]
+			},
+			"VocalUntieDto": {
+				"type": "object",
+				"properties": {
+					"gameName": {
+						"type": "string",
+						"description": "游戏名称"
+					},
+					"sceneName": {
+						"type": "string",
+						"description": "场景名称"
+					},
+					"id": {
+						"type": "string",
+						"description": "行标识"
+					},
+					"url": {
+						"type": "string",
+						"description": "解绑配音相对地址"
+					}
+				},
+				"required": [
+					"gameName",
+					"sceneName",
+					"id",
+					"url"
+				]
+			},
+			"VocalBaseLineDTO": {
+				"type": "object",
+				"properties": {
+					"lineId": {
+						"type": "string",
+						"description": "行标识"
+					},
+					"content": {
+						"type": "string",
+						"description": "行内容"
+					},
+					"category": {
+						"type": "string",
+						"description": "表情大类英文"
+					},
+					"categoryLabel": {
+						"type": "string",
+						"description": "表情大类中文"
+					},
+					"emotion": {
+						"type": "string",
+						"description": "表情小类中文"
+					},
+					"timbre": {
+						"type": "string",
+						"description": "音色"
+					}
+				},
+				"required": [
+					"lineId",
+					"content",
+					"category",
+					"categoryLabel",
+					"emotion",
+					"timbre"
+				]
+			},
+			"VocalReadyDTO": {
+				"type": "object",
+				"properties": {
+					"subject": {
+						"type": "string",
+						"description": "角色名/旁白"
+					},
+					"subjectId": {
+						"type": "string",
+						"description": "角色名ID/narr"
+					},
+					"timbre": {
+						"type": "string",
+						"description": "音色ID"
+					},
+					"style": {
+						"type": "string",
+						"description": "风格"
+					},
+					"vocals": {
+						"description": "剧本语句",
+						"type": "array",
+						"items": {
+							"$ref": "#/components/schemas/VocalBaseLineDTO"
+						}
+					}
+				},
+				"required": [
+					"subject",
+					"subjectId",
+					"timbre",
+					"style",
+					"vocals"
+				]
+			},
+			"LineVocal": {
+				"type": "object",
+				"properties": {
+					"lineId": {
+						"type": "string",
+						"description": "行ID"
+					},
+					"content": {
+						"type": "string",
+						"description": "行内容"
+					},
+					"hash": {
+						"type": "string",
+						"description": "hash"
+					},
+					"style": {
+						"type": "string",
+						"description": "角色风格"
+					},
+					"timbre": {
+						"type": "string",
+						"description": "音色"
+					},
+					"category": {
+						"type": "string",
+						"description": "表情大类英文"
+					},
+					"categoryLabel": {
+						"type": "string",
+						"description": "表情大类中文"
+					},
+					"emotion": {
+						"type": "string",
+						"description": "表情小类中文"
+					},
+					"vocal": {
+						"type": "string",
+						"description": "配音文件（不包含路径）"
+					},
+					"url": {
+						"type": "string",
+						"description": "配音地址"
+					},
+					"progress": {
+						"description": "总进度",
+						"allOf": [
+							{
+								"$ref": "#/components/schemas/Progress"
+							}
+						]
+					}
+				},
+				"required": [
+					"lineId",
+					"content",
+					"hash",
+					"style",
+					"timbre",
+					"category",
+					"categoryLabel",
+					"emotion",
+					"vocal",
+					"url",
+					"progress"
+				]
+			},
+			"BatchVocal": {
+				"type": "object",
+				"properties": {
+					"vocals": {
+						"description": "配音列表",
+						"type": "array",
+						"items": {
+							"$ref": "#/components/schemas/LineVocal"
+						}
+					},
+					"subject": {
+						"type": "string",
+						"description": "主题"
+					}
+				},
+				"required": [
+					"vocals",
+					"subject"
+				]
+			},
+			"BatchGenerateVocal": {
+				"type": "object",
+				"properties": {
+					"batchs": {
+						"description": "配音列表",
+						"type": "array",
+						"items": {
+							"$ref": "#/components/schemas/BatchVocal"
+						}
+					},
+					"progress": {
+						"description": "总进度",
+						"allOf": [
+							{
+								"$ref": "#/components/schemas/Progress"
+							}
+						]
+					}
+				},
+				"required": [
+					"batchs",
+					"progress"
+				]
+			},
 			"PropDto": {
 				"type": "object",
 				"properties": {
@@ -3167,7 +4412,11 @@
 					},
 					"style": {
 						"type": "string",
-						"description": "道具风格"
+						"description": "道具风格",
+						"enum": [
+							"anime",
+							"romantic"
+						]
 					},
 					"original": {
 						"type": "string",
@@ -3363,578 +4612,6 @@
 				},
 				"required": [
 					"name"
-				]
-			},
-			"ResultData": {
-				"type": "object",
-				"properties": {
-					"code": {
-						"type": "number",
-						"default": 200
-					},
-					"msg": {
-						"type": "string",
-						"default": "ok"
-					},
-					"data": {
-						"type": "any",
-						"default": null,
-						"nullable": true
-					}
-				},
-				"required": [
-					"code",
-					"msg",
-					"data"
-				]
-			},
-			"AddSceneDto": {
-				"type": "object",
-				"properties": {
-					"gameName": {
-						"type": "string",
-						"description": "游戏名称"
-					},
-					"sectionName": {
-						"type": "string",
-						"description": "章节名称"
-					},
-					"sceneName": {
-						"description": "场景列表",
-						"type": "array",
-						"items": {
-							"type": "string"
-						}
-					}
-				},
-				"required": [
-					"gameName",
-					"sectionName",
-					"sceneName"
-				]
-			},
-			"SceneDetailDto": {
-				"type": "object",
-				"properties": {
-					"gameName": {
-						"type": "string",
-						"description": "游戏名称"
-					},
-					"sceneName": {
-						"type": "string",
-						"description": "场景名称"
-					},
-					"sceneType": {
-						"type": "string",
-						"description": "场景类型"
-					}
-				},
-				"required": [
-					"gameName",
-					"sceneName",
-					"sceneType"
-				]
-			},
-			"Role": {
-				"type": "object",
-				"properties": {
-					"id": {
-						"type": "string",
-						"description": "角色ID"
-					},
-					"emotion": {
-						"type": "string",
-						"description": "表情"
-					},
-					"name": {
-						"type": "string",
-						"description": "角色名称"
-					},
-					"gender": {
-						"type": "string",
-						"description": "角色性别",
-						"enum": [
-							"male",
-							"female"
-						]
-					}
-				},
-				"required": [
-					"id",
-					"emotion",
-					"name",
-					"gender"
-				]
-			},
-			"Vocal": {
-				"type": "object",
-				"properties": {
-					"hash": {
-						"type": "string",
-						"description": "hash"
-					},
-					"timbre": {
-						"type": "string",
-						"description": "音色"
-					},
-					"vocal": {
-						"type": "string",
-						"description": "配音文件（不包含路径）"
-					},
-					"url": {
-						"type": "string",
-						"description": "配音地址"
-					}
-				},
-				"required": [
-					"hash",
-					"timbre",
-					"vocal",
-					"url"
-				]
-			},
-			"Prop": {
-				"type": "object",
-				"properties": {
-					"id": {
-						"type": "string",
-						"description": "道具ID"
-					},
-					"name": {
-						"type": "string",
-						"description": "道具名称"
-					}
-				},
-				"required": [
-					"id",
-					"name"
-				]
-			},
-			"LineDto": {
-				"type": "object",
-				"properties": {
-					"id": {
-						"type": "string",
-						"description": "行ID"
-					},
-					"content": {
-						"type": "string",
-						"description": "内容"
-					},
-					"command": {
-						"type": "array",
-						"description": "命令",
-						"items": {
-							"type": "string",
-							"enum": [
-								"narr",
-								"clp",
-								"bst",
-								"bgi",
-								"bgm",
-								"cg",
-								"cp"
-							]
-						}
-					},
-					"role": {
-						"description": "角色",
-						"allOf": [
-							{
-								"$ref": "#/components/schemas/Role"
-							}
-						]
-					},
-					"vocal": {
-						"description": "配音",
-						"allOf": [
-							{
-								"$ref": "#/components/schemas/Vocal"
-							}
-						]
-					},
-					"prop": {
-						"description": "道具",
-						"allOf": [
-							{
-								"$ref": "#/components/schemas/Prop"
-							}
-						]
-					}
-				},
-				"required": [
-					"id",
-					"content",
-					"command",
-					"role",
-					"vocal",
-					"prop"
-				]
-			},
-			"SceneReq": {
-				"type": "object",
-				"properties": {
-					"gameName": {
-						"type": "string",
-						"description": "游戏名称"
-					},
-					"sceneName": {
-						"type": "string",
-						"description": "场景名称"
-					},
-					"dialogues": {
-						"description": "对话框内容",
-						"type": "array",
-						"items": {
-							"$ref": "#/components/schemas/LineDto"
-						}
-					}
-				},
-				"required": [
-					"gameName",
-					"sceneName",
-					"dialogues"
-				]
-			},
-			"Figure": {
-				"type": "object",
-				"properties": {
-					"name": {
-						"type": "string",
-						"description": "立绘名称"
-					},
-					"path": {
-						"type": "string",
-						"description": "图片路径"
-					}
-				},
-				"required": [
-					"name",
-					"path"
-				]
-			},
-			"BgmVO": {
-				"type": "object",
-				"properties": {
-					"audio": {
-						"type": "string",
-						"description": "音乐"
-					},
-					"url": {
-						"type": "string",
-						"description": "URL"
-					},
-					"loop": {
-						"type": "boolean",
-						"description": "是否循环"
-					},
-					"volume": {
-						"type": "number",
-						"description": "音量0-100"
-					},
-					"rate": {
-						"type": "number",
-						"description": "播放速度"
-					}
-				},
-				"required": [
-					"audio",
-					"url",
-					"loop",
-					"volume",
-					"rate"
-				]
-			},
-			"SceneDetailRsp": {
-				"type": "object",
-				"properties": {
-					"scene": {
-						"type": "string",
-						"description": "场景文件名"
-					},
-					"dialogues": {
-						"description": "对话框内容",
-						"type": "array",
-						"items": {
-							"$ref": "#/components/schemas/LineDto"
-						}
-					},
-					"figures": {
-						"description": "立绘信息（拥有资源的角色）",
-						"type": "array",
-						"items": {
-							"$ref": "#/components/schemas/Figure"
-						}
-					},
-					"bg": {
-						"type": "string",
-						"description": "背景"
-					},
-					"cg": {
-						"type": "string",
-						"description": "CG"
-					},
-					"bgm": {
-						"description": "音乐",
-						"allOf": [
-							{
-								"$ref": "#/components/schemas/BgmVO"
-							}
-						]
-					},
-					"isBatchVocal": {
-						"type": "boolean",
-						"description": "批量配音"
-					}
-				},
-				"required": [
-					"scene",
-					"dialogues",
-					"figures",
-					"bg",
-					"cg",
-					"bgm",
-					"isBatchVocal"
-				]
-			},
-			"UpdateUiResourceDto": {
-				"type": "object",
-				"properties": {
-					"gameName": {
-						"type": "string",
-						"description": "游戏名称"
-					},
-					"sceneName": {
-						"type": "string",
-						"description": "场景名称"
-					},
-					"bg": {
-						"type": "string",
-						"description": "更新背景"
-					},
-					"cg": {
-						"type": "string",
-						"description": "更新CG"
-					},
-					"clearBg": {
-						"type": "boolean",
-						"description": "清除背景"
-					},
-					"clearCg": {
-						"type": "boolean",
-						"description": "清除CG"
-					}
-				},
-				"required": [
-					"gameName",
-					"sceneName",
-					"bg",
-					"cg",
-					"clearBg",
-					"clearCg"
-				]
-			},
-			"SceneDto": {
-				"type": "object",
-				"properties": {
-					"gameName": {
-						"type": "string",
-						"description": "游戏名称"
-					},
-					"sceneName": {
-						"type": "string",
-						"description": "场景名称"
-					}
-				},
-				"required": [
-					"gameName",
-					"sceneName"
-				]
-			},
-			"Title": {
-				"type": "object",
-				"properties": {
-					"column": {
-						"type": "string",
-						"description": "列标签"
-					},
-					"name": {
-						"type": "string",
-						"description": "列名称"
-					}
-				},
-				"required": [
-					"column",
-					"name"
-				]
-			},
-			"StockColumnData": {
-				"type": "object",
-				"properties": {
-					"locationId": {
-						"type": "string",
-						"description": "位置ID"
-					},
-					"id": {
-						"type": "string",
-						"description": "音乐ID"
-					},
-					"name": {
-						"type": "string",
-						"description": "音乐名称"
-					},
-					"url": {
-						"type": "string",
-						"description": "音乐相对地址"
-					}
-				},
-				"required": [
-					"locationId",
-					"id",
-					"name",
-					"url"
-				]
-			},
-			"StockColumn": {
-				"type": "object",
-				"properties": {
-					"column": {
-						"type": "string",
-						"description": "列值"
-					},
-					"data": {
-						"description": "行标签对应列数据",
-						"type": "array",
-						"items": {
-							"$ref": "#/components/schemas/StockColumnData"
-						}
-					}
-				},
-				"required": [
-					"column",
-					"data"
-				]
-			},
-			"Stock": {
-				"type": "object",
-				"properties": {
-					"name": {
-						"type": "string",
-						"description": "行标签名称"
-					},
-					"columns": {
-						"description": "行标签对应列数据",
-						"type": "array",
-						"items": {
-							"$ref": "#/components/schemas/StockColumn"
-						}
-					}
-				},
-				"required": [
-					"name",
-					"columns"
-				]
-			},
-			"BgmTableDto": {
-				"type": "object",
-				"properties": {
-					"title": {
-						"description": "音乐库表头",
-						"type": "array",
-						"items": {
-							"$ref": "#/components/schemas/Title"
-						}
-					},
-					"stock": {
-						"description": "音乐库数据",
-						"type": "array",
-						"items": {
-							"$ref": "#/components/schemas/Stock"
-						}
-					}
-				},
-				"required": [
-					"title",
-					"stock"
-				]
-			},
-			"BgmListDto": {
-				"type": "object",
-				"properties": {
-					"locationId": {
-						"type": "string",
-						"description": "位置ID"
-					},
-					"id": {
-						"type": "string",
-						"description": "音乐ID"
-					},
-					"name": {
-						"type": "string",
-						"description": "音乐名称"
-					},
-					"url": {
-						"type": "string",
-						"description": "音乐地址"
-					},
-					"category": {
-						"type": "string",
-						"description": "音乐类型"
-					}
-				},
-				"required": [
-					"locationId",
-					"id",
-					"name",
-					"url",
-					"category"
-				]
-			},
-			"AudioCutDto": {
-				"type": "object",
-				"properties": {
-					"uid": {
-						"type": "string",
-						"description": "用户ID"
-					},
-					"gameName": {
-						"type": "string",
-						"description": "游戏名"
-					},
-					"sceneName": {
-						"type": "string",
-						"description": "场景名称"
-					},
-					"audio": {
-						"type": "string",
-						"description": "音乐名"
-					},
-					"url": {
-						"type": "string",
-						"description": "音乐库地址"
-					},
-					"loop": {
-						"type": "string",
-						"description": "是否循环"
-					},
-					"volume": {
-						"type": "number",
-						"description": "音量0-100"
-					},
-					"rate": {
-						"type": "number",
-						"description": "播放速度"
-					}
-				},
-				"required": [
-					"uid",
-					"gameName",
-					"sceneName",
-					"audio",
-					"url",
-					"loop",
-					"volume",
-					"rate"
 				]
 			},
 			"Variable": {
@@ -4397,65 +5074,6 @@
 					"caId",
 					"captcha",
 					"secret"
-				]
-			},
-			"VocalBindingDto": {
-				"type": "object",
-				"properties": {
-					"gameName": {
-						"type": "string",
-						"description": "游戏名称"
-					},
-					"sceneName": {
-						"type": "string",
-						"description": "场景名称"
-					},
-					"sentence": {
-						"type": "string",
-						"description": "行标识"
-					},
-					"timbre": {
-						"type": "string",
-						"description": "音色"
-					},
-					"url": {
-						"type": "string",
-						"description": "配音相对地址"
-					}
-				},
-				"required": [
-					"gameName",
-					"sceneName",
-					"sentence",
-					"timbre",
-					"url"
-				]
-			},
-			"VocalUntieDto": {
-				"type": "object",
-				"properties": {
-					"gameName": {
-						"type": "string",
-						"description": "游戏名称"
-					},
-					"sceneName": {
-						"type": "string",
-						"description": "场景名称"
-					},
-					"sentence": {
-						"type": "string",
-						"description": "行标识"
-					},
-					"url": {
-						"type": "string",
-						"description": "解绑配音相对地址"
-					}
-				},
-				"required": [
-					"gameName",
-					"sceneName",
-					"sentence",
-					"url"
 				]
 			},
 			"CaptchaRsp": {
