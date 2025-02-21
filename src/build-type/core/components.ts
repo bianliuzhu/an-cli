@@ -194,7 +194,7 @@ class Components {
 		return v;
 	}
 
-	async parse(): Promise<void> {
+	async parseData(): Promise<void> {
 		try {
 			if (!this.schemas) {
 				console.warn('schemas 为空');
@@ -247,7 +247,7 @@ class Components {
 		}
 	}
 
-	async writeFileHandler(): Promise<void> {
+	async writeFile(): Promise<void> {
 		const Plist = [];
 		const exportFileContent: string[] = [];
 		const saveTypeFolderPath = `${this.config.saveTypeFolderPath}/models/`;
@@ -265,8 +265,8 @@ class Components {
 	}
 
 	async handle(): Promise<void> {
-		await this.parse();
-		await this.writeFileHandler();
+		await this.parseData();
+		await this.writeFile();
 		log.success('Component parse & write done!');
 	}
 }

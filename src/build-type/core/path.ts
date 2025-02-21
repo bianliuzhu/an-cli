@@ -392,21 +392,6 @@ export class PathParse {
 		}
 	}
 
-	initialize(): Promise<MapType> {
-		return new Promise((resolve, reject) => {
-			try {
-				for (const requestPath in this.pathsObject) {
-					const methodObject = this.pathsObject[requestPath];
-					// if (requestPath === '/api/canvas/{gameName}/view') {
-					if (methodObject) this.parsePathItemObject(methodObject, requestPath);
-					// }
-				}
-				resolve(this.Map);
-			} catch (error) {
-				reject(error);
-			}
-		});
-	}
 	convertEndpointString(apiString: string) {
 		// 去掉 "/api/" 并分割路径
 		let completionPath = apiString;
@@ -480,7 +465,23 @@ export class PathParse {
 		return apidetails;
 	}
 
-	writeFileHabdler() {
+	parseData(): Promise<MapType> {
+		return new Promise((resolve, reject) => {
+			try {
+				for (const requestPath in this.pathsObject) {
+					const methodObject = this.pathsObject[requestPath];
+					// if (requestPath === '/api/canvas/{gameName}/view') {
+					if (methodObject) this.parsePathItemObject(methodObject, requestPath);
+					// }
+				}
+				resolve(this.Map);
+			} catch (error) {
+				reject(error);
+			}
+		});
+	}
+
+	writeFile() {
 		const Plist = [];
 		const apiListFileContent: string[] = [];
 		const saveTypeFolderPath = this.config.saveTypeFolderPath;
@@ -511,7 +512,7 @@ export class PathParse {
 							reject(err);
 							console.error(err);
 						});
-				} catch (error: any) {
+				} catch (error) {
 					console.error(error, true);
 					reject();
 				}
@@ -537,9 +538,9 @@ export class PathParse {
 	}
 
 	async handle() {
-		await this.initialize();
-		await this.writeFileHabdler();
-		log.success('path parse & write done!');
+		await this.parseData();
+		await this.writeFile();
+		log.success('Path parse & write done!');
 	}
 }
 
