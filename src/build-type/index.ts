@@ -15,7 +15,7 @@ import chalk from 'chalk';
 	"apiListFilePath": "spps/services",
 	"swaggerJsonUrl": "",
 	"indent": "\t",
-	"headers": {}
+	"headers": {}x
  */
 
 interface ExecResult {

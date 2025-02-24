@@ -171,6 +171,12 @@ export class PathParse {
 
 	nonArraySchemaObjectParse(nonArraySchemaObject: NonArraySchemaObject): string | string[] {
 		if (!nonArraySchemaObject) return 'unknown';
+
+		// 检查 format 和 type
+		if (nonArraySchemaObject.format === 'binary' || (nonArraySchemaObject.type === 'string' && nonArraySchemaObject.format === 'binary')) {
+			return 'File';
+		}
+
 		switch (nonArraySchemaObject.type) {
 			case 'boolean':
 				return 'boolean';
@@ -180,6 +186,7 @@ export class PathParse {
 			case 'object':
 				return this.propertiesParse(nonArraySchemaObject.properties);
 			case 'string':
+				// 再次检查是否为文件类型
 				if (nonArraySchemaObject.format === 'binary') {
 					return 'File';
 				}
@@ -266,6 +273,10 @@ export class PathParse {
 			// 处理 nullable
 			const isNullable = schemaObj.nullable === true;
 			const nullableStr = isNullable ? ' | null' : '';
+
+			if (schema.format && this.config.typeMapping?.has(schema.format)) {
+				return (this.config.typeMapping.get(schema.format) as string) + nullableStr;
+			}
 
 			// 使用类型映射
 			if (type && this.config.typeMapping?.has(type)) {
@@ -364,7 +375,7 @@ export class PathParse {
 		}
 	}
 
-	requestBodyObjectParse(requestBodyObject: OpenAPIV3.RequestBodyObject) {
+	requestBodyObjectParse(requestBodyObject: RequestBodyObject) {
 		const requestBodyObjectContent = Object.values(requestBodyObject.content);
 		const { schema } = requestBodyObjectContent[0] || { schema: null };
 
@@ -378,17 +389,19 @@ export class PathParse {
 				const str = this.referenceObjectParse(referenceObject);
 				return `${TIGHTEN}type Body = ${str}`;
 			}
+
 			if (arraySchemaObject) {
 				const str = this.arraySchemaObjectParse(arraySchemaObject);
 				return `${TIGHTEN}type Body = ${str}`;
 			}
+
 			if (nonArraySchemaObject) {
 				const result = this.nonArraySchemaObjectParse(nonArraySchemaObject);
 				if (Array.isArray(result)) {
 					if (result.length === 0) {
 						return [`${TIGHTEN}type Body = unknown`];
 					} else {
-						return [`${TIGHTEN}interface Body {`, ...result, `}`];
+						return [`${TIGHTEN}interface Body {`, ...result.map((item) => item.replace(/: string;/, ': File;')), `}`];
 					}
 				} else {
 					return [`${TIGHTEN}type Body = ${result}`];
