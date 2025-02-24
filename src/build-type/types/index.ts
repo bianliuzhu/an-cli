@@ -11,8 +11,7 @@ export interface ConfigType {
 }
 
 export type ComponentsSchemas = OpenAPIV3.ComponentsObject['schemas'];
-export type ReferenceObject = OpenAPIV3.ReferenceObject;
-export type SchemaObject = OpenAPIV3.SchemaObject;
+
 export type ArraySchemaObject = OpenAPIV3.ArraySchemaObject;
 export type NonArraySchemaObject = OpenAPIV3.NonArraySchemaObject & { description?: string };
 export type PathsObject = OpenAPIV3.PathsObject;
@@ -115,3 +114,64 @@ export interface TemplateBaseType {
 	copyRequest?: (params: FileHeaderInfo) => string | string[];
 }
 export type TSwaggerJsonMap = Map<string, SwaggerJsonTreeItem[]>;
+
+export type SchemaObject = ArraySchemaObject | NonArraySchemaObject;
+export type ReferenceObject = OpenAPIV3.ReferenceObject;
+export type ParameterObject = OpenAPIV3.ParameterObject;
+export type RequestBodyObject = OpenAPIV3.RequestBodyObject;
+export type Schema = ReferenceObject | SchemaObject;
+export type Properties = OpenAPIV3.BaseSchemaObject['properties'];
+export type ResponseObject = OpenAPIV3.ResponseObject;
+
+// 修改错误类型定义，添加新的错误类型
+export type ParseError = {
+	type: 'SCHEMA' | 'PATH' | 'REFERENCE' | 'FILE_WRITE' | 'RESPONSE' | 'PARAMETERS' | 'REQUEST_BODY' | 'API';
+	message: string;
+	path?: string;
+	details?: unknown;
+};
+
+// 修改配置类型定义，将必需属性标记出来
+export interface PathParseConfig extends ConfigType {
+	// 必需的属性
+	saveTypeFolderPath: string;
+	apiListFilePath: string;
+	swaggerJsonUrl: string;
+	indent: string;
+	requestMethodsImportPath: string;
+
+	// 可选的属性
+	typeMapping?: Map<string, string>;
+	errorHandling?: {
+		throwOnError: boolean;
+		logErrors: boolean;
+	};
+	formatting?: {
+		indentation: string;
+		lineEnding: string;
+	};
+	templates?: {
+		apiFunction?: string;
+		typeDefinition?: string;
+	};
+}
+
+export type ContentBody = {
+	payload: {
+		path: Array<string>;
+		_path?: { [key: string]: string };
+		query: Array<string>;
+		_query?: { [key: string]: string };
+		body: Array<string>;
+	};
+	response: string;
+	_response: string;
+	fileName: string;
+	method: string;
+	requestPath: string;
+	summary: string | undefined;
+	apiName: string;
+	typeName: string;
+};
+
+export type MapType = Map<string, ContentBody>;

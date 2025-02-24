@@ -1,54 +1,24 @@
 import { OpenAPIV3 } from 'openapi-types';
 import { clearDir, log, writeFileRecursive } from '../../utils';
-import { ArraySchemaObject, ConfigType, NonArraySchemaObject, OperationObject, PathItemObject } from '../types';
+import {
+	ArraySchemaObject,
+	ContentBody,
+	MapType,
+	NonArraySchemaObject,
+	OperationObject,
+	ParameterObject,
+	ParseError,
+	PathItemObject,
+	PathParseConfig,
+	Properties,
+	ReferenceObject,
+	RequestBodyObject,
+	ResponseObject,
+	Schema,
+	SchemaObject,
+} from '../types';
 
 const TIGHTEN = `\t`; // 缩进
-
-type SchemaObject = ArraySchemaObject | NonArraySchemaObject;
-type ReferenceObject = OpenAPIV3.ReferenceObject;
-type ParameterObject = OpenAPIV3.ParameterObject;
-type RequestBodyObject = OpenAPIV3.RequestBodyObject;
-type Schema = ReferenceObject | SchemaObject; // OpenAPIV3.ParameterBaseObject['schema'] ;
-type Properties = OpenAPIV3.BaseSchemaObject['properties'];
-type ResponseObject = OpenAPIV3.ResponseObject;
-
-type ContentBody = {
-	payload: {
-		path: Array<string>; // 在 path 中的参数
-		_path?: { [key: string]: string };
-		query: Array<string>; // 在 body 中的参数
-		_query?: { [key: string]: string };
-		body: Array<string>; // 在 query 中的参数
-	};
-	response: string; // 响应
-	_response: string;
-	/**
-	 * 文件名
-	 */
-	fileName: string; // 文件名
-	/**
-	 * 请求方法名
-	 */
-	method: string;
-	/**
-	 * 请求路径
-	 */
-	requestPath: string;
-	/**
-	 * 接口描述
-	 */
-	summary: string | undefined;
-	/**
-	 * API 名称
-	 */
-	apiName: string;
-	/**
-	 * 类型名称
-	 */
-	typeName: string;
-};
-
-type MapType = Map<string, ContentBody>;
 
 enum HttpMethods {
 	GET = 'get',
@@ -61,33 +31,89 @@ enum HttpMethods {
 	TRACE = 'trace',
 }
 
-const contentBody: ContentBody = {
-	payload: {
-		path: [],
-		query: [],
-		body: [],
+// 修改默认配置，添加必需的属性
+const defaultConfig: Partial<PathParseConfig> = {
+	typeMapping: new Map([
+		['integer', 'number'],
+		['string', 'string'],
+		['boolean', 'boolean'],
+		['binary', 'File'],
+	]),
+	errorHandling: {
+		throwOnError: false,
+		logErrors: true,
 	},
-	response: '',
-	_response: '',
-	fileName: '',
-	apiName: '',
-	typeName: '',
-	method: '',
-	requestPath: '',
-	summary: '',
+	formatting: {
+		indentation: '\t',
+		lineEnding: '\n',
+	},
 };
 
 export class PathParse {
 	pathsObject: OpenAPIV3.PathsObject = {};
 	nonArrayType = ['boolean', 'object', 'number', 'string', 'integer'];
 	pathKey = '';
-	contentBody: ContentBody = contentBody;
+	contentBody: ContentBody = {
+		payload: {
+			path: [],
+			query: [],
+			body: [],
+		},
+		response: '',
+		_response: '',
+		fileName: '',
+		method: '',
+		requestPath: '',
+		summary: '',
+		apiName: '',
+		typeName: '',
+	};
 	Map: MapType = new Map();
-	config: ConfigType;
+	private config: PathParseConfig;
+	private errors: ParseError[] = [];
+	private schemaCache = new Map<string, string>();
+	private referenceCache = new Map<string, string>();
 
-	constructor(pathsObject: OpenAPIV3.PathsObject, config: ConfigType) {
+	// 优化字符串操作
+	private readonly templates = {
+		exportConst: (name: string) => `export const ${name}`,
+		typeDefinition: (name: string, type: string) => `type ${name} = ${type}`,
+		interfaceDefinition: (name: string) => `interface ${name}`,
+	};
+
+	constructor(pathsObject: OpenAPIV3.PathsObject, config: PathParseConfig) {
 		this.pathsObject = pathsObject;
-		this.config = config;
+		// 合并配置，确保必需的属性来自传入的 config
+		this.config = {
+			...defaultConfig,
+			...config,
+			typeMapping: new Map([...(defaultConfig.typeMapping || []), ...(config.typeMapping || [])]),
+		};
+	}
+
+	// 错误处理方法
+	private handleError(error: ParseError) {
+		this.errors.push(error);
+		if (this.config.errorHandling?.logErrors) {
+			log.error(`${error.type}: ${error.message}${error.path ? ` at ${error.path}` : ''}`);
+		}
+		if (this.config.errorHandling?.throwOnError) {
+			throw new Error(`${error.type}: ${error.message}`);
+		}
+	}
+
+	// 使用配置
+	private getIndentation(): string {
+		return this.config.formatting?.indentation || TIGHTEN;
+	}
+
+	private formatCode(code: string): string {
+		const indent = this.getIndentation();
+		const lineEnd = this.config.formatting?.lineEnding || '\n';
+		return code
+			.split('\n')
+			.map((line) => `${indent}${line}`)
+			.join(lineEnd);
 	}
 
 	typeNameToFileName(str: string) {
@@ -97,11 +123,40 @@ export class PathParse {
 		return str;
 	}
 
+	// 复杂类型处理
+	private handleComplexType(schema: SchemaObject): string {
+		try {
+			if (schema.oneOf) {
+				return schema.oneOf.map((type) => this.schemaParse(type)).join(' | ');
+			}
+			if (schema.allOf) {
+				return schema.allOf.map((type) => this.schemaParse(type)).join(' & ');
+			}
+			if (schema.anyOf) {
+				return schema.anyOf.map((type) => this.schemaParse(type)).join(' | ');
+			}
+			// 处理 enum
+			if (schema.enum) {
+				if (schema.type === 'number' || schema.type === 'integer') {
+					return schema.enum.join(' | ');
+				}
+				return schema.enum.map((v) => `'${v}'`).join(' | ');
+			}
+			return 'unknown';
+		} catch (error) {
+			this.handleError({
+				type: 'SCHEMA',
+				message: 'Failed to handle complex type',
+				details: error,
+			});
+			return 'unknown';
+		}
+	}
+
 	propertiesParse(properties: Properties): string[] {
 		const content = [];
 		for (const key in properties) {
 			const item = properties[key];
-
 			const result = this.schemaParse(item);
 			let _value = '';
 			if (Array.isArray(result)) {
@@ -109,7 +164,6 @@ export class PathParse {
 			} else {
 				_value = `${TIGHTEN}${TIGHTEN}${key}:${result};`;
 			}
-
 			content.push(_value);
 		}
 		return content;
@@ -126,6 +180,9 @@ export class PathParse {
 			case 'object':
 				return this.propertiesParse(nonArraySchemaObject.properties);
 			case 'string':
+				if (nonArraySchemaObject.format === 'binary') {
+					return 'File';
+				}
 				return 'string';
 			default:
 				return 'unknown';
@@ -146,8 +203,7 @@ export class PathParse {
 		if (schemaObject) {
 			const val = this.schemaParse(items);
 			if (Array.isArray(val)) {
-				const _val = `Array<{${val.join('\n')}}>`;
-				return _val;
+				return `Array<{${val.join('\n')}}>`;
 			} else {
 				return `Array<${val}>`;
 			}
@@ -156,40 +212,126 @@ export class PathParse {
 	}
 
 	referenceObjectParse(refobj: ReferenceObject): string {
-		if (!refobj) return '';
-		const typeName = refobj.$ref.replace('#/components/schemas/', '');
-		const fileName = this.typeNameToFileName(typeName);
-		const importStatements = `import('../models/${fileName}').${typeName}`;
-		return importStatements;
+		try {
+			const refKey = refobj.$ref;
+
+			// 使用缓存
+			const cachedValue = this.referenceCache.get(refKey);
+			if (cachedValue) {
+				return cachedValue;
+			}
+
+			// 处理不同格式的引用路径
+			let typeName = refKey;
+			if (refKey.startsWith('#/components/schemas/')) {
+				typeName = refKey.replace('#/components/schemas/', '');
+			} else if (refKey.startsWith('#/definitions/')) {
+				typeName = refKey.replace('#/definitions/', '');
+			}
+
+			const fileName = this.typeNameToFileName(typeName);
+			const importStatement = `import('../models/${fileName}').${typeName}`;
+
+			// 存入缓存
+			this.referenceCache.set(refKey, importStatement);
+
+			return importStatement;
+		} catch (error) {
+			this.handleError({
+				type: 'REFERENCE',
+				message: 'Failed to parse reference object',
+				details: error,
+			});
+			return 'unknown';
+		}
 	}
 
 	schemaParse(schema: Schema | undefined): string | string[] {
-		if (!schema) return 'unknown';
-		const type = (schema as SchemaObject)?.type;
-		const referenceObject = '$ref' in schema ? (schema as ReferenceObject) : null;
-		const arraySchemaObject = type === 'array' ? (schema as ArraySchemaObject) : null;
-		const nonArraySchemaObject = type && this.nonArrayType.includes(type) ? (schema as NonArraySchemaObject) : null;
-		if (referenceObject) {
-			return this.referenceObjectParse(referenceObject);
+		try {
+			if (!schema) return 'unknown';
+
+			// 处理复杂类型
+			if ('oneOf' in schema || 'allOf' in schema || 'anyOf' in schema || 'enum' in schema) {
+				return this.handleComplexType(schema as SchemaObject);
+			}
+
+			// 处理引用类型
+			if ('$ref' in schema) {
+				return this.referenceObjectParse(schema);
+			}
+
+			const schemaObj = schema as SchemaObject;
+			const type = schemaObj.type;
+
+			// 处理 nullable
+			const isNullable = schemaObj.nullable === true;
+			const nullableStr = isNullable ? ' | null' : '';
+
+			// 使用类型映射
+			if (type && this.config.typeMapping?.has(type)) {
+				return (this.config.typeMapping.get(type) as string) + nullableStr;
+			}
+
+			// 处理数组类型
+			if (type === 'array' && schemaObj.items) {
+				const itemType = this.schemaParse(schemaObj.items as Schema);
+				return `Array<${itemType}>` + nullableStr;
+			}
+
+			// 处理对象类型
+			if (type === 'object') {
+				if (schemaObj.properties) {
+					const props = this.propertiesParse(schemaObj.properties);
+					return props.length ? props : ['unknown'];
+				}
+				if (schemaObj.additionalProperties === true) {
+					return 'Record<string, unknown>' + nullableStr;
+				}
+				if (typeof schemaObj.additionalProperties === 'object') {
+					const valueType = this.schemaParse(schemaObj.additionalProperties as Schema);
+					return `Record<string, ${valueType}>` + nullableStr;
+				}
+			}
+
+			return 'unknown';
+		} catch (error) {
+			this.handleError({
+				type: 'SCHEMA',
+				message: 'Failed to parse schema',
+				details: error,
+			});
+			return 'unknown';
 		}
-		if (arraySchemaObject) {
-			return this.arraySchemaObjectParse(arraySchemaObject);
-		}
-		if (nonArraySchemaObject) {
-			return this.nonArraySchemaObjectParse(nonArraySchemaObject);
-		}
-		return 'unknown';
 	}
 
 	responseObjectParse(responseObject: OpenAPIV3.ResponseObject) {
-		const content = responseObject.content;
-		if (!content) return '';
+		try {
+			const content = responseObject.content;
+			if (!content) return '';
 
-		const { schema } = Object.values(content)[0];
+			// 支持多种响应格式
+			const supportedTypes = ['application/json', 'text/json', 'text/plain', '*/*'];
 
-		if (schema) {
-			const result = this.schemaParse(schema);
-			return result;
+			let schema;
+			for (const type of supportedTypes) {
+				if (content[type]?.schema) {
+					schema = content[type].schema;
+					break;
+				}
+			}
+
+			if (schema) {
+				return this.schemaParse(schema);
+			}
+
+			return '';
+		} catch (error) {
+			this.handleError({
+				type: 'RESPONSE',
+				message: 'Failed to parse response object',
+				details: error,
+			});
+			return '';
 		}
 	}
 
@@ -206,15 +348,12 @@ export class PathParse {
 
 		if (referenceObject) {
 			const typeName = this.referenceObjectParse(referenceObject);
-			// this.contentBody.response = `type Response = ${typeName}['responseObject']`;
 			this.contentBody.response = `type Response = ${typeName}`;
 			this.contentBody._response = typeName;
 		}
 
 		if (responseObject) {
 			const responsess = this.responseObjectParse(responseObject);
-			// console.log(responsess);
-			// this.contentBody.response = `type Response = ${responsess}['responseObject']`;
 			if (Array.isArray(responsess)) {
 				this.contentBody.response = `interface Response {${responsess.join('\n')}} `;
 				this.contentBody._response = `${responsess.join('\n')}`;
@@ -227,9 +366,8 @@ export class PathParse {
 
 	requestBodyObjectParse(requestBodyObject: OpenAPIV3.RequestBodyObject) {
 		const requestBodyObjectContent = Object.values(requestBodyObject.content);
+		const { schema } = requestBodyObjectContent[0] || { schema: null };
 
-		const { schema } =
-			Array.isArray(requestBodyObjectContent) && requestBodyObjectContent.length > 0 ? requestBodyObjectContent[0] : { schema: null };
 		if (schema) {
 			const type = (schema as SchemaObject)?.type;
 			const referenceObject = '$ref' in schema ? (schema as ReferenceObject) : null;
@@ -265,7 +403,6 @@ export class PathParse {
 		const requestBodyObject = 'content' in requestBody ? (requestBody as RequestBodyObject) : null;
 		if (referenceObject) {
 			const typeName = this.referenceObjectParse(referenceObject);
-
 			return `${TIGHTEN}type Body = ${typeName}`;
 		}
 		if (requestBodyObject && String(requestBody) === '[object Object]' && Reflect.ownKeys(requestBody).length !== 0) {
@@ -283,7 +420,7 @@ export class PathParse {
 
 			if (V1) {
 				const typeName = this.referenceObjectParse(V1);
-				console.log(this.pathKey, typeName, 'item 是 ReferenceObject 类型', '----未处理---');
+				log.warning(`${this.pathKey} ${typeName} item 是 ReferenceObject 类型 ----未处理---`);
 				return typeName;
 			}
 			if (V2) {
@@ -294,13 +431,13 @@ export class PathParse {
 						if (typeof v2value === 'string') {
 							this.contentBody.payload._path[V2.name] = v2value;
 						} else {
-							console.log(v2value);
+							console.log('Unexpected v2value type:', v2value);
 						}
 					} else {
 						if (typeof v2value === 'string') {
 							this.contentBody.payload._path = { [V2.name]: v2value };
 						} else {
-							console.log(v2value);
+							console.log('Unexpected v2value type:', v2value);
 						}
 					}
 				}
@@ -311,13 +448,13 @@ export class PathParse {
 						if (typeof v2value === 'string') {
 							this.contentBody.payload._query[V2.name] = v2value;
 						} else {
-							console.log(v2value);
+							console.log('Unexpected v2value type:', v2value);
 						}
 					} else {
 						if (typeof v2value === 'string') {
 							this.contentBody.payload._query = { [V2.name]: v2value };
 						} else {
-							console.log(v2value);
+							console.log('Unexpected v2value type:', v2value);
 						}
 					}
 				}
@@ -354,78 +491,12 @@ export class PathParse {
 		}
 	}
 
-	parsePathItemObject(itemObject: PathItemObject, pathKey: string) {
-		if (!itemObject) return;
-		for (const method in itemObject) {
-			const methodItems = itemObject[method as HttpMethods];
-			if (methodItems) {
-				const methodUp = method.toUpperCase();
-				const mapKey = pathKey + '|' + methodUp;
-				const { apiName, typeName, fileName, path } = this.convertEndpointString(mapKey);
-				this.contentBody.method = methodUp;
-				this.contentBody.typeName = typeName;
-				this.contentBody.summary = methodItems.summary;
-				this.contentBody.fileName = fileName;
-				this.contentBody.requestPath = path;
-				this.contentBody.apiName = apiName;
-
-				this.requestHandle(methodItems);
-				this.responseHandle(methodItems.responses);
-
-				if (!this.Map.has(mapKey)) this.Map.set(mapKey, JSON.parse(JSON.stringify(this.contentBody)));
-				this.contentBody = {
-					payload: {
-						path: [],
-						query: [],
-						body: [],
-					},
-					response: '',
-					_response: '',
-					fileName: '',
-					method: '',
-					requestPath: '',
-					summary: '',
-					apiName: '',
-					typeName: '',
-				};
-			}
-		}
-	}
-
-	convertEndpointString(apiString: string) {
-		// 去掉 "/api/" 并分割路径
-		let completionPath = apiString;
-		if (!apiString.startsWith('/')) {
-			completionPath = '/' + apiString;
-		}
-		// 拆分路径和方法
-		const [path, method] = completionPath.split('|');
-
-		// 去掉开头的斜杠
-		const trimmedPath = path.replace('/api/', '').split('/');
-
-		const pathName = trimmedPath
-			.map((part) => (part.includes('{') ? `$${part.slice(1, -1)}` : part.charAt(0).toUpperCase() + part.slice(1)))
-			.join('');
-
-		// 添加请求方法
-		const str = `${pathName}_${method}`;
-
-		return {
-			// api 名称
-			apiName: str.charAt(0).toLowerCase() + str.slice(1),
-			// 文件 名
-			fileName: (path.slice(1).replace(/\//g, '-').replace('api-', '') + '-' + method).toLowerCase(),
-			// 类型名
-			typeName: str.charAt(0).toUpperCase() + str.slice(1),
-			// 请求路径
-			path: path.replace(/(\/api)|(api)/g, '').replace(/\{\w+\}/g, (s) => `$${s}`),
-		};
-	}
-
 	apiRequestItemHandle(content: ContentBody) {
 		const { payload, requestPath, _response, method, typeName, apiName } = content;
 		const { _path, _query, body } = payload;
+
+		// 检查是否包含文件上传
+		const hasFileUpload = body.some((line) => line.includes('File:') || line.includes(': File'));
 
 		const pathParamsHandle = (p: { [x: string]: string }) => {
 			const arr = [];
@@ -449,6 +520,10 @@ export class PathParse {
 		apiParamsBody && (temp['apiParamsBody'] = apiParamsBody);
 		const paramsLeg = Object.keys(temp).length >= 2;
 
+		// 只在文件上传时添加 datalevel 和 config
+		const datalevel = hasFileUpload ? `,'serve'` : '';
+		const config = hasFileUpload ? `, { headers: { 'Content-Type': 'multipart/form-data' } }` : '';
+
 		const contentList: Array<string> = [
 			`export const ${apiName} = `,
 			'(',
@@ -459,10 +534,70 @@ export class PathParse {
 			')',
 			` => `,
 			`${method}${_response ? '<' + `${typeName}.Response` + '>' : ''}`,
-			'(`' + requestPath + '`' + `${apiParamsQuery || apiParamsBody ? ', params' : ''}` + ');',
+			'(`' +
+				requestPath +
+				'`' +
+				`${apiParamsQuery || apiParamsBody ? ', params' : ''}` +
+				datalevel + // 只在文件上传时添加 datalevel
+				config + // 只在文件上传时添加 config
+				');',
 		];
 		const apidetails = contentList.join('');
 		return apidetails;
+	}
+
+	parsePathItemObject(itemObject: PathItemObject, pathKey: string) {
+		if (!itemObject) return;
+
+		for (const method in itemObject) {
+			const methodItems = itemObject[method as HttpMethods];
+			if (methodItems) {
+				const methodUp = method.toUpperCase();
+				const mapKey = pathKey + '|' + methodUp;
+				const { apiName, typeName, fileName, path } = this.convertEndpointString(mapKey);
+
+				this.contentBody = {
+					payload: { path: [], query: [], body: [] },
+					response: '',
+					_response: '',
+					fileName,
+					method: methodUp,
+					typeName,
+					requestPath: path,
+					apiName,
+					summary: methodItems.summary,
+				};
+
+				this.requestHandle(methodItems);
+				this.responseHandle(methodItems.responses);
+
+				if (!this.Map.has(mapKey)) {
+					this.Map.set(mapKey, JSON.parse(JSON.stringify(this.contentBody)));
+				}
+			}
+		}
+	}
+
+	convertEndpointString(apiString: string) {
+		let completionPath = apiString;
+		if (!apiString.startsWith('/')) {
+			completionPath = '/' + apiString;
+		}
+		const [path, method] = completionPath.split('|');
+		const trimmedPath = path.replace('/api/', '').split('/');
+
+		const pathName = trimmedPath
+			.map((part) => (part.includes('{') ? `$${part.slice(1, -1)}` : part.charAt(0).toUpperCase() + part.slice(1)))
+			.join('');
+
+		const str = `${pathName}_${method}`;
+
+		return {
+			apiName: str.charAt(0).toLowerCase() + str.slice(1),
+			fileName: (path.slice(1).replace(/\//g, '-').replace('api-', '') + '-' + method).toLowerCase(),
+			typeName: str.charAt(0).toUpperCase() + str.slice(1),
+			path: path.replace(/(\/api)|(api)/g, '').replace(/\{\w+\}/g, (s) => `$${s}`),
+		};
 	}
 
 	parseData(): Promise<MapType> {
@@ -470,18 +605,23 @@ export class PathParse {
 			try {
 				for (const requestPath in this.pathsObject) {
 					const methodObject = this.pathsObject[requestPath];
-					// if (requestPath === '/api/canvas/{gameName}/view') {
-					if (methodObject) this.parsePathItemObject(methodObject, requestPath);
-					// }
+					if (methodObject) {
+						this.parsePathItemObject(methodObject, requestPath);
+					}
 				}
 				resolve(this.Map);
 			} catch (error) {
+				this.handleError({
+					type: 'SCHEMA',
+					message: 'Failed to parse schema',
+					details: error,
+				});
 				reject(error);
 			}
 		});
 	}
 
-	writeFile() {
+	async writeFile() {
 		const Plist = [];
 		const apiListFileContent: string[] = [];
 		const saveTypeFolderPath = this.config.saveTypeFolderPath;
@@ -493,14 +633,14 @@ export class PathParse {
 					const { payload, response, fileName, summary, typeName } = content;
 
 					const [, method] = key.split('|');
-
 					!methodList.includes(method) && methodList.push(method);
 
 					const contentArray = [`declare namespace ${typeName} {`, ...payload.path, ...payload.query, ...payload.body, `${TIGHTEN}${response}`, `}`];
 
 					// 添加注释
-					const Comment = ['/**', '\n', ` * ${summary}`, '\n', ' */'].join('');
-					summary && apiListFileContent.push(Comment);
+					if (summary) {
+						apiListFileContent.push(['/**', '\n', ` * ${summary}`, '\n', ' */'].join(''));
+					}
 
 					// api 请求
 					const apistr = this.apiRequestItemHandle(content);
@@ -509,38 +649,67 @@ export class PathParse {
 					writeFileRecursive(`${saveTypeFolderPath}/api/${fileName}.d.ts`, contentArray.join('\n'))
 						.then(() => resolve(1))
 						.catch((err) => {
+							this.handleError({
+								type: 'FILE_WRITE',
+								message: 'Failed to write type definition file',
+								path: fileName,
+								details: err,
+							});
 							reject(err);
-							console.error(err);
 						});
 				} catch (error) {
-					console.error(error, true);
-					reject();
+					this.handleError({
+						type: 'PATH',
+						message: 'Failed to process path item',
+						path: key,
+						details: error,
+					});
+					reject(error);
 				}
 			});
 
 		for (const [key, value] of this.Map) {
-			console.log(key);
 			Plist.push(P(key, value));
 		}
 
-		Promise.all(Plist).then(() => {
+		try {
+			await Promise.all(Plist);
+
 			apiListFileContent.unshift(`import { ${methodList.join(', ')} } from '${this.config.requestMethodsImportPath || './api'}';`, '\n');
-			clearDir(this.config.apiListFilePath + '/index.ts').finally(() => {
-				writeFileRecursive(this.config.apiListFilePath + '/index.ts', apiListFileContent.join('\n'))
-					.then(() => {
-						this.Map = new Map();
-					})
-					.catch((err: any) => {
-						console.error('----------->', err);
-					});
+
+			await clearDir(this.config.apiListFilePath + '/index.ts');
+			await writeFileRecursive(this.config.apiListFilePath + '/index.ts', apiListFileContent.join('\n'));
+
+			this.Map = new Map();
+
+			if (this.errors.length > 0) {
+				log.warning(`Completed with ${this.errors.length} errors`);
+			}
+		} catch (error) {
+			this.handleError({
+				type: 'FILE_WRITE',
+				message: 'Failed to write API list file',
+				details: error,
 			});
-		});
+			throw error;
+		}
 	}
 
 	async handle() {
-		await this.parseData();
-		await this.writeFile();
-		log.success('Path parse & write done!');
+		try {
+			await this.parseData();
+			await this.writeFile();
+			log.success('Path parse & write done!');
+		} catch (error) {
+			this.handleError({
+				type: 'SCHEMA',
+				message: 'Failed to handle schema',
+				details: error,
+			});
+			if (this.config.errorHandling?.throwOnError) {
+				throw error;
+			}
+		}
 	}
 }
 

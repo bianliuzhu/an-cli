@@ -34,4 +34,13 @@ module.exports = {
 	htmlWhitespaceSensitivity: 'css',
 	// 换行符使用 lf
 	endOfLine: 'lf',
+
+	overrides: [
+		{
+			files: ["apps/services/index.ts"],
+			options: {
+				printWidth: 3000,
+			}
+		},
+	]
 };
