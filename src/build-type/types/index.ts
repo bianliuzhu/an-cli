@@ -1,15 +1,5 @@
 import { OpenAPIV3 } from 'openapi-types';
 
-export interface ConfigType {
-	saveTypeFolderPath: string;
-	apiListFilePath: string;
-	swaggerJsonUrl: string;
-	indent: string;
-	requestMethodsImportPath: string;
-	/** 追加请求头 */
-	headers?: Record<string, string>;
-}
-
 export type ComponentsSchemas = OpenAPIV3.ComponentsObject['schemas'];
 
 export type ArraySchemaObject = OpenAPIV3.ArraySchemaObject;
@@ -131,25 +121,39 @@ export type ParseError = {
 	details?: unknown;
 };
 
+type TDatalevel = 'data' | 'serve' | 'axios';
+
+export interface ConfigType {
+	/** 存放生成的类型文件的文件夹路径 */
+	saveTypeFolderPath: string;
+	/** 存放生成的 api 文件的文件夹路径 */
+	apiListFilePath: string;
+	/** swagger json 的 url */
+	swaggerJsonUrl: string;
+	/** 请求方法导入路径 */
+	requestMethodsImportPath: string;
+	/** 追加请求头 */
+	headers?: Record<string, string>;
+	/** 格式化 */
+	formatting?: {
+		/** 缩进 */
+		indentation: string;
+		/** 换行符（行结束符） */
+		lineEnding: string;
+	};
+	/** 生成接口默认返回数据层级 */
+	dataLevel: TDatalevel;
+}
+
 // 修改配置类型定义，将必需属性标记出来
 export interface PathParseConfig extends ConfigType {
-	// 必需的属性
-	saveTypeFolderPath: string;
-	apiListFilePath: string;
-	swaggerJsonUrl: string;
-	indent: string;
-	requestMethodsImportPath: string;
-
 	// 可选的属性
 	typeMapping?: Map<string, string>;
 	errorHandling?: {
 		throwOnError: boolean;
 		logErrors: boolean;
 	};
-	formatting?: {
-		indentation: string;
-		lineEnding: string;
-	};
+
 	templates?: {
 		apiFunction?: string;
 		typeDefinition?: string;

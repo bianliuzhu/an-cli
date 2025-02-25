@@ -1,9 +1,12 @@
 {
-	"saveTypeFolderPath": "apps/types",
-	"apiListFilePath": "apps/services",
-	"swaggerJsonUrl": "http://10.10.77.121/dev-api/api-json",
-	"requestMethodsImportPath": "./fetch",
-	"dataLevel": "serve",
-	"indent": "\t",
-	"headers": {}
+  "saveTypeFolderPath": "apps/types",
+  "apiListFilePath": "apps/services",
+  "swaggerJsonUrl": "http://10.10.77.121/dev-api/api-json",
+  "requestMethodsImportPath": "./fetch",
+  "dataLevel": "serve",
+  "formatting": {
+    "indentation": "\t",
+    "lineEnding": "\n"
+  },
+  "headers": {}
 }

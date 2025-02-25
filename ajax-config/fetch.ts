@@ -3,7 +3,7 @@ import type { AxiosRequestConfig, AxiosResponse } from 'axios';
 import { dio as axios } from './config';
 
 // 将这里替换为自己的错误提示
-import { messageTip } from './errror-message';
+import { messageTip } from './error-message';
 
 type TDatalevel = 'data' | 'serve' | 'axios';
 export type RServe<T> = Promise<BaseResponse<T>>;

@@ -10,6 +10,7 @@ import commonjs from '@rollup/plugin-commonjs';
 /** rollup文件夹清除插件 */
 import { cleandir } from 'rollup-plugin-cleandir';
 import { terser } from 'rollup-plugin-terser';
+import copy from 'rollup-plugin-copy';
 
 export default defineConfig({
 	/** 打包入口文件 */
@@ -40,6 +41,10 @@ export default defineConfig({
 		}),
 		commonjs({ extensions: ['.js', '.ts', '.json'] }),
 		terser(),
+		copy({
+			targets: [{ src: 'ajax-config/*', dest: 'lib/ajax-config' }],
+			hook: 'writeBundle', // 在写入捆绑包后执行
+		}),
 	],
 	/** 排除打包的模块 */
 	external: ['chalk', 'ora', 'axios'],

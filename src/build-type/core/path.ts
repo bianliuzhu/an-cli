@@ -43,10 +43,6 @@ const defaultConfig: Partial<PathParseConfig> = {
 		throwOnError: false,
 		logErrors: true,
 	},
-	formatting: {
-		indentation: '\t',
-		lineEnding: '\n',
-	},
 };
 
 export class PathParse {
