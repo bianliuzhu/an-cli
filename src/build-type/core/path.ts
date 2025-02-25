@@ -45,10 +45,17 @@ const defaultConfig: Partial<PathParseConfig> = {
 	},
 };
 
+/**
+ * 路径解析类，用于处理 OpenAPI 规范中的路径对象
+ */
 export class PathParse {
+	/** OpenAPI 路径对象 */
 	pathsObject: OpenAPIV3.PathsObject = {};
+	/** 非数组类型列表 */
 	nonArrayType = ['boolean', 'object', 'number', 'string', 'integer'];
+	/** 当前处理的路径键 */
 	pathKey = '';
+	/** 内容主体对象，存储请求和响应相关信息 */
 	contentBody: ContentBody = {
 		payload: {
 			path: [],
@@ -64,13 +71,18 @@ export class PathParse {
 		apiName: '',
 		typeName: '',
 	};
+	/** 类型映射表 */
 	Map: MapType = new Map();
+	/** 配置对象 */
 	private config: PathParseConfig;
+	/** 解析错误列表 */
 	private errors: ParseError[] = [];
+	/** Schema 缓存 */
 	private schemaCache = new Map<string, string>();
+	/** 引用缓存 */
 	private referenceCache = new Map<string, string>();
 
-	// 优化字符串操作
+	/** 字符串模板对象 */
 	private readonly templates = {
 		exportConst: (name: string) => `export const ${name}`,
 		typeDefinition: (name: string, type: string) => `type ${name} = ${type}`,
@@ -87,7 +99,10 @@ export class PathParse {
 		};
 	}
 
-	// 错误处理方法
+	/**
+	 * 处理错误信息
+	 * @param error 错误对象
+	 */
 	private handleError(error: ParseError) {
 		this.errors.push(error);
 		if (this.config.errorHandling?.logErrors) {
@@ -98,11 +113,19 @@ export class PathParse {
 		}
 	}
 
-	// 使用配置
+	/**
+	 * 获取缩进字符串
+	 * @returns 缩进字符串
+	 */
 	private getIndentation(): string {
 		return this.config.formatting?.indentation || TIGHTEN;
 	}
 
+	/**
+	 * 格式化代码
+	 * @param code 需要格式化的代码
+	 * @returns 格式化后的代码
+	 */
 	private formatCode(code: string): string {
 		const indent = this.getIndentation();
 		const lineEnd = this.config.formatting?.lineEnding || '\n';
@@ -112,6 +135,11 @@ export class PathParse {
 			.join(lineEnd);
 	}
 
+	/**
+	 * 将类型名转换为文件名
+	 * @param str 类型名
+	 * @returns 转换后的文件名
+	 */
 	typeNameToFileName(str: string) {
 		str = str.replace(/_/g, '-');
 		str = str.replace(/([a-z])([A-Z])/g, '$1-$2').toLowerCase();
@@ -119,18 +147,25 @@ export class PathParse {
 		return str;
 	}
 
-	// 复杂类型处理
+	/**
+	 * 处理复杂类型的解析
+	 * @param schema Schema 对象
+	 * @returns 解析后的类型字符串
+	 */
 	private handleComplexType(schema: SchemaObject): string {
 		try {
 			if (schema.oneOf) {
 				return schema.oneOf.map((type) => this.schemaParse(type)).join(' | ');
 			}
+
 			if (schema.allOf) {
 				return schema.allOf.map((type) => this.schemaParse(type)).join(' & ');
 			}
+
 			if (schema.anyOf) {
 				return schema.anyOf.map((type) => this.schemaParse(type)).join(' | ');
 			}
+
 			// 处理 enum
 			if (schema.enum) {
 				if (schema.type === 'number' || schema.type === 'integer') {
@@ -138,6 +173,7 @@ export class PathParse {
 				}
 				return schema.enum.map((v) => `'${v}'`).join(' | ');
 			}
+
 			return 'unknown';
 		} catch (error) {
 			this.handleError({
@@ -149,6 +185,11 @@ export class PathParse {
 		}
 	}
 
+	/**
+	 * 解析属性对象
+	 * @param properties 属性对象
+	 * @returns 解析后的属性字符串数组
+	 */
 	propertiesParse(properties: Properties): string[] {
 		const content = [];
 		for (const key in properties) {
@@ -165,6 +206,11 @@ export class PathParse {
 		return content;
 	}
 
+	/**
+	 * 解析非数组类型的Schema对象
+	 * @param nonArraySchemaObject 非数组Schema对象
+	 * @returns 解析后的类型字符串或字符串数组
+	 */
 	nonArraySchemaObjectParse(nonArraySchemaObject: NonArraySchemaObject): string | string[] {
 		if (!nonArraySchemaObject) return 'unknown';
 
@@ -192,6 +238,11 @@ export class PathParse {
 		}
 	}
 
+	/**
+	 * 解析数组类型的Schema对象
+	 * @param arraySchemaObject 数组Schema对象
+	 * @returns 解析后的数组类型字符串
+	 */
 	arraySchemaObjectParse(arraySchemaObject: ArraySchemaObject): string {
 		if (arraySchemaObject.type !== 'array') return '';
 		const { items } = arraySchemaObject;
@@ -214,6 +265,11 @@ export class PathParse {
 		return '';
 	}
 
+	/**
+	 * 解析引用对象
+	 * @param refobj 引用对象
+	 * @returns 解析后的引用类型字符串
+	 */
 	referenceObjectParse(refobj: ReferenceObject): string {
 		try {
 			const refKey = refobj.$ref;
@@ -249,6 +305,11 @@ export class PathParse {
 		}
 	}
 
+	/**
+	 * 解析 Schema 对象
+	 * @param schema Schema 对象
+	 * @returns 解析后的类型字符串或字符串数组
+	 */
 	schemaParse(schema: Schema | undefined): string | string[] {
 		try {
 			if (!schema) return 'unknown';
@@ -311,6 +372,11 @@ export class PathParse {
 		}
 	}
 
+	/**
+	 * 处理响应对象
+	 * @param responseObject OpenAPI 响应对象
+	 * @returns 响应类型字符串
+	 */
 	responseObjectParse(responseObject: OpenAPIV3.ResponseObject) {
 		try {
 			const content = responseObject.content;
@@ -342,6 +408,10 @@ export class PathParse {
 		}
 	}
 
+	/**
+	 * 处理响应对象
+	 * @param response OpenAPI响应对象
+	 */
 	responseHandle(response: OpenAPIV3.ResponsesObject) {
 		const value = response['200'];
 		if (!value) return;
@@ -371,6 +441,11 @@ export class PathParse {
 		}
 	}
 
+	/**
+	 * 解析请求体对象
+	 * @param requestBodyObject 请求体对象
+	 * @returns 解析后的请求体类型定义
+	 */
 	requestBodyObjectParse(requestBodyObject: RequestBodyObject) {
 		const requestBodyObjectContent = Object.values(requestBodyObject.content);
 		const { schema } = requestBodyObjectContent[0] || { schema: null };
@@ -406,6 +481,11 @@ export class PathParse {
 		}
 	}
 
+	/**
+	 * 解析请求体
+	 * @param requestBody 请求体对象
+	 * @returns 解析后的请求体类型字符串
+	 */
 	requestBodyParse(requestBody: OperationObject['requestBody']) {
 		if (!requestBody) return '{}';
 		const referenceObject = '$ref' in requestBody ? (requestBody as ReferenceObject) : null;
@@ -420,6 +500,10 @@ export class PathParse {
 		return '{}';
 	}
 
+	/**
+	 * 解析请求参数
+	 * @param parameters 请求参数数组
+	 */
 	requestParametersParse(parameters: OperationObject['parameters']) {
 		const path: Array<string> = [];
 		const query: Array<string> = [];
@@ -484,6 +568,10 @@ export class PathParse {
 		this.contentBody.payload.query = query;
 	}
 
+	/**
+	 * 处理请求对象
+	 * @param v 操作对象
+	 */
 	requestHandle(v: OperationObject) {
 		if (v.parameters) {
 			this.requestParametersParse(v.parameters);
@@ -500,6 +588,11 @@ export class PathParse {
 		}
 	}
 
+	/**
+	 * 处理API请求项
+	 * @param content 内容主体对象
+	 * @returns 生成的API请求代码
+	 */
 	apiRequestItemHandle(content: ContentBody) {
 		const { payload, requestPath, _response, method, typeName, apiName } = content;
 		const { _path, _query, body } = payload;
@@ -530,7 +623,7 @@ export class PathParse {
 		const paramsLeg = Object.keys(temp).length >= 2;
 
 		// 只在文件上传时添加 datalevel 和 config
-		const datalevel = hasFileUpload ? `,'serve'` : '';
+		const datalevel = hasFileUpload ? `,${this.config.dataLevel}` : '';
 		const config = hasFileUpload ? `, { headers: { 'Content-Type': 'multipart/form-data' } }` : '';
 
 		const contentList: Array<string> = [
@@ -555,6 +648,11 @@ export class PathParse {
 		return apidetails;
 	}
 
+	/**
+	 * 解析路径项对象
+	 * @param itemObject 路径项对象
+	 * @param pathKey 路径键
+	 */
 	parsePathItemObject(itemObject: PathItemObject, pathKey: string) {
 		if (!itemObject) return;
 
@@ -587,6 +685,11 @@ export class PathParse {
 		}
 	}
 
+	/**
+	 * 转换端点字符串
+	 * @param apiString API字符串
+	 * @returns 转换后的端点信息对象
+	 */
 	convertEndpointString(apiString: string) {
 		let completionPath = apiString;
 		if (!apiString.startsWith('/')) {
@@ -609,6 +712,10 @@ export class PathParse {
 		};
 	}
 
+	/**
+	 * 解析数据
+	 * @returns Promise<MapType> 解析后的数据Map
+	 */
 	parseData(): Promise<MapType> {
 		return new Promise((resolve, reject) => {
 			try {
@@ -630,6 +737,10 @@ export class PathParse {
 		});
 	}
 
+	/**
+	 * 写入文件
+	 * 将解析后的数据写入到指定文件中
+	 */
 	async writeFile() {
 		const Plist = [];
 		const apiListFileContent: string[] = [];
@@ -704,6 +815,9 @@ export class PathParse {
 		}
 	}
 
+	/**
+	 * 主要处理方法，解析并写入文件
+	 */
 	async handle() {
 		try {
 			await this.parseData();

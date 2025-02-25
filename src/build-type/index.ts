@@ -25,8 +25,8 @@ interface ExecResult {
 }
 
 const configContent: ConfigType = {
-	saveTypeFolderPath: 'apps/types',
-	apiListFilePath: 'apps/services',
+	saveTypeFolderPath: process.env.NODE_ENV === 'development' ? 'apps/types' : 'src/api/types',
+	apiListFilePath: process.env.NODE_ENV === 'development' ? 'apps/types' : 'src/api',
 	swaggerJsonUrl: '',
 	requestMethodsImportPath: './fetch',
 	headers: {},
@@ -49,7 +49,7 @@ export class Main {
 			let response: OpenAPIV3.Document;
 
 			if (process.env.NODE_ENV === 'development') {
-				response = (await import('../../data/sau.json')).default as OpenAPIV3.Document;
+				response = (await import('../../data/umf.json')).default as OpenAPIV3.Document;
 			} else {
 				response = (await getSwaggerJson(config)) as OpenAPIV3.Document;
 			}
