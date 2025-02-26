@@ -58,7 +58,7 @@ class Components {
 		let header: string;
 		const reg = /enum/gi;
 		if (reg.test(typeName)) {
-			header = `import { ${typeName} } from '${this.config.importEnumPath}';`;
+			header = `import type { ${typeName} } from '${this.config.importEnumPath}';`;
 		} else {
 			header = `import type { ${typeName} } from './${fileName}';`;
 		}
@@ -221,7 +221,7 @@ class Components {
 							const enumResult = this.parseEnum(schema as NonArraySchemaObject, enumName);
 							if (enumResult?.renderStr) {
 								const fileName = this.typeNameToFileName(enumName);
-								const header = `import { ${enumName} } from '${this.config.importEnumPath}'`;
+								const header = `import type { ${enumName} } from '${this.config.importEnumPath}';`;
 								if (!headerRef.includes(header)) headerRef.push(header);
 
 								this.enumsMap.set(name, { fileName, content: enumResult.renderStr });
