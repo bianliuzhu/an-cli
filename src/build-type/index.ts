@@ -51,7 +51,7 @@ export class Main {
 			let response: OpenAPIV3.Document;
 
 			if (process.env.NODE_ENV === 'development') {
-				response = (await import('../../data/sau.json')).default as OpenAPIV3.Document;
+				response = (await import('../../data/openai.json')).default as OpenAPIV3.Document;
 			} else {
 				response = (await getSwaggerJson(config)) as OpenAPIV3.Document;
 			}
