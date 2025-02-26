@@ -13,7 +13,7 @@ import path from 'path';
 let isConfigFile: boolean;
 /**
 	"saveTypeFolderPath": "apps/types",
-	"apiListFilePath": "spps/services",
+	"saveApiListFolderPath": "spps/services",
 	"swaggerJsonUrl": "",
 	"indent": "\t",
 	"headers": {}
@@ -26,15 +26,17 @@ interface ExecResult {
 
 const configContent: ConfigType = {
 	saveTypeFolderPath: process.env.NODE_ENV === 'development' ? 'apps/types' : 'src/api/types',
-	apiListFilePath: process.env.NODE_ENV === 'development' ? 'apps/types' : 'src/api',
-	swaggerJsonUrl: '',
+	saveApiListFolderPath: process.env.NODE_ENV === 'development' ? 'apps/types' : 'src/api',
+	saveEnumFolderPath: process.env.NODE_ENV === 'development' ? 'apps/types/enums' : 'src/enums',
+	importEnumPath: '../../../enums',
 	requestMethodsImportPath: './fetch',
+	dataLevel: 'serve',
+	swaggerJsonUrl: 'www.example.swagger.json.url',
 	headers: {},
 	formatting: {
 		indentation: '\t',
 		lineEnding: '\n',
 	},
-	dataLevel: 'serve',
 };
 
 export class Main {
@@ -49,7 +51,7 @@ export class Main {
 			let response: OpenAPIV3.Document;
 
 			if (process.env.NODE_ENV === 'development') {
-				response = (await import('../../data/umf.json')).default as OpenAPIV3.Document;
+				response = (await import('../../data/sau.json')).default as OpenAPIV3.Document;
 			} else {
 				response = (await getSwaggerJson(config)) as OpenAPIV3.Document;
 			}
@@ -106,11 +108,11 @@ export class Main {
 	/**
 	 * 复制 AJAX 配置文件
 	 */
-	private async copyAjaxConfigFiles(apiListFilePath: string) {
+	private async copyAjaxConfigFiles(saveApiListFolderPath: string) {
 		try {
 			const filesToCopy = ['config.ts', 'error-message.ts', 'fetch.ts'];
 			const sourceDir = path.join(__dirname, '..', '..', 'ajax-config');
-			const destDir = apiListFilePath;
+			const destDir = saveApiListFolderPath;
 
 			for (const file of filesToCopy) {
 				const sourceFile = path.join(sourceDir, file);
@@ -144,13 +146,14 @@ export class Main {
 			if (!isConfigFile) return;
 
 			// 创建目标目录（如果不存在）
-			await fs.promises.mkdir(config.apiListFilePath, { recursive: true });
+			await fs.promises.mkdir(config.saveApiListFolderPath, { recursive: true });
 
 			// 复制 ajax 配置文件
-			await this.copyAjaxConfigFiles(config.apiListFilePath);
+			await this.copyAjaxConfigFiles(config.saveApiListFolderPath);
 
 			// 清理文件夹
 			await clearDir(config.saveTypeFolderPath);
+			await clearDir(config.saveEnumFolderPath);
 
 			// 解析 swagger 数据及生成文件
 			await this.handle(config);
@@ -174,7 +177,6 @@ export class Main {
 		} catch (error: unknown) {
 			isConfigFile = false;
 			log.warning('配置文件不存在，将自动创建配置文件。');
-			await clearDir(configContent.saveTypeFolderPath);
 			await writeFileRecursive(configFilePath, JSON.stringify(configContent, null, 2));
 			log.success('请查看项目根目录下的 an.config.json 文件');
 			return configContent;

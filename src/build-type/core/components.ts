@@ -1,17 +1,28 @@
 import { OpenAPIV3 } from 'openapi-types';
 import { log, writeFileRecursive } from '../../utils';
-import { ArraySchemaObject, ComponentsSchemas, ConfigType, NonArraySchemaObject, ReferenceObject, SchemaObject } from '../types';
+import { ComponentsSchemas, ConfigType } from '../types';
+
+type SchemaObject = OpenAPIV3.SchemaObject;
+type NonArraySchemaObject = OpenAPIV3.NonArraySchemaObject;
+type ArraySchemaObject = OpenAPIV3.ArraySchemaObject;
+type ReferenceObject = OpenAPIV3.ReferenceObject;
 
 const INDENT = `\t`;
 
-type TReturnType = { headerRef: string; renderStr: string; comment?: string } | null;
+type TReturnType = {
+	headerRef: string;
+	renderStr: string;
+	comment?: string;
+} | null;
+
 type TrenderType = { fileName: string; content: string };
 
 class Components {
-	defaultReturn = { headerRef: '', renderStr: '' };
-	schemas: ComponentsSchemas = {};
-	schemasMap: Map<string, TrenderType> = new Map();
 	config: ConfigType;
+	schemas: ComponentsSchemas = {};
+	enumsMap: Map<string, TrenderType> = new Map();
+	schemasMap: Map<string, TrenderType> = new Map();
+	defaultReturn = { headerRef: '', renderStr: '' };
 
 	constructor(schemas: ComponentsSchemas, config: ConfigType) {
 		this.schemas = schemas;
@@ -44,7 +55,14 @@ class Components {
 	parseRef(ref: string): { headerRefStr: string; typeName: string } {
 		if (!ref?.trim()) return { headerRefStr: '', typeName: '' };
 		const { fileName, typeName } = this.nameTheHumpCenterStroke(ref);
-		const header = `import type { ${typeName} } from './${fileName}';`;
+		let header: string;
+		const reg = /enum/gi;
+		if (reg.test(typeName)) {
+			header = `import { ${typeName} } from '${this.config.importEnumPath}';`;
+		} else {
+			header = `import type { ${typeName} } from './${fileName}';`;
+		}
+
 		return { headerRefStr: header, typeName };
 	}
 
@@ -67,7 +85,8 @@ class Components {
 	}
 
 	parseArray(schemaSource: OpenAPIV3.SchemaObject, name: string): TReturnType {
-		const { items = {}, nullable } = schemaSource as OpenAPIV3.ArraySchemaObject;
+		const arraySchema = schemaSource as OpenAPIV3.ArraySchemaObject;
+		const { items = {}, nullable } = arraySchema;
 		const ref = (items as ReferenceObject)?.$ref;
 
 		if (ref) {
@@ -78,7 +97,7 @@ class Components {
 			};
 		}
 
-		const itemType = (items as SchemaObject)?.type;
+		const itemType = (items as OpenAPIV3.SchemaObject)?.type;
 		const finalType = itemType === 'integer' ? 'number' : itemType;
 		return {
 			headerRef: '',
@@ -90,16 +109,43 @@ class Components {
 		return schemaObject.type === 'boolean' ? `${INDENT}${key}: boolean;` : '';
 	}
 
-	parseEnum(value: NonArraySchemaObject, key: string): string {
-		if (value.type === 'integer' && Array.isArray(value.enum)) {
+	parseEnum(value: NonArraySchemaObject, enumName: string): TReturnType {
+		if (!Array.isArray(value.enum)) return null;
+
+		if (value.type === 'integer') {
 			const enumValues = value.enum.map((item: number) => `${INDENT}NUMBER_${item} = ${item},`);
-			return [`export enum ${key} {`, ...enumValues, `}`].join('\n');
+			return {
+				headerRef: '',
+				renderStr: [`export enum ${enumName} {`, ...enumValues, `}`].join('\n'),
+			};
 		}
-		return '';
+
+		if (value.type === 'string') {
+			const isAllNumeric = value.enum.every((item: string) => !isNaN(Number(item)));
+
+			const enumValues = value.enum.map((item: string) => {
+				if (isAllNumeric) {
+					return `${INDENT}NUMBER_${item} = '${item}',`;
+				}
+				return `${INDENT}${item.toUpperCase()} = '${item}',`;
+			});
+
+			return {
+				headerRef: '',
+				renderStr: [`export enum ${enumName} {`, ...enumValues, `}`].join('\n'),
+			};
+		}
+
+		return null;
 	}
 
 	parseInteger(value: NonArraySchemaObject, key: string): string {
-		return Array.isArray(value.enum) ? this.parseEnum(value, key) : `${INDENT}${key}: number;`;
+		if (Array.isArray(value.enum)) {
+			const enumName = key.charAt(0).toUpperCase() + key.slice(1);
+			return this.parseEnum(value, enumName)?.renderStr ?? '';
+		} else {
+			return `${INDENT}${key}: number;`;
+		}
 	}
 
 	parseNumber(value: NonArraySchemaObject, key: string): string {
@@ -110,7 +156,7 @@ class Components {
 		return value.type === 'string' ? { headerRef: '', renderStr: `${INDENT}${key}: string;` } : null;
 	}
 
-	parseProperties(properties: OpenAPIV3.BaseSchemaObject['properties'], interfaceKey?: string): string {
+	parseProperties(properties: OpenAPIV3.BaseSchemaObject['properties'], interfaceKey?: string): TReturnType {
 		const content: string[] = [];
 		const headerRef: string[] = [];
 
@@ -134,14 +180,16 @@ class Components {
 				}
 			}
 
+			const schema = schemaSource as OpenAPIV3.SchemaObject;
+
 			/** 添加注释 */
-			const comment = this.fieldComment(schemaSource as NonArraySchemaObject);
+			const comment = this.fieldComment(schema as NonArraySchemaObject);
 			comment !== '' && content.push(comment);
 
-			switch ((schemaSource as SchemaObject).type) {
+			switch (schema.type) {
 				case 'array':
 					{
-						const value = this.parseArray(schemaSource as ArraySchemaObject, name) ?? this.defaultReturn;
+						const value = this.parseArray(schema, name) ?? this.defaultReturn;
 						content.push(value.renderStr);
 						if (!headerRef.includes(value.headerRef)) headerRef.push(value.headerRef);
 					}
@@ -149,31 +197,45 @@ class Components {
 
 				case 'boolean':
 					{
-						content.push(this.parseBoolean(schemaSource as NonArraySchemaObject, name));
+						content.push(this.parseBoolean(schema as NonArraySchemaObject, name));
 					}
 					break;
 
 				case 'integer':
 					{
-						content.push(this.parseInteger(schemaSource as NonArraySchemaObject, name));
+						content.push(this.parseInteger(schema as NonArraySchemaObject, name));
 					}
 					break;
 
 				case 'number':
 					{
-						content.push(this.parseNumber(schemaSource as NonArraySchemaObject, name));
+						content.push(this.parseNumber(schema as NonArraySchemaObject, name));
 					}
 					break;
 
 				case 'string':
 					{
-						content.push(this.parseString(schemaSource as NonArraySchemaObject, name)?.renderStr ?? '');
+						if (schema.enum) {
+							// 将枚举名转换为大驼峰命名
+							const enumName = name.charAt(0).toUpperCase() + name.slice(1);
+							const enumResult = this.parseEnum(schema as NonArraySchemaObject, enumName);
+							if (enumResult?.renderStr) {
+								const fileName = this.typeNameToFileName(enumName);
+								const header = `import { ${enumName} } from '${this.config.importEnumPath}'`;
+								if (!headerRef.includes(header)) headerRef.push(header);
+
+								this.enumsMap.set(name, { fileName, content: enumResult.renderStr });
+								content.push(`${INDENT}${name}: ${enumName};`);
+							}
+						} else {
+							content.push(this.parseString(schema as NonArraySchemaObject, name)?.renderStr ?? '');
+						}
 					}
 					break;
 
 				case 'object':
 					{
-						const { headerRef: _headerObj, renderStr: _renderStr } = this.parseObject(schemaSource as SchemaObject, name) ?? this.defaultReturn;
+						const { headerRef: _headerObj, renderStr: _renderStr } = this.parseObject(schema, name) ?? this.defaultReturn;
 						content.push(_renderStr);
 						if (!headerRef.includes(_headerObj)) headerRef.push(_headerObj);
 					}
@@ -191,7 +253,11 @@ class Components {
 			result.unshift(...head);
 		}
 		const v = result.join('\n');
-		return v;
+
+		return {
+			headerRef: headerRef.join('\n'),
+			renderStr: v,
+		};
 	}
 
 	async parseData(): Promise<void> {
@@ -216,7 +282,11 @@ class Components {
 				const fileName = this.typeNameToFileName(key);
 				const content = await this.generateContent(schemaObject, key);
 				if (content) {
-					this.schemasMap.set(key, { fileName, content });
+					if (content.includes('export enum ')) {
+						this.enumsMap.set(key, { fileName, content });
+					} else {
+						this.schemasMap.set(key, { fileName, content });
+					}
 				}
 			}
 		} catch (error) {
@@ -238,13 +308,31 @@ class Components {
 				return this.parseInteger(schemaObject, key);
 			case 'number':
 				return this.parseNumber(schemaObject, key);
-			case 'object':
-				return this.parseProperties(schemaObject.properties, key);
-			case 'string':
-				return this.parseString(schemaObject, key)?.renderStr ?? '';
+			case 'object': {
+				const result = this.parseProperties(schemaObject.properties, key);
+				return result?.renderStr ?? '';
+			}
+			case 'string': {
+				const result = this.parseString(schemaObject, key);
+				return result?.renderStr ?? '';
+			}
 			default:
 				return '';
 		}
+	}
+
+	private async writeEnums(): Promise<void> {
+		const Plist = [];
+		const exportFileContent: string[] = [];
+		for (const [, value] of this.enumsMap) {
+			const P = async ({ fileName, content }: TrenderType) => {
+				exportFileContent.push(`export * from './${fileName}';`);
+				await writeFileRecursive(`${this.config.saveEnumFolderPath}/${fileName}.ts`, content);
+			};
+			Plist.push(P(value));
+		}
+		await Promise.all(Plist);
+		await writeFileRecursive(`${this.config.saveEnumFolderPath}/index.ts`, exportFileContent.join('\n'));
 	}
 
 	async writeFile(): Promise<void> {
@@ -261,12 +349,13 @@ class Components {
 		}
 
 		await Promise.all(Plist);
-		await writeFileRecursive(`${saveTypeFolderPath}/index.ts`, exportFileContent.join('\n'));
+		await writeFileRecursive(`${saveTypeFolderPath}index.ts`, exportFileContent.join('\n'));
 	}
 
 	async handle(): Promise<void> {
 		await this.parseData();
 		await this.writeFile();
+		await this.writeEnums();
 		log.success('Component parse & write done!');
 	}
 }

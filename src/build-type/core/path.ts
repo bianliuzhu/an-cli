@@ -289,7 +289,10 @@ export class PathParse {
 			}
 
 			const fileName = this.typeNameToFileName(typeName);
-			const importStatement = `import('../models/${fileName}').${typeName}`;
+			const regEnum = /enum/gi;
+			const importStatement = regEnum.test(typeName)
+				? `import('${this.config.importEnumPath}/${fileName}').${typeName}`
+				: `import('../models/${fileName}').${typeName}`;
 
 			// 存入缓存
 			this.referenceCache.set(refKey, importStatement);
@@ -766,7 +769,7 @@ export class PathParse {
 					const apistr = this.apiRequestItemHandle(content);
 					apiListFileContent.push(apistr, '\n');
 
-					writeFileRecursive(`${saveTypeFolderPath}/api/${fileName}.d.ts`, contentArray.join('\n'))
+					writeFileRecursive(`${saveTypeFolderPath}/connectors/${fileName}.d.ts`, contentArray.join('\n'))
 						.then(() => resolve(1))
 						.catch((err) => {
 							this.handleError({
@@ -797,8 +800,8 @@ export class PathParse {
 
 			apiListFileContent.unshift(`import { ${methodList.join(', ')} } from '${this.config.requestMethodsImportPath || './api'}';`, '\n');
 
-			await clearDir(this.config.apiListFilePath + '/index.ts');
-			await writeFileRecursive(this.config.apiListFilePath + '/index.ts', apiListFileContent.join('\n'));
+			await clearDir(this.config.saveApiListFolderPath + '/index.ts');
+			await writeFileRecursive(this.config.saveApiListFolderPath + '/index.ts', apiListFileContent.join('\n'));
 
 			this.Map = new Map();
 

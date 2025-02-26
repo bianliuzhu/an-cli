@@ -127,7 +127,7 @@ export interface ConfigType {
 	/** 存放生成的类型文件的文件夹路径 */
 	saveTypeFolderPath: string;
 	/** 存放生成的 api 文件的文件夹路径 */
-	apiListFilePath: string;
+	saveApiListFolderPath: string;
 	/** swagger json 的 url */
 	swaggerJsonUrl: string;
 	/** 请求方法导入路径 */
@@ -143,6 +143,10 @@ export interface ConfigType {
 	};
 	/** 生成接口默认返回数据层级 */
 	dataLevel: TDatalevel;
+	/** 枚举数据保存路径 */
+	saveEnumFolderPath: string;
+	/** enum 导入路径 */
+	importEnumPath: string;
 }
 
 // 修改配置类型定义，将必需属性标记出来

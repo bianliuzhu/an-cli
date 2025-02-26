@@ -1,6 +1,8 @@
 {
   "saveTypeFolderPath": "apps/types",
-  "apiListFilePath": "apps/services",
+  "saveApiListFolderPath": "apps/api/",
+  "saveEnumFolderPath": "apps/enums",
+  "importEnumPath": "../../enums",
   "swaggerJsonUrl": "http://10.10.77.121/dev-api/api-json",
   "requestMethodsImportPath": "./fetch",
   "dataLevel": "serve",
