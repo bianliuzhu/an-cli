@@ -181,6 +181,7 @@ class Components {
 					const enumResult = this.parseEnum(value, enumName);
 					if (enumResult) {
 						this.enumsMap.set(fileName, { fileName, content: enumResult.renderStr });
+						return { headerRef: '', renderStr: '' };
 					}
 				}
 			}

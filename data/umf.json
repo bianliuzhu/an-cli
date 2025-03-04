@@ -11,7 +11,7 @@
 					"content": {
 						"application/json": {
 							"schema": {
-								"$ref": "#/components/schemas/CreateGameDto"
+								"$ref": "#/components/schemas/CreateGameDTO"
 							}
 						}
 					}
@@ -2527,26 +2527,25 @@
 					"params"
 				]
 			},
-			"CreateGameDto": {
+			"GameTypeEnum": {
+				"type": "string",
+				"description": "游戏类型",
+				"default": "solvePuzzles",
+				"enum": [
+					"solvePuzzles",
+					"otome"
+				]
+			},
+			"CreateGameDTO": {
 				"type": "object",
 				"properties": {
 					"gameName": {
 						"type": "string",
 						"description": "游戏名称"
 					},
-					"sceneName": {
-						"type": "string",
-						"description": "场景名称"
-					},
 					"gameType": {
-						"type": "string",
-						"description": "游戏类型",
-						"enum": [
-							"solvePuzzles",
-							"otome"
-						],
 						"example": "{\"SolvePuzzles\":\"solvePuzzles\",\"Otome\":\"otome\"}",
-						"default": "solvePuzzles"
+						"$ref": "#/components/schemas/GameTypeEnum"
 					},
 					"editorType": {
 						"type": "string",
@@ -2560,7 +2559,6 @@
 				},
 				"required": [
 					"gameName",
-					"sceneName",
 					"gameType",
 					"editorType"
 				]
@@ -2621,7 +2619,12 @@
 					},
 					"Game_type": {
 						"type": "string",
-						"description": "游戏类型"
+						"description": "游戏类型",
+						"enum": [
+							"solvePuzzles",
+							"otome"
+						],
+						"example": "{\"SolvePuzzles\":\"solvePuzzles\",\"Otome\":\"otome\"}"
 					},
 					"Start_node": {
 						"type": "string",
