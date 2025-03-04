@@ -166,7 +166,6 @@ class Components {
 	}
 
 	parseString(value: NonArraySchemaObject, key: string): TReturnType {
-		console.log(value);
 		if (value.type === 'string') {
 			if (value.enum) {
 				const enumName = key.charAt(0).toUpperCase() + key.slice(1);
@@ -252,7 +251,7 @@ class Components {
 						if (schema.enum) {
 							// 将枚举名转换为大驼峰命名
 							const enumName = name.charAt(0).toUpperCase() + name.slice(1);
-							console.log(enumName, name);
+							// console.log(enumName, name);
 							if (isValidJSON(schema.example)) {
 								const header = `import type { ${enumName} } from '${this.config.importEnumPath}';`;
 								if (!headerRef.includes(header)) headerRef.push(header);
