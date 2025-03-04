@@ -1,5 +1,5 @@
 import { OpenAPIV3 } from 'openapi-types';
-import { log, writeFileRecursive } from '../../utils';
+import { isValidJSON, log, writeFileRecursive } from '../../utils';
 import { ComponentsSchemas, ConfigType } from '../types';
 
 type SchemaObject = OpenAPIV3.SchemaObject;
@@ -152,8 +152,35 @@ class Components {
 		return value.type === 'number' ? `${INDENT}${key}: number;` : '';
 	}
 
+	convertJsonToEnumString(jsonStr: string, enumName: string): string {
+		try {
+			const jsonObj = JSON.parse(jsonStr);
+			const enumValues = Object.entries(jsonObj)
+				.map(([key, value]) => `${INDENT}${key.toUpperCase()} = '${value}'`)
+				.join(',\n');
+			return `export enum ${enumName} {\n${enumValues}\n}`;
+		} catch (error) {
+			console.error('JSON 解析失败:', error);
+			return '';
+		}
+	}
+
 	parseString(value: NonArraySchemaObject, key: string): TReturnType {
-		return value.type === 'string' ? { headerRef: '', renderStr: `${INDENT}${key}: string;` } : null;
+		if (value.type === 'string') {
+			if (value.enum) {
+				const enumName = key.charAt(0).toUpperCase() + key.slice(1);
+				if (isValidJSON(value.example)) {
+					const enumContent = this.convertJsonToEnumString(value.example as string, enumName);
+					return {
+						headerRef: '',
+						renderStr: `${INDENT}${key}: ${enumName};`,
+						comment: enumContent,
+					};
+				}
+			}
+			return { headerRef: '', renderStr: `${INDENT}${key}: string;` };
+		}
+		return null;
 	}
 
 	parseProperties(properties: OpenAPIV3.BaseSchemaObject['properties'], interfaceKey?: string): TReturnType {
@@ -218,14 +245,23 @@ class Components {
 						if (schema.enum) {
 							// 将枚举名转换为大驼峰命名
 							const enumName = name.charAt(0).toUpperCase() + name.slice(1);
-							const enumResult = this.parseEnum(schema as NonArraySchemaObject, enumName);
-							if (enumResult?.renderStr) {
-								const fileName = this.typeNameToFileName(enumName);
+							const skip = false;
+							if (isValidJSON(schema.example)) {
 								const header = `import type { ${enumName} } from '${this.config.importEnumPath}';`;
 								if (!headerRef.includes(header)) headerRef.push(header);
-
-								this.enumsMap.set(name, { fileName, content: enumResult.renderStr });
+								const fileName = this.typeNameToFileName(enumName);
+								const enumContent = this.convertJsonToEnumString(schema.example as string, enumName);
+								this.enumsMap.set(fileName, { fileName, content: enumContent });
 								content.push(`${INDENT}${name}: ${enumName};`);
+							} else {
+								const enumResult = this.parseEnum(schema as NonArraySchemaObject, enumName);
+								if (enumResult?.renderStr) {
+									const header = `import type { ${enumName} } from '${this.config.importEnumPath}';`;
+									if (!headerRef.includes(header)) headerRef.push(header);
+									const fileName = this.typeNameToFileName(enumName);
+									this.enumsMap.set(fileName, { fileName, content: enumResult.renderStr });
+									content.push(`${INDENT}${name}: ${enumName};`);
+								}
 							}
 						} else {
 							content.push(this.parseString(schema as NonArraySchemaObject, name)?.renderStr ?? '');
@@ -258,41 +294,6 @@ class Components {
 			headerRef: headerRef.join('\n'),
 			renderStr: v,
 		};
-	}
-
-	async parseData(): Promise<void> {
-		try {
-			if (!this.schemas) {
-				console.warn('schemas 为空');
-				return;
-			}
-
-			for (const [key, schema] of Object.entries(this.schemas)) {
-				if ('$ref' in schema) {
-					console.warn(`跳过 ReferenceObject: ${key}`);
-					continue;
-				}
-
-				const schemaObject = ('type' in schema ? schema : null) as NonArraySchemaObject | ArraySchemaObject;
-				if (!schemaObject?.type) {
-					console.warn(`无效的 schema 对象: ${key}`);
-					continue;
-				}
-
-				const fileName = this.typeNameToFileName(key);
-				const content = await this.generateContent(schemaObject, key);
-				if (content) {
-					if (content.includes('export enum ')) {
-						this.enumsMap.set(key, { fileName, content });
-					} else {
-						this.schemasMap.set(key, { fileName, content });
-					}
-				}
-			}
-		} catch (error) {
-			console.error('解析过程出错:', error);
-			throw error;
-		}
 	}
 
 	private async generateContent(schemaObject: NonArraySchemaObject | ArraySchemaObject, key: string): Promise<string> {
@@ -350,6 +351,41 @@ class Components {
 
 		await Promise.all(Plist);
 		await writeFileRecursive(`${saveTypeFolderPath}index.ts`, exportFileContent.join('\n'));
+	}
+
+	async parseData(): Promise<void> {
+		try {
+			if (!this.schemas) {
+				console.warn('schemas 为空');
+				return;
+			}
+
+			for (const [key, schema] of Object.entries(this.schemas)) {
+				if ('$ref' in schema) {
+					console.warn(`跳过 ReferenceObject: ${key}`);
+					continue;
+				}
+
+				const schemaObject = ('type' in schema ? schema : null) as NonArraySchemaObject | ArraySchemaObject;
+				if (!schemaObject?.type) {
+					console.warn(`无效的 schema 对象: ${key}`);
+					continue;
+				}
+
+				const fileName = this.typeNameToFileName(key);
+				const content = await this.generateContent(schemaObject, key);
+				if (content) {
+					if (content.includes('export enum ')) {
+						this.enumsMap.set(fileName, { fileName, content });
+					} else {
+						this.schemasMap.set(key, { fileName, content });
+					}
+				}
+			}
+		} catch (error) {
+			console.error('解析过程出错:', error);
+			throw error;
+		}
 	}
 
 	async handle(): Promise<void> {

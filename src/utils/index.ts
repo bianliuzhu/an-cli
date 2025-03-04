@@ -208,3 +208,15 @@ export function deleteFile(url: string, name: string): Promise<boolean> {
 		}
 	});
 }
+
+export function isValidJSON(str: string) {
+	if (typeof str !== 'string') {
+		return false;
+	}
+	try {
+		JSON.parse(str);
+		return true;
+	} catch (e) {
+		return false;
+	}
+}

@@ -2545,11 +2545,17 @@
 							"solvePuzzles",
 							"otome"
 						],
+						"example": "{\"SolvePuzzles\":\"solvePuzzles\",\"Otome\":\"otome\"}",
 						"default": "solvePuzzles"
 					},
 					"renderMode": {
 						"type": "string",
-						"description": "编辑器模式"
+						"description": "编辑器模式",
+						"enum": [
+							"ui",
+							"txt"
+						],
+						"example": "{\"UI\":\"ui\",\"TXT\":\"txt\"}"
 					}
 				},
 				"required": [
@@ -2604,7 +2610,12 @@
 					},
 					"Render_mode": {
 						"type": "string",
-						"description": "编辑器模式"
+						"description": "编辑器模式",
+						"enum": [
+							"ui",
+							"txt"
+						],
+						"example": "{\"UI\":\"ui\",\"TXT\":\"txt\"}"
 					},
 					"Game_type": {
 						"type": "string",
@@ -2672,7 +2683,8 @@
 							"1",
 							"2",
 							"3"
-						]
+						],
+						"example": "{\"INIT\":\"0\",\"ING\":\"1\",\"DONE\":\"2\",\"ERR\":\"3\"}"
 					},
 					"msg": {
 						"type": "string",
@@ -2723,7 +2735,8 @@
 						"enum": [
 							"anime",
 							"romantic"
-						]
+						],
+						"example": "{\"Anime\":\"anime\",\"Romantic\":\"romantic\"}"
 					},
 					"original": {
 						"type": "string",
@@ -2770,7 +2783,8 @@
 						"enum": [
 							"prompts",
 							"bg"
-						]
+						],
+						"example": "{\"PROMPTS\":\"prompts\",\"BG\":\"bg\"}"
 					},
 					"progress": {
 						"description": "进度",
@@ -2942,7 +2956,8 @@
 						"enum": [
 							"male",
 							"female"
-						]
+						],
+						"example": "{\"MALE\":\"male\",\"FEMALE\":\"female\"}"
 					},
 					"style": {
 						"type": "string",
@@ -2950,7 +2965,8 @@
 						"enum": [
 							"anime",
 							"romantic"
-						]
+						],
+						"example": "{\"Anime\":\"anime\",\"Romantic\":\"romantic\"}"
 					},
 					"age": {
 						"type": "string",
@@ -2960,7 +2976,8 @@
 							"adult",
 							"youth",
 							"elder"
-						]
+						],
+						"example": "{\"CHILD\":\"child\",\"ADULT\":\"adult\",\"YOUNG\":\"youth\",\"ELDER\":\"elder\"}"
 					},
 					"timbre": {
 						"type": "string",
@@ -3519,7 +3536,8 @@
 							"figure",
 							"background",
 							"bgm"
-						]
+						],
+						"example": "{\"FIGURE\":\"figure\",\"BACKGROUND\":\"background\",\"BGM\":\"bgm\"}"
 					},
 					"uid": {
 						"type": "string",
@@ -3839,7 +3857,8 @@
 						"enum": [
 							"male",
 							"female"
-						]
+						],
+						"example": "{\"MALE\":\"male\",\"FEMALE\":\"female\"}"
 					},
 					"style": {
 						"type": "string",
@@ -3847,7 +3866,12 @@
 						"enum": [
 							"anime",
 							"romantic"
-						]
+						],
+						"example": "{\"Anime\":\"anime\",\"Romantic\":\"romantic\"}"
+					},
+					"timbre": {
+						"type": "string",
+						"description": "音色"
 					}
 				},
 				"required": [
@@ -3855,7 +3879,8 @@
 					"emotion",
 					"name",
 					"gender",
-					"style"
+					"style",
+					"timbre"
 				]
 			},
 			"Vocal": {
@@ -3916,6 +3941,7 @@
 					"command": {
 						"type": "array",
 						"description": "命令",
+						"example": "{\"Narrator\":\"narr\",\"ClearPorp\":\"clp\",\"BlackScreenText\":\"bst\",\"BackgroundImage\":\"bgi\",\"BackgroundMusic\":\"bgm\",\"ComputerGraphics\":\"cg\",\"CharacterPortrait\":\"cp\"}",
 						"items": {
 							"type": "string",
 							"enum": [
@@ -4416,7 +4442,8 @@
 						"enum": [
 							"anime",
 							"romantic"
-						]
+						],
+						"example": "{\"Anime\":\"anime\",\"Romantic\":\"romantic\"}"
 					},
 					"original": {
 						"type": "string",
@@ -4456,7 +4483,12 @@
 					"size": {
 						"type": "string",
 						"description": "道具大小",
-						"example": "middle"
+						"enum": [
+							"small",
+							"middle",
+							"big"
+						],
+						"example": "{\"SMALL\":\"small\",\"MIDDLE\":\"middle\",\"BIG\":\"big\"}"
 					},
 					"stage": {
 						"type": "string",
@@ -4464,7 +4496,8 @@
 						"enum": [
 							"prompts",
 							"prop"
-						]
+						],
+						"example": "{\"PROMPTS\":\"prompts\",\"PROP\":\"prop\"}"
 					},
 					"progress": {
 						"description": "进度",
@@ -4573,7 +4606,8 @@
 						"enum": [
 							"prompts",
 							"cg"
-						]
+						],
+						"example": "{\"PROMPTS\":\"prompts\",\"CG\":\"cg\"}"
 					},
 					"progress": {
 						"description": "进度",
@@ -4972,6 +5006,15 @@
 			"RecordCanvasDto": {
 				"type": "object",
 				"properties": {
+					"editorType": {
+						"type": "string",
+						"description": "编辑器类型",
+						"enum": [
+							"ui",
+							"txt"
+						],
+						"example": "{\"UI\":\"ui\",\"TXT\":\"txt\"}"
+					},
 					"gameName": {
 						"type": "string",
 						"description": "游戏名称"
@@ -4992,6 +5035,7 @@
 					}
 				},
 				"required": [
+					"editorType",
 					"gameName",
 					"nodes",
 					"edges"
