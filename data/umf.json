@@ -2548,7 +2548,7 @@
 						"example": "{\"SolvePuzzles\":\"solvePuzzles\",\"Otome\":\"otome\"}",
 						"default": "solvePuzzles"
 					},
-					"renderMode": {
+					"editorType": {
 						"type": "string",
 						"description": "编辑器模式",
 						"enum": [
@@ -2562,7 +2562,15 @@
 					"gameName",
 					"sceneName",
 					"gameType",
-					"renderMode"
+					"editorType"
+				]
+			},
+			"EditorTypeEnum": {
+				"type": "string",
+				"description": "编辑器模式",
+				"enum": [
+					"ui",
+					"txt"
 				]
 			},
 			"Config": {
@@ -2609,13 +2617,7 @@
 						"description": ""
 					},
 					"Render_mode": {
-						"type": "string",
-						"description": "编辑器模式",
-						"enum": [
-							"ui",
-							"txt"
-						],
-						"example": "{\"UI\":\"ui\",\"TXT\":\"txt\"}"
+						"$ref": "#/components/schemas/EditorTypeEnum"
 					},
 					"Game_type": {
 						"type": "string",
