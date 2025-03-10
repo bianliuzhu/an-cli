@@ -2472,6 +2472,40 @@
 				]
 			}
 		},
+		"/api/effect/list": {
+			"get": {
+				"operationId": "EffectController_list",
+				"summary": "获取音效列表",
+				"parameters": [
+					{
+						"name": "style",
+						"required": true,
+						"in": "query",
+						"schema": {
+							"type": "string"
+						}
+					}
+				],
+				"responses": {
+					"default": {
+						"description": "",
+						"content": {
+							"application/json": {
+								"schema": {
+									"type": "array",
+									"items": {
+										"$ref": "#/components/schemas/EffectListDto"
+									}
+								}
+							}
+						}
+					}
+				},
+				"tags": [
+					"音效"
+				]
+			}
+		},
 		"/api/auth/captcha": {
 			"get": {
 				"operationId": "AuthController_getCaptcha",
@@ -2544,7 +2578,6 @@
 						"description": "游戏名称"
 					},
 					"gameType": {
-						"example": "{\"SolvePuzzles\":\"solvePuzzles\",\"Otome\":\"otome\"}",
 						"$ref": "#/components/schemas/GameTypeEnum"
 					},
 					"editorType": {
@@ -4653,17 +4686,62 @@
 					"name"
 				]
 			},
+			"NodeTypeEnum": {
+				"type": "string",
+				"description": "类型",
+				"enum": [
+					"start",
+					"scene",
+					"branch",
+					"end"
+				]
+			},
+			"Var": {
+				"type": "object",
+				"properties": {
+					"varId": {
+						"type": "string",
+						"description": "选定的变量ID"
+					},
+					"alias": {
+						"type": "string",
+						"description": "选定的变量别名"
+					},
+					"varValue": {
+						"type": "number",
+						"description": "设定变量值"
+					},
+					"operator": {
+						"type": "string",
+						"description": "算术运算符",
+						"enum": [
+							"add",
+							"sub",
+							"eq"
+						]
+					}
+				},
+				"required": [
+					"varId",
+					"alias",
+					"varValue",
+					"operator"
+				]
+			},
 			"Variable": {
 				"type": "object",
 				"properties": {
 					"id": {
-						"type": "string"
+						"type": "string",
+						"description": "变量ID"
 					},
 					"alias": {
-						"type": "string"
+						"type": "string",
+						"description": "变量别名"
 					},
 					"name": {
-						"type": "string"
+						"type": "string",
+						"description": "变量名称"
 					}
 				},
 				"required": [
@@ -4676,10 +4754,20 @@
 				"type": "object",
 				"properties": {
 					"value": {
-						"type": "number"
+						"type": "number",
+						"description": "设置值"
 					},
 					"exp": {
-						"type": "string"
+						"type": "string",
+						"description": "转义字符",
+						"enum": [
+							"lt",
+							"le",
+							"eq",
+							"ne",
+							"ge",
+							"gt"
+						]
 					}
 				},
 				"required": [
@@ -4687,13 +4775,9 @@
 					"exp"
 				]
 			},
-			"ICondition": {
+			"TriggerCondition": {
 				"type": "object",
 				"properties": {
-					"isEnabled": {
-						"type": "boolean",
-						"description": "是否启用"
-					},
 					"variable": {
 						"description": "变量信息",
 						"allOf": [
@@ -4718,17 +4802,49 @@
 							}
 						]
 					},
-					"condition": {
+					"when": {
 						"type": "string",
-						"description": "条件"
+						"description": "条件",
+						"enum": [
+							"and",
+							"or"
+						]
+					}
+				},
+				"required": [
+					"variable",
+					"lower",
+					"upper",
+					"when"
+				]
+			},
+			"ICondition": {
+				"type": "object",
+				"properties": {
+					"isEnabled": {
+						"type": "boolean",
+						"description": "是否启用"
+					},
+					"when": {
+						"type": "string",
+						"description": "逻辑关联",
+						"enum": [
+							"and",
+							"or"
+						]
+					},
+					"list": {
+						"description": "触发条件",
+						"type": "array",
+						"items": {
+							"$ref": "#/components/schemas/TriggerCondition"
+						}
 					}
 				},
 				"required": [
 					"isEnabled",
-					"variable",
-					"lower",
-					"upper",
-					"condition"
+					"when",
+					"list"
 				]
 			},
 			"IOptions": {
@@ -4746,20 +4862,15 @@
 						"type": "string",
 						"description": "绑定音频"
 					},
-					"varId": {
-						"type": "string",
-						"description": "选定的变量ID"
+					"vars": {
+						"description": "设置变量",
+						"type": "array",
+						"items": {
+							"$ref": "#/components/schemas/Var"
+						}
 					},
-					"alias": {
-						"type": "string",
-						"description": "选定的变量"
-					},
-					"varValue": {
-						"type": "number",
-						"description": "设定的变量值"
-					},
-					"advanced": {
-						"description": "高级选项",
+					"condition": {
+						"description": "触发条件",
 						"allOf": [
 							{
 								"$ref": "#/components/schemas/ICondition"
@@ -4771,10 +4882,8 @@
 					"name",
 					"nodeId",
 					"sound",
-					"varId",
-					"alias",
-					"varValue",
-					"advanced"
+					"vars",
+					"condition"
 				]
 			},
 			"NodeData": {
@@ -4815,8 +4924,7 @@
 						"description": "id"
 					},
 					"type": {
-						"type": "string",
-						"description": "类型"
+						"$ref": "#/components/schemas/NodeTypeEnum"
 					},
 					"data": {
 						"description": "节点数据",
@@ -4840,41 +4948,36 @@
 						"type": "boolean",
 						"description": "是否启用"
 					},
-					"variable": {
-						"description": "变量信息",
-						"allOf": [
-							{
-								"$ref": "#/components/schemas/Variable"
-							}
-						]
-					},
-					"lower": {
-						"description": "条件一",
-						"allOf": [
-							{
-								"$ref": "#/components/schemas/ExpValue"
-							}
-						]
-					},
-					"upper": {
-						"description": "条件二",
-						"allOf": [
-							{
-								"$ref": "#/components/schemas/ExpValue"
-							}
-						]
-					},
-					"condition": {
+					"when": {
 						"type": "string",
-						"description": "条件"
+						"description": "逻辑关联",
+						"enum": [
+							"and",
+							"or"
+						]
+					},
+					"list": {
+						"description": "触发条件",
+						"type": "array",
+						"items": {
+							"$ref": "#/components/schemas/TriggerCondition"
+						}
+					},
+					"label": {
+						"type": "string",
+						"description": "标签"
+					},
+					"weight": {
+						"type": "number",
+						"description": "权重"
 					}
 				},
 				"required": [
 					"isEnabled",
-					"variable",
-					"lower",
-					"upper",
-					"condition"
+					"when",
+					"list",
+					"label",
+					"weight"
 				]
 			},
 			"Edge": {
@@ -4928,13 +5031,16 @@
 				"type": "object",
 				"properties": {
 					"id": {
-						"type": "string"
+						"type": "string",
+						"description": "节点id"
 					},
 					"msg": {
-						"type": "string"
+						"type": "string",
+						"description": "错误信息"
 					},
 					"type": {
-						"type": "string"
+						"type": "string",
+						"description": "错误类型"
 					}
 				},
 				"required": [
@@ -4948,35 +5054,31 @@
 				"properties": {
 					"only": {
 						"description": "节点重复集",
-						"allOf": [
-							{
-								"$ref": "#/components/schemas/Valid"
-							}
-						]
+						"type": "array",
+						"items": {
+							"$ref": "#/components/schemas/Valid"
+						}
 					},
 					"scene": {
 						"description": "场景报错集",
-						"allOf": [
-							{
-								"$ref": "#/components/schemas/Valid"
-							}
-						]
+						"type": "array",
+						"items": {
+							"$ref": "#/components/schemas/Valid"
+						}
 					},
 					"branch": {
 						"description": "节点报错集",
-						"allOf": [
-							{
-								"$ref": "#/components/schemas/Valid"
-							}
-						]
+						"type": "array",
+						"items": {
+							"$ref": "#/components/schemas/Valid"
+						}
 					},
 					"edge": {
 						"description": "边报错集",
-						"allOf": [
-							{
-								"$ref": "#/components/schemas/Valid"
-							}
-						]
+						"type": "array",
+						"items": {
+							"$ref": "#/components/schemas/Valid"
+						}
 					}
 				},
 				"required": [
@@ -5123,6 +5225,44 @@
 					"caId",
 					"captcha",
 					"secret"
+				]
+			},
+			"EffectListDto": {
+				"type": "object",
+				"properties": {
+					"value": {
+						"type": "string",
+						"description": "音效ID"
+					},
+					"label": {
+						"type": "string",
+						"description": "音效名"
+					},
+					"style": {
+						"type": "string",
+						"description": "风格"
+					},
+					"tags": {
+						"description": "音效标签",
+						"type": "array",
+						"items": {
+							"type": "string"
+						}
+					},
+					"children": {
+						"description": "下级分类",
+						"type": "array",
+						"items": {
+							"$ref": "#/components/schemas/EffectListDto"
+						}
+					}
+				},
+				"required": [
+					"value",
+					"label",
+					"style",
+					"tags",
+					"children"
 				]
 			},
 			"CaptchaRsp": {

@@ -23,10 +23,15 @@ class Components {
 	enumsMap: Map<string, TrenderType> = new Map();
 	schemasMap: Map<string, TrenderType> = new Map();
 	defaultReturn = { headerRef: '', renderStr: '' };
+	requiredFieldS: string[] = [];
 
 	constructor(schemas: ComponentsSchemas, config: ConfigType) {
 		this.schemas = schemas;
 		this.config = config;
+	}
+
+	nullable(v?: boolean) {
+		return `${v ? ' | null' : ''}`;
 	}
 
 	fieldComment(schemaSource: NonArraySchemaObject) {
@@ -77,7 +82,7 @@ class Components {
 				headerRef = value.headerRef;
 				renderStr = value.renderStr;
 			} else {
-				renderStr = `${INDENT}${key}: ${obj.type};`;
+				renderStr = `${INDENT}${key}${this.requiredFieldS.includes(key) ? '' : '?'}: ${obj.type}${this.nullable(obj.nullable)};`;
 			}
 		}
 
@@ -93,7 +98,7 @@ class Components {
 			const { headerRefStr, typeName } = this.parseRef(ref);
 			return {
 				headerRef: headerRefStr,
-				renderStr: `${INDENT}${name}${nullable ? '?' : ''}: Array<${typeName}>;`,
+				renderStr: `${INDENT}${name}${this.requiredFieldS.includes(name) ? '' : '?'}: Array<${typeName}>${this.nullable(nullable)};`,
 			};
 		}
 
@@ -101,12 +106,14 @@ class Components {
 		const finalType = itemType === 'integer' ? 'number' : itemType;
 		return {
 			headerRef: '',
-			renderStr: `${INDENT}${name}${nullable ? '?' : ''}: Array<${finalType}>;`,
+			renderStr: `${INDENT}${name}${this.requiredFieldS.includes(name) ? '' : '?'}: Array<${finalType}>${this.nullable(nullable)};`,
 		};
 	}
 
 	parseBoolean(schemaObject: NonArraySchemaObject, key: string): string {
-		return schemaObject.type === 'boolean' ? `${INDENT}${key}: boolean;` : '';
+		return schemaObject.type === 'boolean'
+			? `${INDENT}${key}${this.requiredFieldS.includes(key) ? '' : '?'}: boolean${this.nullable(schemaObject.nullable)};`
+			: '';
 	}
 
 	parseEnum(value: NonArraySchemaObject, enumName: string): TReturnType {
@@ -144,12 +151,12 @@ class Components {
 			const enumName = key.charAt(0).toUpperCase() + key.slice(1);
 			return this.parseEnum(value, enumName)?.renderStr ?? '';
 		} else {
-			return `${INDENT}${key}: number;`;
+			return `${INDENT}${key}${this.requiredFieldS.includes(key) ? '' : '?'}: number${this.nullable(value.nullable)};`;
 		}
 	}
 
 	parseNumber(value: NonArraySchemaObject, key: string): string {
-		return value.type === 'number' ? `${INDENT}${key}: number;` : '';
+		return value.type === 'number' ? `${INDENT}${key}${this.requiredFieldS.includes(key) ? '' : '?'}: number${this.nullable(value.nullable)};` : '';
 	}
 
 	convertJsonToEnumString(jsonStr: string, enumName: string): string {
@@ -173,7 +180,7 @@ class Components {
 					const enumContent = this.convertJsonToEnumString(value.example as string, enumName);
 					return {
 						headerRef: '',
-						renderStr: `${INDENT}${key}: ${enumName};`,
+						renderStr: `${INDENT}${key}${this.requiredFieldS.includes(key) ? '' : '?'}: ${enumName}${this.nullable(value.nullable)};`,
 						comment: enumContent,
 					};
 				} else {
@@ -185,12 +192,15 @@ class Components {
 					}
 				}
 			}
-			return { headerRef: '', renderStr: `${INDENT}${key}: string;` };
+			return {
+				headerRef: '',
+				renderStr: `${INDENT}${key}${this.requiredFieldS.includes(key) ? '' : '?'}: string${this.nullable(value.nullable)};`,
+			};
 		}
 		return null;
 	}
 
-	parseProperties(properties: OpenAPIV3.BaseSchemaObject['properties'], interfaceKey?: string): TReturnType {
+	parseProperties(properties: OpenAPIV3.BaseSchemaObject['properties'], interfaceKey: string): TReturnType {
 		const content: string[] = [];
 		const headerRef: string[] = [];
 
@@ -200,7 +210,7 @@ class Components {
 			if ((schemaSource as ReferenceObject)?.$ref) {
 				const { headerRefStr, typeName } = this.parseRef((schemaSource as ReferenceObject).$ref);
 				if (!headerRef.includes(headerRefStr)) headerRef.push(headerRefStr);
-				content.push(`${INDENT}${name}: ${typeName};`);
+				content.push(`${INDENT}${name}${this.requiredFieldS.includes(name) ? '' : '?'}: ${typeName};`);
 				continue;
 			}
 
@@ -209,7 +219,7 @@ class Components {
 				if (V1?.$ref) {
 					const { headerRefStr, typeName } = this.parseRef(V1.$ref);
 					if (!headerRef.includes(headerRefStr)) headerRef.push(headerRefStr);
-					content.push(`${INDENT}${name}: ${typeName};`);
+					content.push(`${INDENT}${name}${this.requiredFieldS.includes(name) ? '' : '?'}: ${typeName}${this.nullable(schemaSource.nullable)};`);
 					continue;
 				}
 			}
@@ -225,7 +235,7 @@ class Components {
 					{
 						const value = this.parseArray(schema, name) ?? this.defaultReturn;
 						content.push(value.renderStr);
-						if (!headerRef.includes(value.headerRef)) headerRef.push(value.headerRef);
+						if (!headerRef.includes(value.headerRef) && !value.headerRef.includes(interfaceKey)) headerRef.push(value.headerRef);
 					}
 					break;
 
@@ -259,7 +269,7 @@ class Components {
 								const fileName = this.typeNameToFileName(enumName);
 								const enumContent = this.convertJsonToEnumString(schema.example as string, enumName);
 								this.enumsMap.set(fileName, { fileName, content: enumContent });
-								content.push(`${INDENT}${name}: ${enumName};`);
+								content.push(`${INDENT}${name}${this.requiredFieldS.includes(name) ? '' : '?'}: ${enumName}${this.nullable(schema.nullable)};`);
 							} else {
 								const enumResult = this.parseEnum(schema as NonArraySchemaObject, enumName);
 								if (enumResult?.renderStr) {
@@ -267,7 +277,7 @@ class Components {
 									if (!headerRef.includes(header)) headerRef.push(header);
 									const fileName = this.typeNameToFileName(enumName);
 									this.enumsMap.set(fileName, { fileName, content: enumResult.renderStr });
-									content.push(`${INDENT}${name}: ${enumName};`);
+									content.push(`${INDENT}${name}${this.requiredFieldS.includes(name) ? '' : '?'}: ${enumName}${this.nullable(schema.nullable)};`);
 								}
 							}
 						} else {
@@ -303,7 +313,7 @@ class Components {
 		};
 	}
 
-	private async generateContent(schemaObject: NonArraySchemaObject | ArraySchemaObject, key: string): Promise<string> {
+	async generateContent(schemaObject: NonArraySchemaObject | ArraySchemaObject, key: string): Promise<string> {
 		if ('items' in schemaObject) {
 			console.warn(`数组类型未处理: ${key}`, schemaObject.items);
 			return '';
@@ -329,37 +339,6 @@ class Components {
 		}
 	}
 
-	private async writeEnums(): Promise<void> {
-		const Plist = [];
-		const exportFileContent: string[] = [];
-		for (const [, value] of this.enumsMap) {
-			const P = async ({ fileName, content }: TrenderType) => {
-				exportFileContent.push(`export * from './${fileName}';`);
-				await writeFileRecursive(`${this.config.saveEnumFolderPath}/${fileName}.ts`, content);
-			};
-			Plist.push(P(value));
-		}
-		await Promise.all(Plist);
-		await writeFileRecursive(`${this.config.saveEnumFolderPath}/index.ts`, exportFileContent.join('\n'));
-	}
-
-	async writeFile(): Promise<void> {
-		const Plist = [];
-		const exportFileContent: string[] = [];
-		const saveTypeFolderPath = `${this.config.saveTypeFolderPath}/models/`;
-
-		for (const [, value] of this.schemasMap) {
-			const P = async ({ fileName, content }: TrenderType) => {
-				exportFileContent.push(`export * from './${fileName}';`);
-				await writeFileRecursive(`${saveTypeFolderPath}${fileName}.ts`, content);
-			};
-			Plist.push(P(value));
-		}
-
-		await Promise.all(Plist);
-		await writeFileRecursive(`${saveTypeFolderPath}index.ts`, exportFileContent.join('\n'));
-	}
-
 	async parseData(): Promise<void> {
 		try {
 			if (!this.schemas) {
@@ -378,6 +357,7 @@ class Components {
 					console.warn(`无效的 schema 对象: ${key}`);
 					continue;
 				}
+				this.requiredFieldS = schema.required ?? [];
 
 				const fileName = this.typeNameToFileName(key);
 				const content = await this.generateContent(schemaObject, key);
@@ -393,6 +373,37 @@ class Components {
 			console.error('解析过程出错:', error);
 			throw error;
 		}
+	}
+
+	private async writeEnums(): Promise<void> {
+		const Plist = [];
+		const exportFileContent: string[] = [];
+		for (const [, value] of this.enumsMap) {
+			const P = async ({ fileName, content }: TrenderType) => {
+				exportFileContent.push(`export * from './${fileName}';`);
+				await writeFileRecursive(`${this.config.saveEnumFolderPath}/${fileName}.ts`, content);
+			};
+			Plist.push(P(value));
+		}
+		await Promise.all(Plist);
+		await writeFileRecursive(`${this.config.saveEnumFolderPath}/index.ts`, exportFileContent.join('\n'));
+	}
+
+	private async writeFile(): Promise<void> {
+		const Plist = [];
+		const exportFileContent: string[] = [];
+		const saveTypeFolderPath = `${this.config.saveTypeFolderPath}/models/`;
+
+		for (const [, value] of this.schemasMap) {
+			const P = async ({ fileName, content }: TrenderType) => {
+				exportFileContent.push(`export * from './${fileName}';`);
+				await writeFileRecursive(`${saveTypeFolderPath}${fileName}.ts`, content);
+			};
+			Plist.push(P(value));
+		}
+
+		await Promise.all(Plist);
+		await writeFileRecursive(`${saveTypeFolderPath}index.ts`, exportFileContent.join('\n'));
 	}
 
 	async handle(): Promise<void> {
