@@ -2479,8 +2479,9 @@
 				"parameters": [
 					{
 						"name": "style",
-						"required": true,
+						"required": false,
 						"in": "query",
+						"description": "游戏风格",
 						"schema": {
 							"type": "string"
 						}
@@ -3874,6 +3875,21 @@
 					"sceneType"
 				]
 			},
+			"EditorCommandEnum": {
+				"type": "string",
+				"description": "命令",
+				"enum": [
+					"narr",
+					"clp",
+					"bst",
+					"bgi",
+					"bgm",
+					"cg",
+					"cp",
+					"mvars",
+					"ieff"
+				]
+			},
 			"Role": {
 				"type": "object",
 				"properties": {
@@ -3965,6 +3981,73 @@
 					"name"
 				]
 			},
+			"Var": {
+				"type": "object",
+				"properties": {
+					"varId": {
+						"type": "string",
+						"description": "选定的变量ID"
+					},
+					"varValue": {
+						"type": "number",
+						"description": "设定变量值"
+					},
+					"operator": {
+						"type": "string",
+						"description": "算术运算符",
+						"enum": [
+							"add",
+							"sub",
+							"eq"
+						],
+						"example": "{\"ADD\":\"add\",\"SUB\":\"sub\",\"EQ\":\"eq\"}"
+					}
+				},
+				"required": [
+					"varId",
+					"varValue",
+					"operator"
+				]
+			},
+			"InsertEffect": {
+				"type": "object",
+				"properties": {
+					"ids": {
+						"description": "音效对应ID层级",
+						"type": "array",
+						"items": {
+							"type": "string"
+						}
+					},
+					"type": {
+						"type": "string",
+						"description": "音效类型",
+						"enum": [
+							"flow",
+							"scene"
+						],
+						"example": "{\"FLOW\":\"flow\",\"SCENE\":\"scene\"}"
+					},
+					"loop": {
+						"type": "boolean",
+						"description": "是否循环",
+						"default": false
+					},
+					"volume": {
+						"type": "number",
+						"description": "音量0-100",
+						"default": 50,
+						"minimum": 0,
+						"maximum": 100
+					}
+				},
+				"required": [
+					"ids",
+					"type",
+					"loop",
+					"volume"
+				]
+			},
 			"LineDto": {
 				"type": "object",
 				"properties": {
@@ -3978,19 +4061,8 @@
 					},
 					"command": {
 						"type": "array",
-						"description": "命令",
-						"example": "{\"Narrator\":\"narr\",\"ClearPorp\":\"clp\",\"BlackScreenText\":\"bst\",\"BackgroundImage\":\"bgi\",\"BackgroundMusic\":\"bgm\",\"ComputerGraphics\":\"cg\",\"CharacterPortrait\":\"cp\"}",
 						"items": {
-							"type": "string",
-							"enum": [
-								"narr",
-								"clp",
-								"bst",
-								"bgi",
-								"bgm",
-								"cg",
-								"cp"
-							]
+							"$ref": "#/components/schemas/EditorCommandEnum"
 						}
 					},
 					"role": {
@@ -4016,6 +4088,20 @@
 								"$ref": "#/components/schemas/Prop"
 							}
 						]
+					},
+					"vars": {
+						"description": "修改变量",
+						"type": "array",
+						"items": {
+							"$ref": "#/components/schemas/Var"
+						}
+					},
+					"effect": {
+						"description": "插入音效",
+						"type": "array",
+						"items": {
+							"$ref": "#/components/schemas/InsertEffect"
+						}
 					}
 				},
 				"required": [
@@ -4024,7 +4110,9 @@
 					"command",
 					"role",
 					"vocal",
-					"prop"
+					"prop",
+					"vars",
+					"effect"
 				]
 			},
 			"Figure": {
@@ -4696,48 +4784,12 @@
 					"end"
 				]
 			},
-			"Var": {
-				"type": "object",
-				"properties": {
-					"varId": {
-						"type": "string",
-						"description": "选定的变量ID"
-					},
-					"alias": {
-						"type": "string",
-						"description": "选定的变量别名"
-					},
-					"varValue": {
-						"type": "number",
-						"description": "设定变量值"
-					},
-					"operator": {
-						"type": "string",
-						"description": "算术运算符",
-						"enum": [
-							"add",
-							"sub",
-							"eq"
-						]
-					}
-				},
-				"required": [
-					"varId",
-					"alias",
-					"varValue",
-					"operator"
-				]
-			},
 			"Variable": {
 				"type": "object",
 				"properties": {
 					"id": {
 						"type": "string",
 						"description": "变量ID"
-					},
-					"alias": {
-						"type": "string",
-						"description": "变量别名"
 					},
 					"name": {
 						"type": "string",
@@ -4746,7 +4798,6 @@
 				},
 				"required": [
 					"id",
-					"alias",
 					"name"
 				]
 			},
@@ -4767,7 +4818,8 @@
 							"ne",
 							"ge",
 							"gt"
-						]
+						],
+						"example": "{\"LT\":\"lt\",\"LE\":\"le\",\"EQ\":\"eq\",\"NE\":\"ne\",\"GE\":\"ge\",\"GT\":\"gt\"}"
 					}
 				},
 				"required": [
@@ -4807,8 +4859,10 @@
 						"description": "条件",
 						"enum": [
 							"and",
-							"or"
-						]
+							"or",
+							""
+						],
+						"example": "{\"AND\":\"and\",\"OR\":\"or\",\"NULL\":\"\"}"
 					}
 				},
 				"required": [
@@ -4821,17 +4875,15 @@
 			"ICondition": {
 				"type": "object",
 				"properties": {
-					"isEnabled": {
-						"type": "boolean",
-						"description": "是否启用"
-					},
 					"when": {
 						"type": "string",
 						"description": "逻辑关联",
 						"enum": [
 							"and",
-							"or"
-						]
+							"or",
+							""
+						],
+						"example": "{\"AND\":\"and\",\"OR\":\"or\",\"NULL\":\"\"}"
 					},
 					"list": {
 						"description": "触发条件",
@@ -4842,7 +4894,6 @@
 					}
 				},
 				"required": [
-					"isEnabled",
 					"when",
 					"list"
 				]
@@ -4869,6 +4920,10 @@
 							"$ref": "#/components/schemas/Var"
 						}
 					},
+					"conditionSwitch": {
+						"type": "boolean",
+						"description": "是否启用条件判断"
+					},
 					"condition": {
 						"description": "触发条件",
 						"allOf": [
@@ -4883,6 +4938,7 @@
 					"nodeId",
 					"sound",
 					"vars",
+					"conditionSwitch",
 					"condition"
 				]
 			},
@@ -4944,17 +5000,15 @@
 			"EdgeData": {
 				"type": "object",
 				"properties": {
-					"isEnabled": {
-						"type": "boolean",
-						"description": "是否启用"
-					},
 					"when": {
 						"type": "string",
 						"description": "逻辑关联",
 						"enum": [
 							"and",
-							"or"
-						]
+							"or",
+							""
+						],
+						"example": "{\"AND\":\"and\",\"OR\":\"or\",\"NULL\":\"\"}"
 					},
 					"list": {
 						"description": "触发条件",
@@ -4973,7 +5027,6 @@
 					}
 				},
 				"required": [
-					"isEnabled",
 					"when",
 					"list",
 					"label",
@@ -5240,17 +5293,25 @@
 					},
 					"style": {
 						"type": "string",
-						"description": "风格"
+						"description": "风格",
+						"nullable": true
 					},
 					"tags": {
 						"description": "音效标签",
+						"nullable": true,
 						"type": "array",
 						"items": {
 							"type": "string"
 						}
 					},
+					"url": {
+						"type": "string",
+						"description": "资源文件路径",
+						"nullable": true
+					},
 					"children": {
 						"description": "下级分类",
+						"nullable": true,
 						"type": "array",
 						"items": {
 							"$ref": "#/components/schemas/EffectListDto"
@@ -5262,6 +5323,7 @@
 					"label",
 					"style",
 					"tags",
+					"url",
 					"children"
 				]
 			},

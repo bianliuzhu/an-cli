@@ -13,6 +13,7 @@ type TReturnType = {
 	headerRef: string;
 	renderStr: string;
 	comment?: string;
+	typeName?: string;
 } | null;
 
 type TrenderType = { fileName: string; content: string };
@@ -22,7 +23,7 @@ class Components {
 	schemas: ComponentsSchemas = {};
 	enumsMap: Map<string, TrenderType> = new Map();
 	schemasMap: Map<string, TrenderType> = new Map();
-	defaultReturn = { headerRef: '', renderStr: '' };
+	defaultReturn = { headerRef: '', renderStr: '', comment: '', typeName: '' };
 	requiredFieldS: string[] = [];
 
 	constructor(schemas: ComponentsSchemas, config: ConfigType) {
@@ -79,8 +80,8 @@ class Components {
 			const nonArraySchema = obj as NonArraySchemaObject;
 			if (typeof nonArraySchema.additionalProperties === 'object') {
 				const value = this.parseArray(nonArraySchema.additionalProperties as ArraySchemaObject, key) ?? this.defaultReturn;
-				headerRef = value.headerRef;
-				renderStr = value.renderStr;
+				headerRef = value?.headerRef ?? '';
+				renderStr = value?.renderStr ?? '';
 			} else {
 				renderStr = `${INDENT}${key}${this.requiredFieldS.includes(key) ? '' : '?'}: ${obj.type}${this.nullable(obj.nullable)};`;
 			}
@@ -99,6 +100,7 @@ class Components {
 			return {
 				headerRef: headerRefStr,
 				renderStr: `${INDENT}${name}${this.requiredFieldS.includes(name) ? '' : '?'}: Array<${typeName}>${this.nullable(nullable)};`,
+				typeName,
 			};
 		}
 
@@ -107,6 +109,7 @@ class Components {
 		return {
 			headerRef: '',
 			renderStr: `${INDENT}${name}${this.requiredFieldS.includes(name) ? '' : '?'}: Array<${finalType}>${this.nullable(nullable)};`,
+			typeName: finalType,
 		};
 	}
 
@@ -233,9 +236,9 @@ class Components {
 			switch (schema.type) {
 				case 'array':
 					{
-						const value = this.parseArray(schema, name) ?? this.defaultReturn;
-						content.push(value.renderStr);
-						if (!headerRef.includes(value.headerRef) && !value.headerRef.includes(interfaceKey)) headerRef.push(value.headerRef);
+						const arrayVal = this.parseArray(schema, name) ?? this.defaultReturn;
+						content.push(arrayVal?.renderStr ?? '');
+						if (!headerRef.includes(arrayVal.headerRef) && interfaceKey !== arrayVal.typeName) headerRef.push(arrayVal.headerRef);
 					}
 					break;
 
