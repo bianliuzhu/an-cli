@@ -2149,6 +2149,41 @@
 				]
 			}
 		},
+		"/api/effect/list": {
+			"get": {
+				"operationId": "EffectController_list",
+				"summary": "获取音效列表",
+				"parameters": [
+					{
+						"name": "style",
+						"required": false,
+						"in": "query",
+						"description": "游戏风格",
+						"schema": {
+							"type": "string"
+						}
+					}
+				],
+				"responses": {
+					"default": {
+						"description": "",
+						"content": {
+							"application/json": {
+								"schema": {
+									"type": "array",
+									"items": {
+										"$ref": "#/components/schemas/EffectListDto"
+									}
+								}
+							}
+						}
+					}
+				},
+				"tags": [
+					"音效"
+				]
+			}
+		},
 		"/api/canvas/record": {
 			"post": {
 				"operationId": "CanvasController_record",
@@ -2472,41 +2507,6 @@
 				]
 			}
 		},
-		"/api/effect/list": {
-			"get": {
-				"operationId": "EffectController_list",
-				"summary": "获取音效列表",
-				"parameters": [
-					{
-						"name": "style",
-						"required": false,
-						"in": "query",
-						"description": "游戏风格",
-						"schema": {
-							"type": "string"
-						}
-					}
-				],
-				"responses": {
-					"default": {
-						"description": "",
-						"content": {
-							"application/json": {
-								"schema": {
-									"type": "array",
-									"items": {
-										"$ref": "#/components/schemas/EffectListDto"
-									}
-								}
-							}
-						}
-					}
-				},
-				"tags": [
-					"音效"
-				]
-			}
-		},
 		"/api/auth/captcha": {
 			"get": {
 				"operationId": "AuthController_getCaptcha",
@@ -2565,10 +2565,17 @@
 			"GameTypeEnum": {
 				"type": "string",
 				"description": "游戏类型",
-				"default": "solvePuzzles",
 				"enum": [
 					"solvePuzzles",
 					"otome"
+				]
+			},
+			"EditorTypeEnum": {
+				"type": "string",
+				"description": "编辑器类型",
+				"enum": [
+					"ui",
+					"txt"
 				]
 			},
 			"CreateGameDTO": {
@@ -2579,30 +2586,18 @@
 						"description": "游戏名称"
 					},
 					"gameType": {
+						"example": "{\"SolvePuzzles\":\"solvePuzzles\",\"Otome\":\"otome\"}",
 						"$ref": "#/components/schemas/GameTypeEnum"
 					},
 					"editorType": {
-						"type": "string",
-						"description": "编辑器模式",
-						"enum": [
-							"ui",
-							"txt"
-						],
-						"example": "{\"UI\":\"ui\",\"TXT\":\"txt\"}"
+						"example": "{\"UI\":\"ui\",\"TXT\":\"txt\"}",
+						"$ref": "#/components/schemas/EditorTypeEnum"
 					}
 				},
 				"required": [
 					"gameName",
 					"gameType",
 					"editorType"
-				]
-			},
-			"EditorTypeEnum": {
-				"type": "string",
-				"description": "编辑器模式",
-				"enum": [
-					"ui",
-					"txt"
 				]
 			},
 			"Config": {
@@ -2649,16 +2644,12 @@
 						"description": ""
 					},
 					"Render_mode": {
+						"example": "{\"UI\":\"ui\",\"TXT\":\"txt\"}",
 						"$ref": "#/components/schemas/EditorTypeEnum"
 					},
 					"Game_type": {
-						"type": "string",
-						"description": "游戏类型",
-						"enum": [
-							"solvePuzzles",
-							"otome"
-						],
-						"example": "{\"SolvePuzzles\":\"solvePuzzles\",\"Otome\":\"otome\"}"
+						"example": "{\"SolvePuzzles\":\"solvePuzzles\",\"Otome\":\"otome\"}",
+						"$ref": "#/components/schemas/GameTypeEnum"
 					},
 					"Start_node": {
 						"type": "string",
@@ -2707,6 +2698,16 @@
 					"config"
 				]
 			},
+			"ProgressStatusEnum": {
+				"type": "string",
+				"description": "进度状态",
+				"enum": [
+					"0",
+					"1",
+					"2",
+					"3"
+				]
+			},
 			"Progress": {
 				"type": "object",
 				"properties": {
@@ -2715,15 +2716,8 @@
 						"description": "进度"
 					},
 					"status": {
-						"type": "string",
-						"description": "进度状态",
-						"enum": [
-							"0",
-							"1",
-							"2",
-							"3"
-						],
-						"example": "{\"INIT\":\"0\",\"ING\":\"1\",\"DONE\":\"2\",\"ERR\":\"3\"}"
+						"example": "{\"INIT\":\"0\",\"ING\":\"1\",\"DONE\":\"2\",\"ERR\":\"3\"}",
+						"$ref": "#/components/schemas/ProgressStatusEnum"
 					},
 					"msg": {
 						"type": "string",
@@ -2734,6 +2728,14 @@
 					"current",
 					"status",
 					"msg"
+				]
+			},
+			"ImageStyleEnum": {
+				"type": "string",
+				"description": "道具风格",
+				"enum": [
+					"anime",
+					"romantic"
 				]
 			},
 			"Picture": {
@@ -2753,6 +2755,14 @@
 					"check"
 				]
 			},
+			"BgGenerateStage": {
+				"type": "string",
+				"description": "生成阶段",
+				"enum": [
+					"prompts",
+					"bg"
+				]
+			},
 			"UpdateBgDto": {
 				"type": "object",
 				"properties": {
@@ -2769,13 +2779,8 @@
 						"description": "背景名称"
 					},
 					"style": {
-						"type": "string",
-						"description": "背景风格",
-						"enum": [
-							"anime",
-							"romantic"
-						],
-						"example": "{\"Anime\":\"anime\",\"Romantic\":\"romantic\"}"
+						"example": "{\"Anime\":\"anime\",\"Romantic\":\"romantic\"}",
+						"$ref": "#/components/schemas/ImageStyleEnum"
 					},
 					"original": {
 						"type": "string",
@@ -2817,13 +2822,8 @@
 						}
 					},
 					"stage": {
-						"type": "string",
-						"description": "生成阶段",
-						"enum": [
-							"prompts",
-							"bg"
-						],
-						"example": "{\"PROMPTS\":\"prompts\",\"BG\":\"bg\"}"
+						"example": "{\"PROMPTS\":\"prompts\",\"BG\":\"bg\"}",
+						"$ref": "#/components/schemas/BgGenerateStage"
 					},
 					"progress": {
 						"description": "进度",
@@ -2974,6 +2974,34 @@
 					"applyGame"
 				]
 			},
+			"GenderEnum": {
+				"type": "string",
+				"description": "角色性别",
+				"enum": [
+					"male",
+					"female"
+				]
+			},
+			"AgeEnum": {
+				"type": "string",
+				"description": "年纪",
+				"enum": [
+					"child",
+					"adult",
+					"youth",
+					"elder"
+				]
+			},
+			"RoleGenerateStageEnum": {
+				"type": "string",
+				"description": "生成阶段",
+				"enum": [
+					"prompts",
+					"figure",
+					"expression",
+					"frame"
+				]
+			},
 			"UpdateRoleDto": {
 				"type": "object",
 				"properties": {
@@ -2988,35 +3016,6 @@
 					"name": {
 						"type": "string",
 						"description": "角色名字"
-					},
-					"gender": {
-						"type": "string",
-						"description": "性别",
-						"enum": [
-							"male",
-							"female"
-						],
-						"example": "{\"MALE\":\"male\",\"FEMALE\":\"female\"}"
-					},
-					"style": {
-						"type": "string",
-						"description": "风格",
-						"enum": [
-							"anime",
-							"romantic"
-						],
-						"example": "{\"Anime\":\"anime\",\"Romantic\":\"romantic\"}"
-					},
-					"age": {
-						"type": "string",
-						"description": "年纪",
-						"enum": [
-							"child",
-							"adult",
-							"youth",
-							"elder"
-						],
-						"example": "{\"CHILD\":\"child\",\"ADULT\":\"adult\",\"YOUNG\":\"youth\",\"ELDER\":\"elder\"}"
 					},
 					"timbre": {
 						"type": "string",
@@ -3060,16 +3059,6 @@
 							"$ref": "#/components/schemas/Expression"
 						}
 					},
-					"stage": {
-						"type": "string",
-						"description": "生成阶段",
-						"enum": [
-							"prompts",
-							"figure",
-							"expression",
-							"frame"
-						]
-					},
 					"progress": {
 						"description": "进度",
 						"allOf": [
@@ -3077,15 +3066,28 @@
 								"$ref": "#/components/schemas/Progress"
 							}
 						]
+					},
+					"gender": {
+						"example": "{\"MALE\":\"male\",\"FEMALE\":\"female\"}",
+						"$ref": "#/components/schemas/GenderEnum"
+					},
+					"style": {
+						"example": "{\"Anime\":\"anime\",\"Romantic\":\"romantic\"}",
+						"$ref": "#/components/schemas/ImageStyleEnum"
+					},
+					"age": {
+						"example": "{\"CHILD\":\"child\",\"ADULT\":\"adult\",\"YOUNG\":\"youth\",\"ELDER\":\"elder\"}",
+						"$ref": "#/components/schemas/AgeEnum"
+					},
+					"stage": {
+						"example": "{\"PROMPTS\":\"prompts\",\"FIGURE\":\"figure\",\"EXPRESSION\":\"expression\",\"FRAME\":\"frame\"}",
+						"$ref": "#/components/schemas/RoleGenerateStageEnum"
 					}
 				},
 				"required": [
 					"uid",
 					"id",
 					"name",
-					"gender",
-					"style",
-					"age",
 					"timbre",
 					"original",
 					"url",
@@ -3095,8 +3097,11 @@
 					"word",
 					"prompts",
 					"expressions",
-					"stage",
-					"progress"
+					"progress",
+					"gender",
+					"style",
+					"age",
+					"stage"
 				]
 			},
 			"BatchRole": {
@@ -3174,6 +3179,14 @@
 					"more"
 				]
 			},
+			"ExtractTypeEnum": {
+				"type": "string",
+				"description": "批处理类型",
+				"enum": [
+					"extract",
+					"picture"
+				]
+			},
 			"BatchExtraction": {
 				"type": "object",
 				"properties": {
@@ -3222,12 +3235,8 @@
 						"description": "游戏名称"
 					},
 					"type": {
-						"type": "string",
-						"description": "批处理类型",
-						"enum": [
-							"extract",
-							"picture"
-						]
+						"example": "{\"EXTRACT\":\"extract\",\"PICTURE\":\"picture\"}",
+						"$ref": "#/components/schemas/ExtractTypeEnum"
 					}
 				},
 				"required": [
@@ -3527,6 +3536,15 @@
 					"name"
 				]
 			},
+			"ResourceTypeEnum": {
+				"type": "string",
+				"description": "资源类型",
+				"enum": [
+					"figure",
+					"background",
+					"bgm"
+				]
+			},
 			"Remark": {
 				"type": "object",
 				"properties": {
@@ -3569,14 +3587,8 @@
 						]
 					},
 					"type": {
-						"type": "string",
-						"description": "资源类型",
-						"enum": [
-							"figure",
-							"background",
-							"bgm"
-						],
-						"example": "{\"FIGURE\":\"figure\",\"BACKGROUND\":\"background\",\"BGM\":\"bgm\"}"
+						"example": "{\"FIGURE\":\"figure\",\"BACKGROUND\":\"background\",\"BGM\":\"bgm\"}",
+						"$ref": "#/components/schemas/ResourceTypeEnum"
 					},
 					"uid": {
 						"type": "string",
@@ -3906,22 +3918,12 @@
 						"description": "角色名称"
 					},
 					"gender": {
-						"type": "string",
-						"description": "角色性别",
-						"enum": [
-							"male",
-							"female"
-						],
-						"example": "{\"MALE\":\"male\",\"FEMALE\":\"female\"}"
+						"example": "{\"MALE\":\"male\",\"FEMALE\":\"female\"}",
+						"$ref": "#/components/schemas/GenderEnum"
 					},
 					"style": {
-						"type": "string",
-						"description": "角色风格",
-						"enum": [
-							"anime",
-							"romantic"
-						],
-						"example": "{\"Anime\":\"anime\",\"Romantic\":\"romantic\"}"
+						"example": "{\"Anime\":\"anime\",\"Romantic\":\"romantic\"}",
+						"$ref": "#/components/schemas/ImageStyleEnum"
 					},
 					"timbre": {
 						"type": "string",
@@ -3981,6 +3983,15 @@
 					"name"
 				]
 			},
+			"ArithmeticOperatorEnum": {
+				"type": "string",
+				"description": "算术运算符",
+				"enum": [
+					"add",
+					"sub",
+					"eq"
+				]
+			},
 			"Var": {
 				"type": "object",
 				"properties": {
@@ -3993,14 +4004,8 @@
 						"description": "设定变量值"
 					},
 					"operator": {
-						"type": "string",
-						"description": "算术运算符",
-						"enum": [
-							"add",
-							"sub",
-							"eq"
-						],
-						"example": "{\"ADD\":\"add\",\"SUB\":\"sub\",\"EQ\":\"eq\"}"
+						"example": "{\"ADD\":\"add\",\"SUB\":\"sub\",\"EQ\":\"eq\"}",
+						"$ref": "#/components/schemas/ArithmeticOperatorEnum"
 					}
 				},
 				"required": [
@@ -4009,7 +4014,15 @@
 					"operator"
 				]
 			},
-			"InsertEffect": {
+			"EffectTypeEnum": {
+				"type": "string",
+				"description": "音效类型",
+				"enum": [
+					"flow",
+					"scene"
+				]
+			},
+			"SoundEffect": {
 				"type": "object",
 				"properties": {
 					"ids": {
@@ -4020,13 +4033,8 @@
 						}
 					},
 					"type": {
-						"type": "string",
-						"description": "音效类型",
-						"enum": [
-							"flow",
-							"scene"
-						],
-						"example": "{\"FLOW\":\"flow\",\"SCENE\":\"scene\"}"
+						"example": "{\"FLOW\":\"flow\",\"SCENE\":\"scene\"}",
+						"$ref": "#/components/schemas/EffectTypeEnum"
 					},
 					"loop": {
 						"type": "boolean",
@@ -4061,6 +4069,7 @@
 					},
 					"command": {
 						"type": "array",
+						"example": "{\"Narrator\":\"narr\",\"ClearPorp\":\"clp\",\"BlackScreenText\":\"bst\",\"BackgroundImage\":\"bgi\",\"BackgroundMusic\":\"bgm\",\"ComputerGraphics\":\"cg\",\"CharacterPortrait\":\"cp\",\"ModifyVariables\":\"mvars\",\"InsertEffect\":\"ieff\"}",
 						"items": {
 							"$ref": "#/components/schemas/EditorCommandEnum"
 						}
@@ -4090,17 +4099,17 @@
 						]
 					},
 					"vars": {
-						"description": "修改变量",
+						"description": "变量",
 						"type": "array",
 						"items": {
 							"$ref": "#/components/schemas/Var"
 						}
 					},
-					"effect": {
-						"description": "插入音效",
+					"soundEffects": {
+						"description": "音效",
 						"type": "array",
 						"items": {
-							"$ref": "#/components/schemas/InsertEffect"
+							"$ref": "#/components/schemas/SoundEffect"
 						}
 					}
 				},
@@ -4112,7 +4121,7 @@
 					"vocal",
 					"prop",
 					"vars",
-					"effect"
+					"soundEffects"
 				]
 			},
 			"Figure": {
@@ -4547,6 +4556,23 @@
 					"progress"
 				]
 			},
+			"PropSizeEnum": {
+				"type": "string",
+				"description": "道具大小",
+				"enum": [
+					"small",
+					"middle",
+					"big"
+				]
+			},
+			"PropGenerateStage": {
+				"type": "string",
+				"description": "生成阶段",
+				"enum": [
+					"prompts",
+					"prop"
+				]
+			},
 			"PropDto": {
 				"type": "object",
 				"properties": {
@@ -4563,13 +4589,8 @@
 						"description": "道具名称"
 					},
 					"style": {
-						"type": "string",
-						"description": "道具风格",
-						"enum": [
-							"anime",
-							"romantic"
-						],
-						"example": "{\"Anime\":\"anime\",\"Romantic\":\"romantic\"}"
+						"example": "{\"Anime\":\"anime\",\"Romantic\":\"romantic\"}",
+						"$ref": "#/components/schemas/ImageStyleEnum"
 					},
 					"original": {
 						"type": "string",
@@ -4607,23 +4628,12 @@
 						}
 					},
 					"size": {
-						"type": "string",
-						"description": "道具大小",
-						"enum": [
-							"small",
-							"middle",
-							"big"
-						],
-						"example": "{\"SMALL\":\"small\",\"MIDDLE\":\"middle\",\"BIG\":\"big\"}"
+						"example": "{\"SMALL\":\"small\",\"MIDDLE\":\"middle\",\"BIG\":\"big\"}",
+						"$ref": "#/components/schemas/PropSizeEnum"
 					},
 					"stage": {
-						"type": "string",
-						"description": "生成阶段",
-						"enum": [
-							"prompts",
-							"prop"
-						],
-						"example": "{\"PROMPTS\":\"prompts\",\"PROP\":\"prop\"}"
+						"example": "{\"PROMPTS\":\"prompts\",\"PROP\":\"prop\"}",
+						"$ref": "#/components/schemas/PropGenerateStage"
 					},
 					"progress": {
 						"description": "进度",
@@ -4660,6 +4670,14 @@
 				},
 				"required": [
 					"name"
+				]
+			},
+			"CgGenerateStage": {
+				"type": "string",
+				"description": "生成阶段",
+				"enum": [
+					"prompts",
+					"cg"
 				]
 			},
 			"CgDto": {
@@ -4727,13 +4745,8 @@
 						}
 					},
 					"stage": {
-						"type": "string",
-						"description": "生成阶段",
-						"enum": [
-							"prompts",
-							"cg"
-						],
-						"example": "{\"PROMPTS\":\"prompts\",\"CG\":\"cg\"}"
+						"example": "{\"PROMPTS\":\"prompts\",\"CG\":\"cg\"}",
+						"$ref": "#/components/schemas/CgGenerateStage"
 					},
 					"progress": {
 						"description": "进度",
@@ -4774,14 +4787,70 @@
 					"name"
 				]
 			},
+			"EffectListDto": {
+				"type": "object",
+				"properties": {
+					"value": {
+						"type": "string",
+						"description": "音效ID"
+					},
+					"label": {
+						"type": "string",
+						"description": "音效名"
+					},
+					"style": {
+						"type": "string",
+						"description": "风格",
+						"nullable": true
+					},
+					"tags": {
+						"description": "音效标签",
+						"nullable": true,
+						"type": "array",
+						"items": {
+							"type": "string"
+						}
+					},
+					"url": {
+						"type": "string",
+						"description": "资源文件路径",
+						"nullable": true
+					},
+					"children": {
+						"description": "下级分类",
+						"nullable": true,
+						"type": "array",
+						"items": {
+							"$ref": "#/components/schemas/EffectListDto"
+						}
+					}
+				},
+				"required": [
+					"value",
+					"label",
+					"style",
+					"tags",
+					"url",
+					"children"
+				]
+			},
 			"NodeTypeEnum": {
 				"type": "string",
-				"description": "类型",
+				"description": "节点类型",
 				"enum": [
 					"start",
 					"scene",
 					"branch",
 					"end"
+				]
+			},
+			"LogicalOperatorEnum": {
+				"type": "string",
+				"description": "逻辑关联",
+				"enum": [
+					"and",
+					"or",
+					""
 				]
 			},
 			"Variable": {
@@ -4801,6 +4870,18 @@
 					"name"
 				]
 			},
+			"EscapeCharacterEnum": {
+				"type": "string",
+				"description": "转义字符",
+				"enum": [
+					"lt",
+					"le",
+					"eq",
+					"ne",
+					"ge",
+					"gt"
+				]
+			},
 			"ExpValue": {
 				"type": "object",
 				"properties": {
@@ -4809,17 +4890,8 @@
 						"description": "设置值"
 					},
 					"exp": {
-						"type": "string",
-						"description": "转义字符",
-						"enum": [
-							"lt",
-							"le",
-							"eq",
-							"ne",
-							"ge",
-							"gt"
-						],
-						"example": "{\"LT\":\"lt\",\"LE\":\"le\",\"EQ\":\"eq\",\"NE\":\"ne\",\"GE\":\"ge\",\"GT\":\"gt\"}"
+						"example": "{\"LT\":\"lt\",\"LE\":\"le\",\"EQ\":\"eq\",\"NE\":\"ne\",\"GE\":\"ge\",\"GT\":\"gt\"}",
+						"$ref": "#/components/schemas/EscapeCharacterEnum"
 					}
 				},
 				"required": [
@@ -4855,14 +4927,8 @@
 						]
 					},
 					"when": {
-						"type": "string",
-						"description": "条件",
-						"enum": [
-							"and",
-							"or",
-							""
-						],
-						"example": "{\"AND\":\"and\",\"OR\":\"or\",\"NULL\":\"\"}"
+						"example": "{\"AND\":\"and\",\"OR\":\"or\",\"NULL\":\"\"}",
+						"$ref": "#/components/schemas/LogicalOperatorEnum"
 					}
 				},
 				"required": [
@@ -4876,14 +4942,8 @@
 				"type": "object",
 				"properties": {
 					"when": {
-						"type": "string",
-						"description": "逻辑关联",
-						"enum": [
-							"and",
-							"or",
-							""
-						],
-						"example": "{\"AND\":\"and\",\"OR\":\"or\",\"NULL\":\"\"}"
+						"example": "{\"AND\":\"and\",\"OR\":\"or\",\"NULL\":\"\"}",
+						"$ref": "#/components/schemas/LogicalOperatorEnum"
 					},
 					"list": {
 						"description": "触发条件",
@@ -5001,14 +5061,8 @@
 				"type": "object",
 				"properties": {
 					"when": {
-						"type": "string",
-						"description": "逻辑关联",
-						"enum": [
-							"and",
-							"or",
-							""
-						],
-						"example": "{\"AND\":\"and\",\"OR\":\"or\",\"NULL\":\"\"}"
+						"example": "{\"AND\":\"and\",\"OR\":\"or\",\"NULL\":\"\"}",
+						"$ref": "#/components/schemas/LogicalOperatorEnum"
 					},
 					"list": {
 						"description": "触发条件",
@@ -5167,13 +5221,8 @@
 				"type": "object",
 				"properties": {
 					"editorType": {
-						"type": "string",
-						"description": "编辑器类型",
-						"enum": [
-							"ui",
-							"txt"
-						],
-						"example": "{\"UI\":\"ui\",\"TXT\":\"txt\"}"
+						"example": "{\"UI\":\"ui\",\"TXT\":\"txt\"}",
+						"$ref": "#/components/schemas/EditorTypeEnum"
 					},
 					"gameName": {
 						"type": "string",
@@ -5278,53 +5327,6 @@
 					"caId",
 					"captcha",
 					"secret"
-				]
-			},
-			"EffectListDto": {
-				"type": "object",
-				"properties": {
-					"value": {
-						"type": "string",
-						"description": "音效ID"
-					},
-					"label": {
-						"type": "string",
-						"description": "音效名"
-					},
-					"style": {
-						"type": "string",
-						"description": "风格",
-						"nullable": true
-					},
-					"tags": {
-						"description": "音效标签",
-						"nullable": true,
-						"type": "array",
-						"items": {
-							"type": "string"
-						}
-					},
-					"url": {
-						"type": "string",
-						"description": "资源文件路径",
-						"nullable": true
-					},
-					"children": {
-						"description": "下级分类",
-						"nullable": true,
-						"type": "array",
-						"items": {
-							"$ref": "#/components/schemas/EffectListDto"
-						}
-					}
-				},
-				"required": [
-					"value",
-					"label",
-					"style",
-					"tags",
-					"url",
-					"children"
 				]
 			},
 			"CaptchaRsp": {

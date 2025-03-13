@@ -52,24 +52,33 @@ class Components {
 			.replace(/-+/g, '-');
 	}
 
-	nameTheHumpCenterStroke(ref: string): { typeName: string; fileName: string } {
+	nameTheHumpCenterStroke(ref: string): { typeName: string; fileName: string; dataType: string | undefined } {
 		const typeName = ref.replace('#/components/schemas/', '');
 		const fileName = this.typeNameToFileName(typeName);
-		return { typeName, fileName };
+		const returnData: { typeName: string; fileName: string; dataType: string | undefined } = { typeName, fileName, dataType: '' };
+		if (this.schemas) {
+			const data = this.schemas[typeName] as SchemaObject;
+			if (data.enum) {
+				returnData.dataType = 'enum';
+			} else {
+				returnData.dataType = data.type;
+			}
+		}
+		return returnData;
 	}
 
-	parseRef(ref: string): { headerRefStr: string; typeName: string } {
-		if (!ref?.trim()) return { headerRefStr: '', typeName: '' };
-		const { fileName, typeName } = this.nameTheHumpCenterStroke(ref);
+	parseRef(ref: string): { headerRefStr: string; typeName: string; dataType: string } {
+		if (!ref?.trim()) return { headerRefStr: '', typeName: '', dataType: '' };
+		const { fileName, typeName, dataType = '' } = this.nameTheHumpCenterStroke(ref);
 		let header: string;
-		const reg = /enum/gi;
-		if (reg.test(typeName)) {
+
+		if (dataType === 'enum') {
 			header = `import type { ${typeName} } from '${this.config.importEnumPath}';`;
 		} else {
 			header = `import type { ${typeName} } from './${fileName}';`;
 		}
 
-		return { headerRefStr: header, typeName };
+		return { headerRefStr: header, typeName, dataType };
 	}
 
 	parseObject(obj: SchemaObject, key: string): TReturnType {
@@ -92,11 +101,18 @@ class Components {
 
 	parseArray(schemaSource: OpenAPIV3.SchemaObject, name: string): TReturnType {
 		const arraySchema = schemaSource as OpenAPIV3.ArraySchemaObject;
-		const { items = {}, nullable } = arraySchema;
+		const { items = {}, nullable, example } = arraySchema;
 		const ref = (items as ReferenceObject)?.$ref;
 
 		if (ref) {
-			const { headerRefStr, typeName } = this.parseRef(ref);
+			// array 类型 枚举值会走，但是不会携带 exzopen
+			const { headerRefStr, typeName, dataType } = this.parseRef(ref);
+			if (dataType === 'enum' && isValidJSON(example)) {
+				const fileName = this.typeNameToFileName(typeName);
+				const enumContent = this.convertJsonToEnumString(example, typeName);
+				this.enumsMap.set(fileName, { fileName, content: enumContent });
+			}
+
 			return {
 				headerRef: headerRefStr,
 				renderStr: `${INDENT}${name}${this.requiredFieldS.includes(name) ? '' : '?'}: Array<${typeName}>${this.nullable(nullable)};`,
@@ -166,7 +182,7 @@ class Components {
 		try {
 			const jsonObj = JSON.parse(jsonStr);
 			const enumValues = Object.entries(jsonObj)
-				.map(([key, value]) => `${INDENT}${key.toUpperCase()} = '${value}'`)
+				.map(([key, value]) => `${INDENT}${key} = '${value}'`)
 				.join(',\n');
 			return `export enum ${enumName} {\n${enumValues}\n}`;
 		} catch (error) {
@@ -189,7 +205,8 @@ class Components {
 				} else {
 					const fileName = this.typeNameToFileName(enumName);
 					const enumResult = this.parseEnum(value, enumName);
-					if (enumResult) {
+					// 检查了
+					if (enumResult && !this.enumsMap.has(fileName)) {
 						this.enumsMap.set(fileName, { fileName, content: enumResult.renderStr });
 						return { headerRef: '', renderStr: '' };
 					}
@@ -211,18 +228,31 @@ class Components {
 			const schemaSource = properties[name];
 
 			if ((schemaSource as ReferenceObject)?.$ref) {
-				const { headerRefStr, typeName } = this.parseRef((schemaSource as ReferenceObject).$ref);
+				// 这里引用类型会携带 example
+				const { headerRefStr, typeName, dataType } = this.parseRef((schemaSource as ReferenceObject).$ref);
 				if (!headerRef.includes(headerRefStr)) headerRef.push(headerRefStr);
 				content.push(`${INDENT}${name}${this.requiredFieldS.includes(name) ? '' : '?'}: ${typeName};`);
+
+				const example = (schemaSource as SchemaObject).example;
+				if (dataType === 'enum' && example && isValidJSON(example)) {
+					const fileName = this.typeNameToFileName(typeName);
+
+					// example 并且是 枚举 不做检查直接覆盖
+					const enumContent = this.convertJsonToEnumString(example as string, typeName);
+					this.enumsMap.set(fileName, { fileName, content: enumContent });
+				}
 				continue;
 			}
 
 			if ('allOf' in schemaSource) {
 				const V1 = schemaSource['allOf']?.[0] as ReferenceObject;
 				if (V1?.$ref) {
+					// 这里枚举值不会走
 					const { headerRefStr, typeName } = this.parseRef(V1.$ref);
+
 					if (!headerRef.includes(headerRefStr)) headerRef.push(headerRefStr);
 					content.push(`${INDENT}${name}${this.requiredFieldS.includes(name) ? '' : '?'}: ${typeName}${this.nullable(schemaSource.nullable)};`);
+
 					continue;
 				}
 			}
@@ -270,8 +300,12 @@ class Components {
 								const header = `import type { ${enumName} } from '${this.config.importEnumPath}';`;
 								if (!headerRef.includes(header)) headerRef.push(header);
 								const fileName = this.typeNameToFileName(enumName);
-								const enumContent = this.convertJsonToEnumString(schema.example as string, enumName);
-								this.enumsMap.set(fileName, { fileName, content: enumContent });
+								// 检查了
+								if (!this.enumsMap.has(fileName)) {
+									const enumContent = this.convertJsonToEnumString(schema.example as string, enumName);
+									this.enumsMap.set(fileName, { fileName, content: enumContent });
+								}
+
 								content.push(`${INDENT}${name}${this.requiredFieldS.includes(name) ? '' : '?'}: ${enumName}${this.nullable(schema.nullable)};`);
 							} else {
 								const enumResult = this.parseEnum(schema as NonArraySchemaObject, enumName);
@@ -279,7 +313,12 @@ class Components {
 									const header = `import type { ${enumName} } from '${this.config.importEnumPath}';`;
 									if (!headerRef.includes(header)) headerRef.push(header);
 									const fileName = this.typeNameToFileName(enumName);
-									this.enumsMap.set(fileName, { fileName, content: enumResult.renderStr });
+
+									// 检查了
+									if (!this.enumsMap.has(fileName)) {
+										this.enumsMap.set(fileName, { fileName, content: enumResult.renderStr });
+									}
+
 									content.push(`${INDENT}${name}${this.requiredFieldS.includes(name) ? '' : '?'}: ${enumName}${this.nullable(schema.nullable)};`);
 								}
 							}
@@ -365,7 +404,8 @@ class Components {
 				const fileName = this.typeNameToFileName(key);
 				const content = await this.generateContent(schemaObject, key);
 				if (content) {
-					if (content.includes('export enum ')) {
+					// 检查了
+					if (content.includes('export enum ') && !this.enumsMap.has(fileName)) {
 						this.enumsMap.set(fileName, { fileName, content });
 					} else {
 						this.schemasMap.set(key, { fileName, content });

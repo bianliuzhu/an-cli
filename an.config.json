@@ -3,7 +3,7 @@
   "saveApiListFolderPath": "apps/api/",
   "saveEnumFolderPath": "apps/enums",
   "importEnumPath": "../../enums",
-  "swaggerJsonUrl": "http://10.10.77.121/dev-api/api-json",
+  "swaggerJsonUrl": "http://localhost:3000/api-json",
   "requestMethodsImportPath": "./fetch",
   "dataLevel": "serve",
   "formatting": {
