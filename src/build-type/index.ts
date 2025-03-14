@@ -51,7 +51,7 @@ export class Main {
 			let response: OpenAPIV3.Document;
 
 			if (process.env.NODE_ENV === 'development') {
-				response = (await import('../../data/openapi.json')).default as unknown as OpenAPIV3.Document;
+				response = (await import('../../data/consolego.openapi.3.0.json')).default as unknown as OpenAPIV3.Document;
 			} else {
 				response = (await getSwaggerJson(config)) as OpenAPIV3.Document;
 			}

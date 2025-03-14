@@ -191,15 +191,16 @@ export class PathParse {
 	 * @returns 解析后的属性字符串数组
 	 */
 	propertiesParse(properties: Properties): string[] {
+		if (!properties) return [];
 		const content = [];
 		for (const key in properties) {
 			const item = properties[key];
 			const result = this.schemaParse(item);
 			let _value = '';
 			if (Array.isArray(result)) {
-				_value = `${TIGHTEN}${TIGHTEN}${key}:{${result.join('\n')}};`;
+				_value = `${TIGHTEN}${TIGHTEN}${key}: {${result.join('\n')}};`;
 			} else {
-				_value = `${TIGHTEN}${TIGHTEN}${key}:${result};`;
+				_value = `${TIGHTEN}${TIGHTEN}${key}: ${result};`;
 			}
 			content.push(_value);
 		}
@@ -346,7 +347,13 @@ export class PathParse {
 			// 处理数组类型
 			if (type === 'array' && schemaObj.items) {
 				const itemType = this.schemaParse(schemaObj.items as Schema);
-				return `Array<${itemType}>` + nullableStr;
+				if (Array.isArray(itemType)) {
+					const ln = this.config.formatting?.lineEnding;
+					const sj = this.config.formatting?.indentation;
+					return `Array<{${ln}${itemType.join('\n')}${ln}${sj}${sj}}>`;
+				} else {
+					return `Array<any>`;
+				}
 			}
 
 			// 处理对象类型
@@ -435,7 +442,13 @@ export class PathParse {
 		if (responseObject) {
 			const responsess = this.responseObjectParse(responseObject);
 			if (Array.isArray(responsess)) {
-				this.contentBody.response = `interface Response {${responsess.join('\n')}} `;
+				if (responsess.length === 1 && responsess[0] === 'unknown') {
+					this.contentBody.response = `type Response = ${responsess.join('\n')};`;
+				} else {
+					const ln = this.config.formatting?.lineEnding;
+					const ind = this.config.formatting?.indentation;
+					this.contentBody.response = `interface Response {${ln}${responsess.join('\n')}${ln}${ind}};`;
+				}
 				this.contentBody._response = `${responsess.join('\n')}`;
 			} else {
 				this.contentBody.response = `type Response = ${responsess}`;
@@ -473,7 +486,7 @@ export class PathParse {
 				const result = this.nonArraySchemaObjectParse(nonArraySchemaObject);
 				if (Array.isArray(result)) {
 					if (result.length === 0) {
-						return [`${TIGHTEN}type Body = unknown`];
+						return [`${TIGHTEN}type Body = ${nonArraySchemaObject.type};`];
 					} else {
 						return [`${TIGHTEN}interface Body {`, ...result.map((item) => item.replace(/: string;/, ': File;')), `}`];
 					}

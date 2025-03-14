@@ -1,0 +1,1106 @@
+{
+  "info": {
+    "title": "consolego",
+    "description": "",
+    "version": "1.0.0"
+  },
+  "openapi": "3.0.0",
+  "servers": [
+    {
+      "url": "",
+      "description": "默认环境",
+      "variables": {}
+    },
+    {
+      "url": "127.0.0.1:18080",
+      "description": "孟可localKeyScrt",
+      "variables": {
+        "url": {
+          "default": "127.0.0.1:18080",
+          "description": ""
+        }
+      }
+    },
+    {
+      "url": "127.0.0.1:18081",
+      "description": "孟可localModelRPC",
+      "variables": {
+        "url": {
+          "default": "127.0.0.1:18081",
+          "description": ""
+        }
+      }
+    },
+    {
+      "url": "10.4.156.14:38001",
+      "description": "测试modelRPC156.14",
+      "variables": {
+        "url": {
+          "default": "10.4.156.14:38001",
+          "description": ""
+        }
+      }
+    },
+    {
+      "url": "127.0.0.1:18180",
+      "description": "孟可localconsolegoRPC",
+      "variables": {
+        "url": {
+          "default": "127.0.0.1:18180",
+          "description": ""
+        }
+      }
+    },
+    {
+      "url": "127.0.0.1:8888",
+      "description": "胡正阳本地http测试环境",
+      "variables": {}
+    },
+    {
+      "url": "10.4.156.14:8004",
+      "description": "测试环境keyscrtRpc",
+      "variables": {
+        "url": {
+          "default": "10.4.156.14:8004",
+          "description": ""
+        }
+      }
+    },
+    {
+      "url": "127.0.0.1:20033",
+      "description": "孟可localconsolegohttp",
+      "variables": {
+        "{{url}}": {
+          "default": "127.0.0.1:20033",
+          "description": ""
+        }
+      }
+    },
+    {
+      "url": "10.4.156.14:8007",
+      "description": "孟可testconsolegohttp",
+      "variables": {
+        "url": {
+          "default": "10.4.156.14:8007",
+          "description": ""
+        }
+      }
+    }
+  ],
+  "components": {
+    "schemas": {
+      "AttachmentDeleteResp": {
+        "type": "object",
+        "title": "AttachmentDeleteResp",
+        "required": [
+          "id",
+          "type",
+          "deleted"
+        ],
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "type": {
+            "type": "string"
+          },
+          "deleted": {
+            "type": "boolean",
+            "format": "boolean"
+          }
+        }
+      },
+      "AttachmentListRequest": {
+        "type": "object",
+        "title": "AttachmentListRequest",
+        "required": [
+          "page_num",
+          "page_size"
+        ],
+        "properties": {
+          "user_id": {
+            "type": "string"
+          },
+          "org_id": {
+            "type": "string"
+          },
+          "purpose": {
+            "type": "string"
+          },
+          "page_num": {
+            "type": "integer",
+            "format": "int32",
+            "default": "1"
+          },
+          "page_size": {
+            "type": "integer",
+            "format": "int32",
+            "default": "10"
+          }
+        }
+      },
+      "AttachmentListResp": {
+        "type": "object",
+        "title": "AttachmentListResp",
+        "required": [
+          "total",
+          "data"
+        ],
+        "properties": {
+          "total": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "data": {
+            "type": "array",
+            "items": {
+              "ref": "be1dd9176003c",
+              "type": "object",
+              "properties": {
+                "id": {
+                  "type": "string"
+                },
+                "type": {
+                  "type": "string"
+                },
+                "bytes": {
+                  "type": "integer",
+                  "format": "int64"
+                },
+                "purpose": {
+                  "type": "string"
+                },
+                "filename": {
+                  "type": "string"
+                }
+              }
+            }
+          }
+        }
+      },
+      "AttachmentResp": {
+        "type": "object",
+        "title": "AttachmentResp",
+        "required": [
+          "id",
+          "type",
+          "bytes",
+          "filename",
+          "purpose"
+        ],
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "type": {
+            "type": "string"
+          },
+          "bytes": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "filename": {
+            "type": "string"
+          },
+          "purpose": {
+            "type": "string"
+          }
+        }
+      },
+      "AttachmentRetriveContentResp": {
+        "type": "object",
+        "title": "AttachmentRetriveContentResp"
+      },
+      "AttachmentRetriveRequest": {
+        "type": "object",
+        "title": "AttachmentRetriveRequest"
+      },
+      "AttachmentUploadRequest": {
+        "type": "object",
+        "title": "AttachmentUploadRequest",
+        "properties": {
+          "purpose": {
+            "type": "string"
+          },
+          "user_id": {
+            "type": "string"
+          }
+        }
+      }
+    }
+  },
+  "paths": {
+    "/account/email": {
+      "get": {
+        "summary": "给email发送验证码",
+        "description": "",
+        "tags": [
+          "开放平台consolego/用户相关"
+        ],
+        "parameters": [
+          {
+            "name": "email",
+            "in": "query",
+            "description": "",
+            "required": true,
+            "example": "",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object"
+              },
+              "example": ""
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "成功",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {}
+                },
+                "example": "{}"
+              }
+            }
+          },
+          "404": {
+            "description": "失败",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {}
+                },
+                "example": ""
+              }
+            }
+          }
+        }
+      }
+    },
+    "/account/update": {
+      "put": {
+        "summary": "修改用户信息",
+        "description": "",
+        "tags": [
+          "开放平台consolego/用户相关/需要登录"
+        ],
+        "parameters": [
+          {
+            "name": "Authorization",
+            "in": "header",
+            "description": "",
+            "required": true,
+            "example": "",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object"
+              },
+              "example": "{\n    \"name\":\"xiaoming2\"\n}"
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "成功",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {}
+                },
+                "example": "{}"
+              }
+            }
+          },
+          "404": {
+            "description": "失败",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {}
+                },
+                "example": ""
+              }
+            }
+          }
+        }
+      }
+    },
+    "/login": {
+      "post": {
+        "summary": "登录",
+        "description": "",
+        "tags": [
+          "开放平台consolego/用户相关",
+          "开放平台consolego/附件文件"
+        ],
+        "parameters": [],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object"
+              },
+              "example": "{\n    \"email\":\"michael_u@163.com\",\n    \"code\":\"91200095\"\n}"
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "成功",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {}
+                },
+                "example": "{\"jwt\":\"Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyX2lkIjoiOTU4Y2UyM2ItOTU0Yy00M2ExLWIyMjMtNmVhNjAxODMwZGI0IiwiZXhwIjoxNzE5NTU1MTI1fQ.Aa9cHKuVZKiaF6JlrBxpuf9DK0_Ifu6uSxg4vAOeMxI\"}"
+              }
+            }
+          },
+          "404": {
+            "description": "失败",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {}
+                },
+                "example": ""
+              }
+            }
+          }
+        }
+      }
+    },
+    "/userinfo": {
+      "get": {
+        "summary": "获取用户信息",
+        "description": "",
+        "tags": [
+          "开放平台consolego/用户相关/需要登录"
+        ],
+        "parameters": [
+          {
+            "name": "Authorization",
+            "in": "header",
+            "description": "",
+            "required": true,
+            "example": "",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {}
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "成功",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {}
+                },
+                "example": "{\"id\":\"958ce23b-954c-43a1-b223-6ea601830db4\",\"email\":\"michael_u@163.com\",\"name\":\"xiaoming2\",\"avatar\":\"\",\"orgs\":\"\"}"
+              }
+            }
+          },
+          "404": {
+            "description": "失败",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {}
+                },
+                "example": ""
+              }
+            }
+          }
+        }
+      }
+    },
+    "/files": {
+      "get": {
+        "summary": "获取文件列表",
+        "description": "",
+        "tags": [
+          "开放平台consolego/附件文件/attach"
+        ],
+        "parameters": [
+          {
+            "name": "user_id",
+            "in": "query",
+            "description": "",
+            "required": false,
+            "example": "",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "org_id",
+            "in": "query",
+            "description": "",
+            "required": false,
+            "example": "",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "purpose",
+            "in": "query",
+            "description": "",
+            "required": false,
+            "example": "",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "page_num",
+            "in": "query",
+            "description": "",
+            "required": true,
+            "example": "",
+            "schema": {
+              "type": "integer"
+            }
+          },
+          {
+            "name": "page_size",
+            "in": "query",
+            "description": "",
+            "required": true,
+            "example": "",
+            "schema": {
+              "type": "integer"
+            }
+          },
+          {
+            "name": "Content-Type",
+            "in": "header",
+            "description": "",
+            "required": true,
+            "example": "",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "Authorization",
+            "in": "header",
+            "description": "",
+            "required": true,
+            "example": "",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "multipart/form-data": {
+              "schema": {
+                "type": "object",
+                "properties": {},
+                "required": []
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "data": {
+                      "type": "array",
+                      "items": {
+                        "ref": "be1dd9176003c",
+                        "type": "object",
+                        "properties": {
+                          "id": {
+                            "type": "string"
+                          },
+                          "type": {
+                            "type": "string"
+                          },
+                          "bytes": {
+                            "type": "integer",
+                            "format": "int64"
+                          },
+                          "purpose": {
+                            "type": "string"
+                          },
+                          "filename": {
+                            "type": "string"
+                          }
+                        }
+                      }
+                    },
+                    "total": {
+                      "type": "integer",
+                      "format": "int64"
+                    }
+                  }
+                },
+                "example": "{\n\t\"total\": 0,\n\t\"data\": [\n\t\t{\n\t\t\t\"id\": \"\",\n\t\t\t\"type\": \"\",\n\t\t\t\"bytes\": 0,\n\t\t\t\"filename\": \"\",\n\t\t\t\"purpose\": \"\"\n\t\t}\n\t]\n}"
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "summary": "上传文件",
+        "description": "",
+        "tags": [
+          "开放平台consolego/附件文件/attach"
+        ],
+        "parameters": [
+          {
+            "name": "purpose",
+            "in": "query",
+            "description": "",
+            "required": true,
+            "example": "",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "Content-Type",
+            "in": "header",
+            "description": "",
+            "required": true,
+            "example": "",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "Authorization",
+            "in": "header",
+            "description": "",
+            "required": true,
+            "example": "",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "multipart/form-data": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "file": {
+                    "type": "file",
+                    "example": "/lyndon/iData/kernel-math-py/Dockerfile",
+                    "description": ""
+                  },
+                  "purpose": {
+                    "type": "string",
+                    "example": "test321",
+                    "description": ""
+                  }
+                },
+                "required": [
+                  "file",
+                  "purpose"
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "id": {
+                      "type": "string"
+                    },
+                    "type": {
+                      "type": "string"
+                    },
+                    "bytes": {
+                      "type": "integer",
+                      "format": "int64"
+                    },
+                    "purpose": {
+                      "type": "string"
+                    },
+                    "filename": {
+                      "type": "string"
+                    }
+                  }
+                },
+                "example": "{\n\t\"id\": \"\",\n\t\"type\": \"\",\n\t\"bytes\": 0,\n\t\"filename\": \"\",\n\t\"purpose\": \"\"\n}"
+              }
+            }
+          }
+        }
+      }
+    },
+    "/files/{file_id}": {
+      "get": {
+        "summary": "获取文件",
+        "description": "",
+        "tags": [
+          "开放平台consolego/附件文件/attach"
+        ],
+        "parameters": [
+          {
+            "name": "Content-Type",
+            "in": "header",
+            "description": "",
+            "required": true,
+            "example": "",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "Authorization",
+            "in": "header",
+            "description": "",
+            "required": true,
+            "example": "",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object"
+              },
+              "example": ""
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "id": {
+                      "type": "string"
+                    },
+                    "type": {
+                      "type": "string"
+                    },
+                    "bytes": {
+                      "type": "integer",
+                      "format": "int64"
+                    },
+                    "purpose": {
+                      "type": "string"
+                    },
+                    "filename": {
+                      "type": "string"
+                    }
+                  }
+                },
+                "example": "{\n\t\"id\": \"\",\n\t\"type\": \"\",\n\t\"bytes\": 0,\n\t\"filename\": \"\",\n\t\"purpose\": \"\"\n}"
+              }
+            }
+          }
+        }
+      },
+      "delete": {
+        "summary": "删除文件",
+        "description": "",
+        "tags": [
+          "开放平台consolego/附件文件/attach"
+        ],
+        "parameters": [
+          {
+            "name": "Content-Type",
+            "in": "header",
+            "description": "",
+            "required": true,
+            "example": "",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "Authorization",
+            "in": "header",
+            "description": "",
+            "required": true,
+            "example": "",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {}
+              },
+              "example": "{}"
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "id": {
+                      "type": "string"
+                    },
+                    "type": {
+                      "type": "string"
+                    },
+                    "deleted": {
+                      "type": "boolean",
+                      "format": "boolean"
+                    }
+                  }
+                },
+                "example": "{\n\t\"id\": \"\",\n\t\"type\": \"\",\n\t\"deleted\": \"\"\n}"
+              }
+            }
+          }
+        }
+      }
+    },
+    "/files/{file_id}/content": {
+      "get": {
+        "summary": "获取文件内容",
+        "description": "",
+        "tags": [
+          "开放平台consolego/附件文件/attach"
+        ],
+        "parameters": [
+          {
+            "name": "Content-Type",
+            "in": "header",
+            "description": "",
+            "required": true,
+            "example": "",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "Authorization",
+            "in": "header",
+            "description": "",
+            "required": true,
+            "example": "",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object"
+              },
+              "example": ""
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {}
+                },
+                "example": "{}"
+              }
+            }
+          }
+        }
+      }
+    },
+    "/keyscrt/list": {
+      "get": {
+        "summary": "获取keyscrt列表",
+        "description": "",
+        "tags": [
+          "开放平台consolego/secretkey管理"
+        ],
+        "parameters": [
+          {
+            "name": "sort",
+            "in": "query",
+            "description": "",
+            "required": true,
+            "example": "",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "page",
+            "in": "query",
+            "description": "",
+            "required": true,
+            "example": "",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "size",
+            "in": "query",
+            "description": "",
+            "required": true,
+            "example": "",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "Authorization",
+            "in": "header",
+            "description": "",
+            "required": true,
+            "example": "",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {}
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "成功",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {}
+                },
+                "example": ""
+              }
+            }
+          },
+          "404": {
+            "description": "失败",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {}
+                },
+                "example": ""
+              }
+            }
+          }
+        }
+      }
+    },
+    "/keyscrt/add": {
+      "post": {
+        "summary": "新增keyscrt",
+        "description": "",
+        "tags": [
+          "开放平台consolego/secretkey管理"
+        ],
+        "parameters": [
+          {
+            "name": "Authorization",
+            "in": "header",
+            "description": "",
+            "required": true,
+            "example": "",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object"
+              },
+              "example": "{\n    \"name\":\"fdesfdsa\"\n}"
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "成功",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {}
+                },
+                "example": ""
+              }
+            }
+          },
+          "404": {
+            "description": "失败",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {}
+                },
+                "example": ""
+              }
+            }
+          }
+        }
+      }
+    },
+    "/keyscrt/del": {
+      "delete": {
+        "summary": "删除keyscrt",
+        "description": "",
+        "tags": [
+          "开放平台consolego/secretkey管理"
+        ],
+        "parameters": [
+          {
+            "name": "Authorization",
+            "in": "header",
+            "description": "",
+            "required": true,
+            "example": "",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object"
+              },
+              "example": "{\n    \"id\":\"dcef3606-6f41-445b-bc40-a41b0e92aa91\"\n}"
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "成功",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {}
+                },
+                "example": ""
+              }
+            }
+          },
+          "404": {
+            "description": "失败",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {}
+                },
+                "example": ""
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  "tags": [
+    {
+      "name": "开放平台consolego",
+      "description": ""
+    },
+    {
+      "name": "用户相关",
+      "description": ""
+    },
+    {
+      "name": "需要登录",
+      "description": ""
+    },
+    {
+      "name": "secretkey管理",
+      "description": ""
+    },
+    {
+      "name": "附件文件",
+      "description": ""
+    },
+    {
+      "name": "attach",
+      "description": ""
+    },
+    {
+      "name": "RPC",
+      "description": ""
+    }
+  ]
+}

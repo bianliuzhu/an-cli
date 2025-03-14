@@ -17,7 +17,8 @@
 		"src",
 		"data/install-stylelint.ts",
 		"data/install-stylelint.ts",
-		"apps"
+		"apps",
+		"data/files-get.d.ts"
 	],
 	"exclude": [
 		"lib"
