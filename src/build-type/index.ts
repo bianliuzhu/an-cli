@@ -23,11 +23,11 @@ interface ExecResult {
 	stdout: string;
 	stderr: string;
 }
-
+const isDev = process.env.NODE_ENV === 'development';
 const configContent: ConfigType = {
-	saveTypeFolderPath: process.env.NODE_ENV === 'development' ? 'apps/types' : 'src/api/types',
-	saveApiListFolderPath: process.env.NODE_ENV === 'development' ? 'apps/types' : 'src/api',
-	saveEnumFolderPath: process.env.NODE_ENV === 'development' ? 'apps/types/enums' : 'src/enums',
+	saveTypeFolderPath: isDev ? 'apps/types' : 'src/api/types',
+	saveApiListFolderPath: isDev ? 'apps/types' : 'src/api',
+	saveEnumFolderPath: isDev ? 'apps/types/enums' : 'src/enums',
 	importEnumPath: '../../../enums',
 	requestMethodsImportPath: './fetch',
 	dataLevel: 'serve',
@@ -51,7 +51,7 @@ export class Main {
 			let response: OpenAPIV3.Document;
 
 			if (process.env.NODE_ENV === 'development') {
-				response = (await import('../../data/consolego.openapi.3.0.json')).default as unknown as OpenAPIV3.Document;
+				response = (await import('../../data/open-api.json')).default as unknown as OpenAPIV3.Document;
 			} else {
 				response = (await getSwaggerJson(config)) as OpenAPIV3.Document;
 			}
@@ -64,7 +64,7 @@ export class Main {
 			this.paths = response.paths || {};
 
 			const components = new Components(this.schemas, config);
-			const paths = new PathParse(this.paths, config);
+			const paths = new PathParse(this.paths, response.components?.parameters, config);
 
 			await Promise.all([components.handle(), paths.handle()]);
 

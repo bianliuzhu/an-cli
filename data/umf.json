@@ -2755,7 +2755,7 @@
 					"check"
 				]
 			},
-			"BgGenerateStage": {
+			"BgGenerateStageEnum": {
 				"type": "string",
 				"description": "生成阶段",
 				"enum": [
@@ -2823,7 +2823,7 @@
 					},
 					"stage": {
 						"example": "{\"PROMPTS\":\"prompts\",\"BG\":\"bg\"}",
-						"$ref": "#/components/schemas/BgGenerateStage"
+						"$ref": "#/components/schemas/BgGenerateStageEnum"
 					},
 					"progress": {
 						"description": "进度",
@@ -3897,9 +3897,7 @@
 					"bgi",
 					"bgm",
 					"cg",
-					"cp",
-					"mvars",
-					"ieff"
+					"cp"
 				]
 			},
 			"Role": {
@@ -3983,37 +3981,6 @@
 					"name"
 				]
 			},
-			"ArithmeticOperatorEnum": {
-				"type": "string",
-				"description": "算术运算符",
-				"enum": [
-					"add",
-					"sub",
-					"eq"
-				]
-			},
-			"Var": {
-				"type": "object",
-				"properties": {
-					"varId": {
-						"type": "string",
-						"description": "选定的变量ID"
-					},
-					"varValue": {
-						"type": "number",
-						"description": "设定变量值"
-					},
-					"operator": {
-						"example": "{\"ADD\":\"add\",\"SUB\":\"sub\",\"EQ\":\"eq\"}",
-						"$ref": "#/components/schemas/ArithmeticOperatorEnum"
-					}
-				},
-				"required": [
-					"varId",
-					"varValue",
-					"operator"
-				]
-			},
 			"EffectTypeEnum": {
 				"type": "string",
 				"description": "音效类型",
@@ -4036,6 +4003,10 @@
 						"example": "{\"FLOW\":\"flow\",\"SCENE\":\"scene\"}",
 						"$ref": "#/components/schemas/EffectTypeEnum"
 					},
+					"label": {
+						"type": "string",
+						"description": "音效标签"
+					},
 					"loop": {
 						"type": "boolean",
 						"description": "是否循环",
@@ -4052,6 +4023,7 @@
 				"required": [
 					"ids",
 					"type",
+					"label",
 					"loop",
 					"volume"
 				]
@@ -4069,7 +4041,7 @@
 					},
 					"command": {
 						"type": "array",
-						"example": "{\"Narrator\":\"narr\",\"ClearPorp\":\"clp\",\"BlackScreenText\":\"bst\",\"BackgroundImage\":\"bgi\",\"BackgroundMusic\":\"bgm\",\"ComputerGraphics\":\"cg\",\"CharacterPortrait\":\"cp\",\"ModifyVariables\":\"mvars\",\"InsertEffect\":\"ieff\"}",
+						"example": "{\"Narrator\":\"narr\",\"ClearPorp\":\"clp\",\"BlackScreenText\":\"bst\",\"BackgroundImage\":\"bgi\",\"BackgroundMusic\":\"bgm\",\"ComputerGraphics\":\"cg\",\"CharacterPortrait\":\"cp\"}",
 						"items": {
 							"$ref": "#/components/schemas/EditorCommandEnum"
 						}
@@ -4098,13 +4070,6 @@
 							}
 						]
 					},
-					"vars": {
-						"description": "变量",
-						"type": "array",
-						"items": {
-							"$ref": "#/components/schemas/Var"
-						}
-					},
 					"soundEffects": {
 						"description": "音效",
 						"type": "array",
@@ -4120,7 +4085,6 @@
 					"role",
 					"vocal",
 					"prop",
-					"vars",
 					"soundEffects"
 				]
 			},
@@ -4834,64 +4798,33 @@
 					"children"
 				]
 			},
-			"NodeTypeEnum": {
-				"type": "string",
-				"description": "节点类型",
-				"enum": [
-					"start",
-					"scene",
-					"branch",
-					"end"
-				]
-			},
-			"LogicalOperatorEnum": {
-				"type": "string",
-				"description": "逻辑关联",
-				"enum": [
-					"and",
-					"or",
-					""
-				]
-			},
 			"Variable": {
 				"type": "object",
 				"properties": {
 					"id": {
-						"type": "string",
-						"description": "变量ID"
+						"type": "string"
+					},
+					"alias": {
+						"type": "string"
 					},
 					"name": {
-						"type": "string",
-						"description": "变量名称"
+						"type": "string"
 					}
 				},
 				"required": [
 					"id",
+					"alias",
 					"name"
-				]
-			},
-			"EscapeCharacterEnum": {
-				"type": "string",
-				"description": "转义字符",
-				"enum": [
-					"lt",
-					"le",
-					"eq",
-					"ne",
-					"ge",
-					"gt"
 				]
 			},
 			"ExpValue": {
 				"type": "object",
 				"properties": {
 					"value": {
-						"type": "number",
-						"description": "设置值"
+						"type": "number"
 					},
 					"exp": {
-						"example": "{\"LT\":\"lt\",\"LE\":\"le\",\"EQ\":\"eq\",\"NE\":\"ne\",\"GE\":\"ge\",\"GT\":\"gt\"}",
-						"$ref": "#/components/schemas/EscapeCharacterEnum"
+						"type": "string"
 					}
 				},
 				"required": [
@@ -4899,9 +4832,13 @@
 					"exp"
 				]
 			},
-			"TriggerCondition": {
+			"ICondition": {
 				"type": "object",
 				"properties": {
+					"isEnabled": {
+						"type": "boolean",
+						"description": "是否启用"
+					},
 					"variable": {
 						"description": "变量信息",
 						"allOf": [
@@ -4926,36 +4863,17 @@
 							}
 						]
 					},
-					"when": {
-						"example": "{\"AND\":\"and\",\"OR\":\"or\",\"NULL\":\"\"}",
-						"$ref": "#/components/schemas/LogicalOperatorEnum"
+					"condition": {
+						"type": "string",
+						"description": "条件"
 					}
 				},
 				"required": [
+					"isEnabled",
 					"variable",
 					"lower",
 					"upper",
-					"when"
-				]
-			},
-			"ICondition": {
-				"type": "object",
-				"properties": {
-					"when": {
-						"example": "{\"AND\":\"and\",\"OR\":\"or\",\"NULL\":\"\"}",
-						"$ref": "#/components/schemas/LogicalOperatorEnum"
-					},
-					"list": {
-						"description": "触发条件",
-						"type": "array",
-						"items": {
-							"$ref": "#/components/schemas/TriggerCondition"
-						}
-					}
-				},
-				"required": [
-					"when",
-					"list"
+					"condition"
 				]
 			},
 			"IOptions": {
@@ -4973,19 +4891,20 @@
 						"type": "string",
 						"description": "绑定音频"
 					},
-					"vars": {
-						"description": "设置变量",
-						"type": "array",
-						"items": {
-							"$ref": "#/components/schemas/Var"
-						}
+					"varId": {
+						"type": "string",
+						"description": "选定的变量ID"
 					},
-					"conditionSwitch": {
-						"type": "boolean",
-						"description": "是否启用条件判断"
+					"alias": {
+						"type": "string",
+						"description": "选定的变量"
 					},
-					"condition": {
-						"description": "触发条件",
+					"varValue": {
+						"type": "number",
+						"description": "设定的变量值"
+					},
+					"advanced": {
+						"description": "高级选项",
 						"allOf": [
 							{
 								"$ref": "#/components/schemas/ICondition"
@@ -4997,9 +4916,10 @@
 					"name",
 					"nodeId",
 					"sound",
-					"vars",
-					"conditionSwitch",
-					"condition"
+					"varId",
+					"alias",
+					"varValue",
+					"advanced"
 				]
 			},
 			"NodeData": {
@@ -5040,7 +4960,8 @@
 						"description": "id"
 					},
 					"type": {
-						"$ref": "#/components/schemas/NodeTypeEnum"
+						"type": "string",
+						"description": "类型"
 					},
 					"data": {
 						"description": "节点数据",
@@ -5060,31 +4981,45 @@
 			"EdgeData": {
 				"type": "object",
 				"properties": {
-					"when": {
-						"example": "{\"AND\":\"and\",\"OR\":\"or\",\"NULL\":\"\"}",
-						"$ref": "#/components/schemas/LogicalOperatorEnum"
+					"isEnabled": {
+						"type": "boolean",
+						"description": "是否启用"
 					},
-					"list": {
-						"description": "触发条件",
-						"type": "array",
-						"items": {
-							"$ref": "#/components/schemas/TriggerCondition"
-						}
+					"variable": {
+						"description": "变量信息",
+						"allOf": [
+							{
+								"$ref": "#/components/schemas/Variable"
+							}
+						]
 					},
-					"label": {
+					"lower": {
+						"description": "条件一",
+						"allOf": [
+							{
+								"$ref": "#/components/schemas/ExpValue"
+							}
+						]
+					},
+					"upper": {
+						"description": "条件二",
+						"allOf": [
+							{
+								"$ref": "#/components/schemas/ExpValue"
+							}
+						]
+					},
+					"condition": {
 						"type": "string",
-						"description": "标签"
-					},
-					"weight": {
-						"type": "number",
-						"description": "权重"
+						"description": "条件"
 					}
 				},
 				"required": [
-					"when",
-					"list",
-					"label",
-					"weight"
+					"isEnabled",
+					"variable",
+					"lower",
+					"upper",
+					"condition"
 				]
 			},
 			"Edge": {
@@ -5138,16 +5073,13 @@
 				"type": "object",
 				"properties": {
 					"id": {
-						"type": "string",
-						"description": "节点id"
+						"type": "string"
 					},
 					"msg": {
-						"type": "string",
-						"description": "错误信息"
+						"type": "string"
 					},
 					"type": {
-						"type": "string",
-						"description": "错误类型"
+						"type": "string"
 					}
 				},
 				"required": [
@@ -5161,31 +5093,35 @@
 				"properties": {
 					"only": {
 						"description": "节点重复集",
-						"type": "array",
-						"items": {
-							"$ref": "#/components/schemas/Valid"
-						}
+						"allOf": [
+							{
+								"$ref": "#/components/schemas/Valid"
+							}
+						]
 					},
 					"scene": {
 						"description": "场景报错集",
-						"type": "array",
-						"items": {
-							"$ref": "#/components/schemas/Valid"
-						}
+						"allOf": [
+							{
+								"$ref": "#/components/schemas/Valid"
+							}
+						]
 					},
 					"branch": {
 						"description": "节点报错集",
-						"type": "array",
-						"items": {
-							"$ref": "#/components/schemas/Valid"
-						}
+						"allOf": [
+							{
+								"$ref": "#/components/schemas/Valid"
+							}
+						]
 					},
 					"edge": {
 						"description": "边报错集",
-						"type": "array",
-						"items": {
-							"$ref": "#/components/schemas/Valid"
-						}
+						"allOf": [
+							{
+								"$ref": "#/components/schemas/Valid"
+							}
+						]
 					}
 				},
 				"required": [

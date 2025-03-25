@@ -9,6 +9,7 @@ export type HttpMethods = OpenAPIV3.HttpMethods;
 
 export type PathItemObject = OpenAPIV3.PathItemObject;
 export type OperationObject = OpenAPIV3.OperationObject;
+
 export interface TreeInterfaceParamsItem {
 	name: string;
 	in?: string;
@@ -180,6 +181,7 @@ export type ContentBody = {
 	summary: string | undefined;
 	apiName: string;
 	typeName: string;
+	deprecated: boolean;
 };
 
 export type MapType = Map<string, ContentBody>;

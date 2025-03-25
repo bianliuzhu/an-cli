@@ -45,6 +45,12 @@ const defaultConfig: Partial<PathParseConfig> = {
 	},
 };
 
+const componentsPathEnum = {
+	schemas: '#/components/schemas/',
+	parameters: '#/components/parameters/',
+	definitions: '#/definitions/',
+};
+
 /**
  * 路径解析类，用于处理 OpenAPI 规范中的路径对象
  */
@@ -70,6 +76,7 @@ export class PathParse {
 		summary: '',
 		apiName: '',
 		typeName: '',
+		deprecated: false,
 	};
 	/** 类型映射表 */
 	Map: MapType = new Map();
@@ -77,10 +84,10 @@ export class PathParse {
 	private config: PathParseConfig;
 	/** 解析错误列表 */
 	private errors: ParseError[] = [];
-	/** Schema 缓存 */
-	private schemaCache = new Map<string, string>();
 	/** 引用缓存 */
 	private referenceCache = new Map<string, string>();
+
+	parameters: OpenAPIV3.ComponentsObject['parameters'] = {};
 
 	/** 字符串模板对象 */
 	private readonly templates = {
@@ -89,9 +96,11 @@ export class PathParse {
 		interfaceDefinition: (name: string) => `interface ${name}`,
 	};
 
-	constructor(pathsObject: OpenAPIV3.PathsObject, config: PathParseConfig) {
+	constructor(pathsObject: OpenAPIV3.PathsObject, parameters: OpenAPIV3.ComponentsObject['parameters'], config: PathParseConfig) {
 		this.pathsObject = pathsObject;
 		// 合并配置，确保必需的属性来自传入的 config
+		this.parameters = parameters ?? {};
+
 		this.config = {
 			...defaultConfig,
 			...config,
@@ -119,20 +128,6 @@ export class PathParse {
 	 */
 	private getIndentation(): string {
 		return this.config.formatting?.indentation || TIGHTEN;
-	}
-
-	/**
-	 * 格式化代码
-	 * @param code 需要格式化的代码
-	 * @returns 格式化后的代码
-	 */
-	private formatCode(code: string): string {
-		const indent = this.getIndentation();
-		const lineEnd = this.config.formatting?.lineEnding || '\n';
-		return code
-			.split('\n')
-			.map((line) => `${indent}${line}`)
-			.join(lineEnd);
 	}
 
 	/**
@@ -283,10 +278,17 @@ export class PathParse {
 
 			// 处理不同格式的引用路径
 			let typeName = refKey;
-			if (refKey.startsWith('#/components/schemas/')) {
-				typeName = refKey.replace('#/components/schemas/', '');
-			} else if (refKey.startsWith('#/definitions/')) {
-				typeName = refKey.replace('#/definitions/', '');
+
+			if (refKey.startsWith(componentsPathEnum.schemas)) {
+				typeName = refKey.replace(componentsPathEnum.schemas, '');
+			}
+
+			if (refKey.startsWith(componentsPathEnum.parameters)) {
+				typeName = refKey.replace(componentsPathEnum.parameters, '');
+			}
+
+			if (refKey.startsWith(componentsPathEnum.definitions)) {
+				typeName = refKey.replace(componentsPathEnum.definitions, '');
 			}
 
 			const fileName = this.typeNameToFileName(typeName);
@@ -352,7 +354,7 @@ export class PathParse {
 					const sj = this.config.formatting?.indentation;
 					return `Array<{${ln}${itemType.join('\n')}${ln}${sj}${sj}}>`;
 				} else {
-					return `Array<any>`;
+					return `Array<${itemType}>`;
 				}
 			}
 
@@ -393,7 +395,7 @@ export class PathParse {
 			if (!content) return '';
 
 			// 支持多种响应格式
-			const supportedTypes = ['application/json', 'text/json', 'text/plain', '*/*'];
+			const supportedTypes = ['application/json', 'text/json', 'text/plain', 'application/octet-stream', '*/*'];
 
 			let schema;
 			for (const type of supportedTypes) {
@@ -516,6 +518,55 @@ export class PathParse {
 		return '{}';
 	}
 
+	parametersItemHandle(item: ReferenceObject | ParameterObject, path: string[], query: string[]) {
+		const V1 = '$ref' in item ? (item as ReferenceObject) : null;
+		const V2 = 'name' in item ? (item as ParameterObject) : null;
+
+		if (V1 && V1.$ref && V1.$ref.startsWith(componentsPathEnum.parameters) && this.parameters) {
+			const typeName = V1.$ref.replace(componentsPathEnum.parameters, '');
+
+			const value = this.parameters[typeName];
+			this.parametersItemHandle(value, path, query);
+		}
+
+		if (V2) {
+			if (V2.in === 'path') {
+				const v2value = this.schemaParse(V2.schema);
+				path.push(`${TIGHTEN}${TIGHTEN}type ${V2.name} = ${v2value};`);
+				if (this.contentBody.payload._path) {
+					if (typeof v2value === 'string') {
+						this.contentBody.payload._path[V2.name] = v2value;
+					} else {
+						console.log('Unexpected v2value type:', v2value);
+					}
+				} else {
+					if (typeof v2value === 'string') {
+						this.contentBody.payload._path = { [V2.name]: v2value };
+					} else {
+						console.log('Unexpected v2value type:', v2value);
+					}
+				}
+			}
+			if (V2.in === 'query') {
+				const v2value = this.schemaParse(V2.schema);
+				query.push(`${TIGHTEN}${TIGHTEN}${V2.name}: ${v2value};`);
+				if (this.contentBody.payload._query) {
+					if (typeof v2value === 'string') {
+						this.contentBody.payload._query[V2.name] = v2value;
+					} else {
+						console.log('Unexpected v2value type:', v2value);
+					}
+				} else {
+					if (typeof v2value === 'string') {
+						this.contentBody.payload._query = { [V2.name]: v2value };
+					} else {
+						console.log('Unexpected v2value type:', v2value);
+					}
+				}
+			}
+		}
+	}
+
 	/**
 	 * 解析请求参数
 	 * @param parameters 请求参数数组
@@ -523,52 +574,8 @@ export class PathParse {
 	requestParametersParse(parameters: OperationObject['parameters']) {
 		const path: Array<string> = [];
 		const query: Array<string> = [];
-		parameters?.map((item) => {
-			const V1 = '$ref' in item ? (item as ReferenceObject) : null;
-			const V2 = 'name' in item ? (item as ParameterObject) : null;
 
-			if (V1) {
-				const typeName = this.referenceObjectParse(V1);
-				log.warning(`${this.pathKey} ${typeName} item 是 ReferenceObject 类型 ----未处理---`);
-				return typeName;
-			}
-			if (V2) {
-				if (V2.in === 'path') {
-					const v2value = this.schemaParse(V2.schema);
-					path.push(`${TIGHTEN}${TIGHTEN}type ${V2.name} = ${v2value};`);
-					if (this.contentBody.payload._path) {
-						if (typeof v2value === 'string') {
-							this.contentBody.payload._path[V2.name] = v2value;
-						} else {
-							console.log('Unexpected v2value type:', v2value);
-						}
-					} else {
-						if (typeof v2value === 'string') {
-							this.contentBody.payload._path = { [V2.name]: v2value };
-						} else {
-							console.log('Unexpected v2value type:', v2value);
-						}
-					}
-				}
-				if (V2.in === 'query') {
-					const v2value = this.schemaParse(V2.schema);
-					query.push(`${TIGHTEN}${TIGHTEN}${V2.name}: ${v2value};`);
-					if (this.contentBody.payload._query) {
-						if (typeof v2value === 'string') {
-							this.contentBody.payload._query[V2.name] = v2value;
-						} else {
-							console.log('Unexpected v2value type:', v2value);
-						}
-					} else {
-						if (typeof v2value === 'string') {
-							this.contentBody.payload._query = { [V2.name]: v2value };
-						} else {
-							console.log('Unexpected v2value type:', v2value);
-						}
-					}
-				}
-			}
-		});
+		parameters?.map((item) => this.parametersItemHandle(item, path, query));
 
 		if (path.length !== 0) {
 			path.unshift(`${TIGHTEN}namespace Path {`);
@@ -689,6 +696,7 @@ export class PathParse {
 					requestPath: path,
 					apiName,
 					summary: methodItems.summary,
+					deprecated: methodItems.deprecated ?? false,
 				};
 
 				this.requestHandle(methodItems);
@@ -766,7 +774,7 @@ export class PathParse {
 		const P = (key: string, content: ContentBody) =>
 			new Promise((resolve, reject) => {
 				try {
-					const { payload, response, fileName, summary, typeName } = content;
+					const { payload, response, fileName, summary, typeName, deprecated } = content;
 
 					const [, method] = key.split('|');
 					!methodList.includes(method) && methodList.push(method);
@@ -775,7 +783,7 @@ export class PathParse {
 
 					// 添加注释
 					if (summary) {
-						apiListFileContent.push(['/**', '\n', ` * ${summary}`, '\n', ' */'].join(''));
+						apiListFileContent.push(['/**', '\n', deprecated ? ` * @deprecated ${summary}` : ` * ${summary}`, '\n', ' */'].join(''));
 					}
 
 					// api 请求
