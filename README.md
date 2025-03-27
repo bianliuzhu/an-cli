@@ -25,13 +25,17 @@ $ yarn global add anl
 
 ## 使用方法
 
+1. 执行命令
+
 ```bash
 $ anl type
 ```
 
-- 如果初次使用会在项目根目录下创建如下配置文件（手动创建也可以），具体参数说明后面会有详细介绍
+2. 完善配置项目
 
-1. 项目根目录创建配置文件 `an.config.json`：
+- 首次执行 `anl type`, 命令，会在*项目根目录下*, _自动创建_ 以 `an.config.json` 为名的配置文件（手动创建也可以），
+- 具体参数说明请看配置项说明
+- 配置文件名不可修改
 
 ```json
 {
@@ -39,7 +43,7 @@ $ anl type
 	"saveApiListFolderPath": "apps/api/",
 	"saveEnumFolderPath": "apps/enums",
 	"importEnumPath": "../../enums",
-	"swaggerJsonUrl": "http://your-swagger-api-url/swagger.json",
+	"swaggerJsonUrl": "https://generator3.swagger.io/openapi.json",
 	"requestMethodsImportPath": "./fetch",
 	"dataLevel": "serve",
 	"formatting": {
@@ -50,10 +54,10 @@ $ anl type
 }
 ```
 
-2. 运行命令生成类型文件：
+3. 生成 TypeScript 类型定义和 API 请求函数，再次执行生成命令即可
 
 ```bash
-anl generate
+$ anl type
 ```
 
 ## 配置项说明
