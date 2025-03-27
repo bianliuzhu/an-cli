@@ -11,11 +11,10 @@ type ResponseModel<T> = {
 
 interface IRequestFnRestParams<P = any> {
 	config?: import('axios').AxiosRequestConfig<P>;
-	datalevel?: TDatalevel;
 	[key: string]: any;
 }
 
-interface IRequestFnParams<P = any> extends IRequestFnRestParams<P> {
+type IRequestFnParams<P = any> = import('axios').AxiosRequestConfig<P> & {
 	query?: any;
 	body?: any;
-}
+};
