@@ -3,6 +3,7 @@ import { clearDir, log, writeFileRecursive } from '../../utils';
 import {
 	ArraySchemaObject,
 	ContentBody,
+	IContentType,
 	MapType,
 	NonArraySchemaObject,
 	OperationObject,
@@ -51,6 +52,20 @@ const componentsPathEnum = {
 	definitions: '#/definitions/',
 };
 
+const supportedRequestTypesAll: IContentType[] = [
+	'application/json',
+	'text/json',
+	'text/plain',
+	'application/x-www-form-urlencoded',
+	'application/xml',
+	'text/xml',
+	'*/*',
+	'application/octet-stream',
+	'multipart/form-data',
+];
+
+const supportedRequestUploadTypes = ['application/octet-stream', 'multipart/form-data'];
+
 /**
  * 路径解析类，用于处理 OpenAPI 规范中的路径对象
  */
@@ -77,6 +92,7 @@ export class PathParse {
 		apiName: '',
 		typeName: '',
 		deprecated: false,
+		contentType: 'application/json',
 	};
 	/** 类型映射表 */
 	Map: MapType = new Map();
@@ -394,11 +410,8 @@ export class PathParse {
 			const content = responseObject.content;
 			if (!content) return '';
 
-			// 支持多种响应格式
-			const supportedTypes = ['application/json', 'text/json', 'text/plain', 'application/octet-stream', '*/*'];
-
 			let schema;
-			for (const type of supportedTypes) {
+			for (const type of supportedRequestTypesAll) {
 				if (content[type]?.schema) {
 					schema = content[type].schema;
 					break;
@@ -617,55 +630,66 @@ export class PathParse {
 	 * @returns 生成的API请求代码
 	 */
 	apiRequestItemHandle(content: ContentBody) {
-		const { payload, requestPath, _response, method, typeName, apiName } = content;
+		const { payload, requestPath, _response, method, typeName, apiName, contentType } = content;
 		const { _path, _query, body } = payload;
 
-		// 检查是否包含文件上传
-		const hasFileUpload = body.some((line) => line.includes('File:') || line.includes(': File'));
-
-		const pathParamsHandle = (p: { [x: string]: string }) => {
+		const pathParamsHandle = () => {
 			const arr = [];
-			for (const i in p) {
+			for (const i in _path) {
 				arr.push(`${i}: ${typeName}.Path.${i}`);
 			}
-			if (arr.length > 1) return arr.join(',');
-			else return arr.join('');
+			const str = arr.join(arr.length > 1 ? ',' : '');
+			if (str === '') return str;
+			else return str + ',';
 		};
 
-		const apiParamsPath = _path ? pathParamsHandle(_path) : '';
-		const apiParamsQuery = _query ? `params: ${typeName}.Query` : '';
-		const apiParamsBody = body.length > 0 ? `params: ${typeName}.Body` : '';
-		const temp: {
-			apiParamsPath?: string;
-			apiParamsQuery?: string;
-			apiParamsBody?: string;
-		} = {};
-		apiParamsPath && (temp['apiParamsPath'] = apiParamsPath);
-		apiParamsQuery && (temp['apiParamsQuery'] = apiParamsQuery);
-		apiParamsBody && (temp['apiParamsBody'] = apiParamsBody);
-		const paramsLeg = Object.keys(temp).length >= 2;
+		const queryParamsHandle = (): string => {
+			const str = _query ? `query: ${typeName}.Query,` : '';
 
-		// 只在文件上传时添加 datalevel 和 config
-		const datalevel = hasFileUpload ? `,${this.config.dataLevel}` : '';
-		const config = hasFileUpload ? `, { headers: { 'Content-Type': 'multipart/form-data' } }` : '';
+			return str === '' ? '' : `${str}`;
+		};
+
+		const bodyParamsHandle = (): string => {
+			const str = body.length > 0 ? `body: ${typeName}.Body,` : '';
+			return str === '' ? `` : `${str}`;
+		};
+
+		const apiParamsPath = pathParamsHandle();
+
+		const apiParamsQuery = queryParamsHandle();
+
+		const apiParamsBody = bodyParamsHandle();
+
+		const objParamsHandle = () => {
+			const _config = supportedRequestUploadTypes.includes(contentType) ? `headers: { 'Content-Type': '${contentType}' }` : undefined;
+			const param = [
+				`{`,
+				_config ? `${_config},` : '',
+				'...params, ',
+				apiParamsQuery === '' ? '' : 'query,',
+				apiParamsBody === '' ? '' : 'body,',
+				`},`,
+			];
+
+			return param.join('');
+		};
+
+		const parameter = (apiParamsPath + apiParamsQuery + apiParamsBody).replace(/,$/, '');
 
 		const contentList: Array<string> = [
 			`export const ${apiName} = `,
 			'(',
-			_path ? pathParamsHandle(_path) : '',
-			`${paramsLeg ? ',' : ''}`,
-			_query ? `params: ${typeName}.Query` : '',
-			body.length > 0 ? `params: ${typeName}.Body` : '',
+			parameter,
+			parameter === '' ? 'params?: IRequestFnParams' : ', params?: IRequestFnParams',
 			')',
 			` => `,
-			`${method}${_response ? '<' + `${typeName}.Response` + '>' : ''}`,
-			'(`' +
-				requestPath +
-				'`' +
-				`${apiParamsQuery || apiParamsBody ? ', params' : ''}` +
-				datalevel + // 只在文件上传时添加 datalevel
-				config + // 只在文件上传时添加 config
-				');',
+			method,
+			`${_response ? '<' + `${typeName}.Response` + '>' : ''}`,
+			'(',
+			'`' + requestPath + '`,',
+			objParamsHandle(),
+			`'${this.config.dataLevel}'`,
+			');',
 		];
 		const apidetails = contentList.join('');
 		return apidetails;
@@ -686,6 +710,9 @@ export class PathParse {
 				const mapKey = pathKey + '|' + methodUp;
 				const { apiName, typeName, fileName, path } = this.convertEndpointString(mapKey);
 
+				const contentType = methodItems.requestBody && 'content' in methodItems.requestBody && methodItems.requestBody.content;
+				const contentTypeKey = (typeof contentType === 'object' ? Object.keys(contentType)[0] : 'application/json') as IContentType;
+
 				this.contentBody = {
 					payload: { path: [], query: [], body: [] },
 					response: '',
@@ -697,6 +724,7 @@ export class PathParse {
 					apiName,
 					summary: methodItems.summary,
 					deprecated: methodItems.deprecated ?? false,
+					contentType: supportedRequestTypesAll.includes(contentTypeKey) ? contentTypeKey : 'application/json',
 				};
 
 				this.requestHandle(methodItems);

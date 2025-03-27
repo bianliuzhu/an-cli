@@ -2184,6 +2184,30 @@
 				]
 			}
 		},
+		"/api/effect/cache/clear": {
+			"post": {
+				"operationId": "EffectController_refresh",
+				"parameters": [
+					{
+						"name": "secret",
+						"required": false,
+						"in": "query",
+						"description": "secret",
+						"schema": {
+							"type": "string"
+						}
+					}
+				],
+				"responses": {
+					"201": {
+						"description": ""
+					}
+				},
+				"tags": [
+					"音效"
+				]
+			}
+		},
 		"/api/canvas/record": {
 			"post": {
 				"operationId": "CanvasController_record",
@@ -3974,6 +3998,11 @@
 					"name": {
 						"type": "string",
 						"description": "道具名称"
+					},
+					"disabled": {
+						"type": "boolean",
+						"description": "是否失效, true-失效|false-有效",
+						"default": false
 					}
 				},
 				"required": [
@@ -3981,7 +4010,7 @@
 					"name"
 				]
 			},
-			"EffectTypeEnum": {
+			"SoundEffectTypeEnum": {
 				"type": "string",
 				"description": "音效类型",
 				"enum": [
@@ -3992,6 +4021,10 @@
 			"SoundEffect": {
 				"type": "object",
 				"properties": {
+					"id": {
+						"type": "string",
+						"description": "id"
+					},
 					"ids": {
 						"description": "音效对应ID层级",
 						"type": "array",
@@ -4001,7 +4034,7 @@
 					},
 					"type": {
 						"example": "{\"FLOW\":\"flow\",\"SCENE\":\"scene\"}",
-						"$ref": "#/components/schemas/EffectTypeEnum"
+						"$ref": "#/components/schemas/SoundEffectTypeEnum"
 					},
 					"label": {
 						"type": "string",
@@ -4018,9 +4051,15 @@
 						"default": 50,
 						"minimum": 0,
 						"maximum": 100
+					},
+					"disabled": {
+						"type": "boolean",
+						"description": "是否失效, true-失效|false-有效",
+						"default": false
 					}
 				},
 				"required": [
+					"id",
 					"ids",
 					"type",
 					"label",
@@ -4798,6 +4837,16 @@
 					"children"
 				]
 			},
+			"CanvasNodeTypeEnum": {
+				"type": "string",
+				"description": "类型",
+				"enum": [
+					"start",
+					"scene",
+					"branch",
+					"end"
+				]
+			},
 			"Variable": {
 				"type": "object",
 				"properties": {
@@ -4817,6 +4866,18 @@
 					"name"
 				]
 			},
+			"EscapeCharacterEnum": {
+				"type": "string",
+				"description": "转义字符",
+				"enum": [
+					"lt",
+					"le",
+					"eq",
+					"ne",
+					"ge",
+					"gt"
+				]
+			},
 			"ExpValue": {
 				"type": "object",
 				"properties": {
@@ -4824,12 +4885,22 @@
 						"type": "number"
 					},
 					"exp": {
-						"type": "string"
+						"example": "{\"LT\":\"lt\",\"LE\":\"le\",\"EQ\":\"eq\",\"NE\":\"ne\",\"GE\":\"ge\",\"GT\":\"gt\"}",
+						"$ref": "#/components/schemas/EscapeCharacterEnum"
 					}
 				},
 				"required": [
 					"value",
 					"exp"
+				]
+			},
+			"LogicalOperatorEnum": {
+				"type": "string",
+				"description": "条件",
+				"enum": [
+					"and",
+					"or",
+					""
 				]
 			},
 			"ICondition": {
@@ -4864,8 +4935,8 @@
 						]
 					},
 					"condition": {
-						"type": "string",
-						"description": "条件"
+						"example": "{\"AND\":\"and\",\"OR\":\"or\",\"NULL\":\"\"}",
+						"$ref": "#/components/schemas/LogicalOperatorEnum"
 					}
 				},
 				"required": [
@@ -4960,8 +5031,8 @@
 						"description": "id"
 					},
 					"type": {
-						"type": "string",
-						"description": "类型"
+						"example": "{\"START\":\"start\",\"SCENE\":\"scene\",\"BRANCH\":\"branch\",\"END\":\"end\"}",
+						"$ref": "#/components/schemas/CanvasNodeTypeEnum"
 					},
 					"data": {
 						"description": "节点数据",
@@ -5010,8 +5081,8 @@
 						]
 					},
 					"condition": {
-						"type": "string",
-						"description": "条件"
+						"example": "{\"AND\":\"and\",\"OR\":\"or\",\"NULL\":\"\"}",
+						"$ref": "#/components/schemas/LogicalOperatorEnum"
 					}
 				},
 				"required": [
@@ -5093,35 +5164,31 @@
 				"properties": {
 					"only": {
 						"description": "节点重复集",
-						"allOf": [
-							{
-								"$ref": "#/components/schemas/Valid"
-							}
-						]
+						"type": "array",
+						"items": {
+							"$ref": "#/components/schemas/Valid"
+						}
 					},
 					"scene": {
 						"description": "场景报错集",
-						"allOf": [
-							{
-								"$ref": "#/components/schemas/Valid"
-							}
-						]
+						"type": "array",
+						"items": {
+							"$ref": "#/components/schemas/Valid"
+						}
 					},
 					"branch": {
 						"description": "节点报错集",
-						"allOf": [
-							{
-								"$ref": "#/components/schemas/Valid"
-							}
-						]
+						"type": "array",
+						"items": {
+							"$ref": "#/components/schemas/Valid"
+						}
 					},
 					"edge": {
 						"description": "边报错集",
-						"allOf": [
-							{
-								"$ref": "#/components/schemas/Valid"
-							}
-						]
+						"type": "array",
+						"items": {
+							"$ref": "#/components/schemas/Valid"
+						}
 					}
 				},
 				"required": [

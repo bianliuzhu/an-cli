@@ -51,7 +51,7 @@ export class Main {
 			let response: OpenAPIV3.Document;
 
 			if (process.env.NODE_ENV === 'development') {
-				response = (await import('../../data/open-api.json')).default as unknown as OpenAPIV3.Document;
+				response = (await import('../../data/openapi.json')).default as unknown as OpenAPIV3.Document;
 			} else {
 				response = (await getSwaggerJson(config)) as OpenAPIV3.Document;
 			}
@@ -110,7 +110,7 @@ export class Main {
 	 */
 	private async copyAjaxConfigFiles(saveApiListFolderPath: string) {
 		try {
-			const filesToCopy = ['config.ts', 'error-message.ts', 'fetch.ts'];
+			const filesToCopy = ['config.ts', 'error-message.ts', 'fetch.ts', 'api-type.d.ts'];
 			const sourceDir = path.join(__dirname, '..', '..', 'ajax-config');
 			const destDir = saveApiListFolderPath;
 

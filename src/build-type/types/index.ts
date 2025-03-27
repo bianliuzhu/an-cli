@@ -165,6 +165,17 @@ export interface PathParseConfig extends ConfigType {
 	};
 }
 
+export type IContentType =
+	| 'application/json'
+	| 'text/json'
+	| 'text/plain'
+	| 'application/x-www-form-urlencoded'
+	| 'application/xml'
+	| 'text/xml'
+	| '*/*'
+	| 'application/octet-stream'
+	| 'multipart/form-data';
+
 export type ContentBody = {
 	payload: {
 		path: Array<string>;
@@ -182,6 +193,7 @@ export type ContentBody = {
 	apiName: string;
 	typeName: string;
 	deprecated: boolean;
+	contentType: IContentType;
 };
 
 export type MapType = Map<string, ContentBody>;
