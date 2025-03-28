@@ -1,6 +1,6 @@
 {
 	"name": "anl",
-	"version": "1.5.4",
+	"version": "1.5.5",
 	"description": "FE command line tool",
 	"main": "bin/an-cli.js",
 	"scripts": {
@@ -8,7 +8,8 @@
 		"build": "rimraf lib && rollup --config rollup.config.ts --configPlugin @rollup/plugin-typescript",
 		"pub": "bash publish.sh",
 		"ts": "tsc ./src/int.ts --noEmit --watch",
-		"blink": "npm run build && npm link"
+		"blink": "npm run build && npm link",
+		"sync-docs": "node scripts/sync-docs.js"
 	},
 	"bin": {
 		"anl": "bin/an-cli.js"

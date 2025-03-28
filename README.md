@@ -1,5 +1,7 @@
 # an-cli
 
+[English](./README.en.md) | [Español](./README.es.md) | [العربية](./README.ar.md) | [Français](./README.fr.md) | [Русский](./README.ru.md) | [日本語](./README.jp.md) | 简体中文
+
 前端命令行工具
 
 一个基于 Swagger JSON 自动生成 TypeScript 类型定义和 API 请求函数的命令行工具。
@@ -189,3 +191,42 @@ npm run blink
 ## 许可证
 
 ISC License
+
+## 多语言文档说明
+
+为了更好地维护多语言文档，我们提供以下建议：
+
+1. 文件命名规范
+
+   - 使用标准的语言代码命名：
+     - 中文版：`README.zh-CN.md`
+     - 英文版：`README.en.md`
+     - 西班牙语版：`README.es.md`
+     - 阿拉伯语版：`README.ar.md`
+     - 法语版：`README.fr.md`
+     - 俄语版：`README.ru.md`
+     - 日语版：`README.ja.md`
+
+2. 文档同步更新
+
+   - 使用 `sync-docs.js` 脚本自动同步所有语言版本
+   - 在修改主要文档后运行 `npm run sync-docs`
+   - 确保所有语言版本的结构保持一致
+
+3. 翻译规范
+
+   - 保持专业术语的一致性
+   - 代码示例保持原始英文
+   - 注释和说明使用对应语言
+   - 保持排版格式的统一
+
+4. 贡献指南
+
+   - 欢迎提交多语言版本的改进建议
+   - 请确保在提交 PR 时更新所有语言版本
+   - 如发现翻译问题，请提交 Issue
+
+5. 语言切换优化
+   - 在每个文档顶部添加语言切换图标
+   - 保持所有语言版本的链接顺序一致
+   - 当前语言链接保持未激活状态
