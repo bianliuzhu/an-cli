@@ -1,6 +1,6 @@
 # an-cli
 
-[简体中文](./README.md) | English
+English| [Español](./README.es.md) | [العربية](./README.ar.md) | [Français](./README.fr.md) | [Русский](./README.ru.md) | [日本語](./README.jp.md) | 简体中文
 
 Frontend Command Line Tool
 
