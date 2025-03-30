@@ -1,6 +1,6 @@
 # an-cli
 
-English| [Español](./README.es.md) | [العربية](./README.ar.md) | [Français](./README.fr.md) | [Русский](./README.ru.md) | [日本語](./README.jp.md) | [简体中文](./README.md)
+English | [Español](./README.es.md) | [العربية](./README.ar.md) | [Français](./README.fr.md) | [Русский](./README.ru.md) | [日本語](./README.jp.md) | [简体中文](./README.md)
 
 Frontend Command Line Tool
 
@@ -79,3 +79,152 @@ $ anl type
 ## Generated File Structure
 
 - This file structure is generated based on the configuration file
+
+project/
+├── apps/
+│ ├── types/
+│ │ ├── models/ # All type definition files (excluding enums)
+│ │ ├── connectors/ # API type definitions (interface files)
+│ │ └── enums/ # Enum type definitions
+│ └── api/
+│ ├── fetch.ts # Request method implementation
+│ └── index.ts # API request functions
+
+## Generated Code Examples
+
+### Type Definition File
+
+```typescript
+declare namespace UserDetail_GET {
+	interface Query {
+		userId: string;
+	}
+
+	interface Response {
+		id: string;
+		name: string;
+		age: number;
+		role: UserRole;
+	}
+}
+```
+
+### API Request Function
+
+```typescript
+import { GET } from './fetch';
+
+/**
+ * Get user details
+ */
+export const userDetailGet = (params: UserDetail_GET.Query) => GET<UserDetail_GET.Response>('/user/detail', params);
+```
+
+## Feature Details
+
+### Type Parsing
+
+- Supports all OpenAPI 3.0 specification data types
+- Automatically handles complex nested types
+- Supports arrays, objects, enums, and other types
+- Automatically generates interface comments
+
+### File Upload
+
+When file upload type is detected, corresponding headers will be automatically added:
+
+```typescript
+export const uploadFile = (params: UploadFile.Body) =>
+	POST<UploadFile.Response>('/upload', params, {
+		headers: { 'Content-Type': 'multipart/form-data' },
+	});
+```
+
+### Error Handling
+
+The tool has built-in comprehensive error handling mechanisms:
+
+- Parsing error prompts
+- Type generation failure warnings
+- File writing exception handling
+
+## Development
+
+```bash
+# Install dependencies
+npm install
+
+# Development mode
+Press F5 to debug
+
+# Build
+npm run build
+
+# Local link debugging
+npm run blink
+```
+
+## Important Notes
+
+1. Ensure the Swagger JSON documentation URL is accessible
+2. Paths in the configuration file should be relative to the project root directory
+3. Generated files will overwrite existing files with the same name
+4. It's recommended to include generated files in version control
+
+## Common Issues
+
+1. Generated type file formatting fails
+
+   - Check if prettier is installed
+   - Confirm if prettier configuration file exists in the project root
+
+2. Request function import path error
+   - Check if requestMethodsImportPath configuration is correct
+   - Confirm if the request method file exists
+
+## Contributing
+
+Issues and Pull Requests are welcome!
+
+## License
+
+ISC License
+
+## Multi-language Documentation Guidelines
+
+To better maintain multi-language documentation, we provide the following suggestions:
+
+1. File Naming Convention
+
+   - Use standard language codes:
+     - Chinese: `README.zh-CN.md`
+     - English: `README.en.md`
+     - Spanish: `README.es.md`
+     - Arabic: `README.ar.md`
+     - French: `README.fr.md`
+     - Russian: `README.ru.md`
+     - Japanese: `README.ja.md`
+
+2. Document Synchronization
+
+   - Use `sync-docs.js` script to automatically sync all language versions
+   - Run `npm run sync-docs` after modifying the main documentation
+   - Ensure consistent structure across all language versions
+
+3. Translation Guidelines
+
+   - Maintain consistency in technical terms
+   - Keep code examples in English
+   - Use corresponding language for comments and explanations
+   - Maintain uniform formatting
+
+4. Contribution Guidelines
+
+   - Welcome suggestions for improving multi-language versions
+   - Please update all language versions when submitting PRs
+   - Submit issues for translation problems
+
+5. Language Switching Optimization
+   - Add language switching icons at the top of each document
+   - Maintain consistent order of language version links
+   - Keep current language link in inactive state
