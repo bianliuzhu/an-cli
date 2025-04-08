@@ -2,22 +2,39 @@
 
 [English](./README.en.md) | [Español](./README.es.md) | [العربية](./README.ar.md) | [Français](./README.fr.md) | [Русский](./README.ru.md) | 日本語 | [简体中文](./README.md)
 
-フロントエンドコマンドラインツール
+## 概要
 
-Swagger JSONに基づいてTypeScriptの型定義とAPIリクエスト関数を自動生成するコマンドラインツール。
+an-cliは、以下の2つのコマンドを含むフロントエンドコマンドラインツールです：
+
+[anl typeコマンド](#anl-typeコマンド)：Swagger JSONに基づいてTypeScriptの型定義とAPIリクエスト関数を自動生成するツール。
+
+`anl lint`コマンド：ReactまたはVueプロジェクトのeslint、stylelint、prettier、commitLint、VSCode関連の設定を生成するツール。
 
 ## 特徴
 
-- 🚀 Swagger JSON文書の自動解析
-- 📦 TypeScript型定義ファイルの生成
-- 🔄 型安全なAPIリクエスト関数の生成
-- 🎯 パスパラメータ、クエリパラメータ、リクエストボディのサポート
-- 📝 列挙型定義の自動生成
-- 🎨 コードフォーマットのサポート
-- ⚡️ ファイルアップロードのサポート
-- 🛠 設定可能なコード生成オプション
+- `anl type`
+
+  - 🚀 Swagger JSON文書の自動解析
+  - 📦 TypeScript型定義ファイルの生成
+  - 🔄 型安全なAPIリクエスト関数の生成
+  - 🎯 パスパラメータ、クエリパラメータ、リクエストボディのサポート
+  - 📝 列挙型定義の自動生成
+  - 🎨 コードフォーマットのサポート
+  - ⚡️ ファイルアップロードのサポート
+  - 🛠 設定可能なコード生成オプション
+
+- `anl lint`
+  - 🔍 各種リントツールのワンクリック設定
+  - 🎨 ESLint設定の自動化
+  - 🎯 Prettierフォーマット設定
+  - 🔄 CommitLintコミット規約
+  - 📦 VSCodeエディタ設定
 
 ## インストール
+
+> [!NOTE]
+>
+> グローバルインストールが必要です
 
 ```bash
 $ npm install anl -g
@@ -184,8 +201,59 @@ npm run blink
 
 ## 貢献ガイド
 
-IssueやPull Requestを歓迎します！
+[Issue](https://github.com/bianliuzhu/an-cli/issues)や[Pull Request](https://github.com/bianliuzhu/an-cli/pulls)を歓迎します！
 
 ## ライセンス
 
 ISC License
+
+# anl lintコマンド
+
+### 機能概要
+
+フロントエンドプロジェクトの各種リントツールをワンクリックで設定する機能を提供します：
+
+- ESLintコード検査
+- Prettierコードフォーマット
+- CommitLintコミットメッセージ規約
+- VSCodeエディタ設定
+
+### 使用方法
+
+```bash
+$ anl lint
+```
+
+### 設定詳細
+
+#### 1. ESLint設定
+
+- 必要な依存関係を自動インストール
+- React/Vueフレームワークをサポート
+- `.eslintrc.js`と`.eslintignore`を自動生成
+- TypeScriptサポートを統合
+
+#### 2. Prettier設定
+
+- prettier関連の依存関係を自動インストール
+- `.prettierrc.js`設定ファイルを生成
+- デフォルト設定には以下が含まれます：
+  - 行幅：80
+  - タブインデント
+  - シングルクォートの使用
+  - アロー関数の括弧
+  - その他のコードスタイル規約
+
+#### 3. CommitLint設定
+
+- commitlint関連の依存関係をインストール
+- husky git hooksを設定
+- `commitlint.config.js`を生成
+- gitコミットメッセージを標準化
+
+#### 4. VSCode設定
+
+- `.vscode/settings.json`を作成
+- エディタの自動フォーマットを設定
+- デフォルトフォーマッタを設定
+- 既存の設定ファイルの更新をサポート

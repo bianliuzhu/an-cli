@@ -2,22 +2,39 @@
 
 English | [Español](./README.es.md) | [العربية](./README.ar.md) | [Français](./README.fr.md) | [Русский](./README.ru.md) | [日本語](./README.jp.md) | [简体中文](./README.md)
 
-Frontend Command Line Tool
+## Description
 
-A command-line tool that automatically generates TypeScript type definitions and API request functions based on Swagger JSON.
+an-cli is a frontend command line tool that includes the following two commands:
+
+[anl type command](#anl-type-command): A command-line tool that automatically generates TypeScript type definitions and API request functions based on Swagger JSON.
+
+`anl lint` command: Generates eslint, stylelint, prettier, commitLint, and VSCode related configurations for React or Vue projects.
 
 ## Features
 
-- 🚀 Automatic parsing of Swagger JSON documentation
-- 📦 Generate TypeScript type definition files
-- 🔄 Generate type-safe API request functions
-- 🎯 Support for path parameters, query parameters, and request body
-- 📝 Automatic generation of enum type definitions
-- 🎨 Support for code formatting
-- ⚡️ Support for file uploads
-- 🛠 Configurable code generation options
+- `anl type`
+
+  - 🚀 Automatic parsing of Swagger JSON documentation
+  - 📦 Generate TypeScript type definition files
+  - 🔄 Generate type-safe API request functions
+  - 🎯 Support for path parameters, query parameters, and request body
+  - 📝 Automatic generation of enum type definitions
+  - 🎨 Support for code formatting
+  - ⚡️ Support for file uploads
+  - 🛠 Configurable code generation options
+
+- `anl lint`
+  - 🔍 One-click configuration for various lint tools
+  - 🎨 ESLint configuration automation
+  - 🎯 Prettier formatting configuration
+  - 🔄 CommitLint submission specifications
+  - 📦 VSCode editor configuration
 
 ## Installation
+
+> [!NOTE]
+>
+> Global installation is required
 
 ```bash
 $ npm install anl -g
@@ -25,7 +42,14 @@ $ npm install anl -g
 $ yarn global add anl
 ```
 
-## Usage
+## Usage Notes
+
+> [!TIP]
+>
+> 1. If you are using it for the first time and are unsure about the results, it is recommended to execute the command first, observe what changes will occur in the project, then combine with the documentation to further modify the configuration and generate again until you achieve your desired outcome
+> 2. Or follow the steps below one by one, and you will gain understanding
+
+# anl type command
 
 1. Execute command
 
@@ -189,3 +213,54 @@ Issues and Pull Requests are welcome!
 ## License
 
 ISC License
+
+# anl lint command
+
+### Feature Overview
+
+Provides one-click configuration functionality for various frontend project lint tools, including:
+
+- ESLint code checking
+- Prettier code formatting
+- CommitLint commit message specifications
+- VSCode editor configuration
+
+### Usage
+
+```bash
+$ anl lint
+```
+
+### Configuration Details
+
+#### 1. ESLint Configuration
+
+- Automatically installs required dependencies
+- Supports React/Vue frameworks
+- Automatically generates `.eslintrc.js` and `.eslintignore`
+- Integrates TypeScript support
+
+#### 2. Prettier Configuration
+
+- Automatically installs prettier-related dependencies
+- Generates `.prettierrc.js` configuration file
+- Default configurations include:
+  - Line width: 80
+  - Tab indentation
+  - Use single quotes
+  - Arrow function parentheses
+  - Other code style specifications
+
+#### 3. CommitLint Configuration
+
+- Installs commitlint-related dependencies
+- Configures husky git hooks
+- Generates `commitlint.config.js`
+- Standardizes git commit messages
+
+#### 4. VSCode Configuration
+
+- Creates `.vscode/settings.json`
+- Configures editor auto-formatting
+- Sets default formatting tools
+- Supports updating existing configuration files

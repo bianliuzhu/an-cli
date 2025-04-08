@@ -2,22 +2,39 @@
 
 [English](./README.en.md) | [Español](./README.es.md) | [العربية](./README.ar.md) | Français | [Русский](./README.ru.md) | [日本語](./README.jp.md) | [简体中文](./README.md)
 
-Outil en Ligne de Commande Frontend
+## Description
 
-Un outil en ligne de commande qui génère automatiquement des définitions de types TypeScript et des fonctions de requête API basées sur Swagger JSON.
+an-cli est un outil en ligne de commande frontend qui comprend les deux commandes suivantes :
 
-## Fonctionnalités
+[Commande anl type](#commande-anl-type) : Un outil en ligne de commande qui génère automatiquement des définitions de types TypeScript et des fonctions de requête API basées sur Swagger JSON.
 
-- 🚀 Analyse automatique de la documentation Swagger JSON
-- 📦 Génération de fichiers de définition de types TypeScript
-- 🔄 Génération de fonctions de requête API typées
-- 🎯 Prise en charge des paramètres de chemin, de requête et de corps
-- 📝 Génération automatique de définitions de types énumérés
-- 🎨 Prise en charge du formatage du code
-- ⚡️ Prise en charge du téléchargement de fichiers
-- 🛠 Options de génération de code configurables
+Commande `anl lint` : Génère des configurations ESLint, Stylelint, Prettier, CommitLint et VSCode pour les projets React ou Vue.
+
+## Caractéristiques
+
+- `anl type`
+
+  - 🚀 Analyse automatique de la documentation Swagger JSON
+  - 📦 Génération de fichiers de définition de types TypeScript
+  - 🔄 Génération de fonctions de requête API typées
+  - 🎯 Prise en charge des paramètres de chemin, de requête et de corps
+  - 📝 Génération automatique de définitions de types énumérés
+  - 🎨 Prise en charge du formatage du code
+  - ⚡️ Prise en charge du téléchargement de fichiers
+  - 🛠 Options de génération de code configurables
+
+- `anl lint`
+  - 🔍 Configuration en un clic de divers outils lint
+  - 🎨 Configuration automatique d'ESLint
+  - 🎯 Configuration du formatage Prettier
+  - 🔄 Normes de commit avec CommitLint
+  - 📦 Configuration de l'éditeur VSCode
 
 ## Installation
+
+> [!NOTE]
+>
+> Installation globale requise
 
 ```bash
 $ npm install anl -g
@@ -25,7 +42,12 @@ $ npm install anl -g
 $ yarn global add anl
 ```
 
-## Utilisation
+## Instructions d'utilisation
+
+> [!TIP]
+>
+> 1. Si c'est votre première utilisation et que vous n'êtes pas sûr des résultats, il est recommandé d'exécuter d'abord la commande, d'observer les changements dans le projet, puis de consulter la documentation pour modifier la configuration et générer à nouveau jusqu'à obtenir le résultat souhaité.
+> 2. Ou suivez les étapes ci-dessous une par une pour obtenir des résultats.
 
 1. Exécuter la commande
 

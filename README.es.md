@@ -2,20 +2,33 @@
 
 [English](./README.en.md) | Español | [العربية](./README.ar.md) | [Français](./README.fr.md) | [Русский](./README.ru.md) | [日本語](./README.jp.md) | [简体中文](./README.md)
 
-Herramienta de Línea de Comandos Frontend
+## Descripción
 
-Una herramienta de línea de comandos que genera automáticamente definiciones de tipos TypeScript y funciones de solicitud de API basadas en Swagger JSON.
+an-cli es una herramienta de línea de comandos frontend que incluye dos comandos:
+
+[Comando anl type](#comando-anl-type): Una herramienta de línea de comandos que genera automáticamente definiciones de tipos TypeScript y funciones de solicitud de API basadas en Swagger JSON.
+
+Comando `anl lint`: Genera configuraciones relacionadas con eslint, stylelint, prettier, commitLint y VSCode para proyectos React o Vue.
 
 ## Características
 
-- 🚀 Análisis automático de documentación Swagger JSON
-- 📦 Genera archivos de definición de tipos TypeScript
-- 🔄 Genera funciones de solicitud de API con seguridad de tipos
-- 🎯 Soporte para parámetros de ruta, consulta y cuerpo de solicitud
-- 📝 Generación automática de definiciones de tipos enum
-- 🎨 Soporte para formateo de código
-- ⚡️ Soporte para carga de archivos
-- 🛠 Opciones configurables de generación de código
+- `anl type`
+
+  - 🚀 Análisis automático de documentación Swagger JSON
+  - 📦 Genera archivos de definición de tipos TypeScript
+  - 🔄 Genera funciones de solicitud de API con seguridad de tipos
+  - 🎯 Soporte para parámetros de ruta, consulta y cuerpo de solicitud
+  - 📝 Generación automática de definiciones de tipos enum
+  - 🎨 Soporte para formateo de código
+  - ⚡️ Soporte para carga de archivos
+  - 🛠 Opciones configurables de generación de código
+
+- `anl lint`
+  - 🔍 Configuración con un solo comando para varias herramientas lint
+  - 🎨 Configuración automatizada de ESLint
+  - 🎯 Configuración de formato Prettier
+  - 🔄 Estándares de commit con CommitLint
+  - 📦 Configuración del editor VSCode
 
 ## Instalación
 
@@ -188,3 +201,54 @@ npm run blink
 ## Licencia
 
 Licencia ISC
+
+# Comando anl lint
+
+### Descripción General
+
+Proporciona la funcionalidad de configurar varias herramientas lint para proyectos frontend con un solo comando, incluyendo:
+
+- Verificación de código con ESLint
+- Formateo de código con Prettier
+- Estandarización de mensajes de commit con CommitLint
+- Configuración del editor VSCode
+
+### Uso
+
+```bash
+$ anl lint
+```
+
+### Detalles de Configuración
+
+#### 1. Configuración de ESLint
+
+- Instalación automática de dependencias necesarias
+- Soporte para frameworks React/Vue
+- Generación automática de `.eslintrc.js` y `.eslintignore`
+- Integración con soporte TypeScript
+
+#### 2. Configuración de Prettier
+
+- Instalación automática de dependencias de prettier
+- Generación del archivo de configuración `.prettierrc.js`
+- Configuración predeterminada que incluye:
+  - Ancho de línea: 80
+  - Indentación con tabulaciones
+  - Uso de comillas simples
+  - Paréntesis en funciones flecha
+  - Otras normas de estilo de código
+
+#### 3. Configuración de CommitLint
+
+- Instalación de dependencias relacionadas con commitlint
+- Configuración de git hooks con husky
+- Generación de `commitlint.config.js`
+- Estandarización de mensajes git commit
+
+#### 4. Configuración de VSCode
+
+- Creación de `.vscode/settings.json`
+- Configuración de formato automático del editor
+- Configuración de la herramienta de formato predeterminada
+- Soporte para actualización de archivos de configuración existentes
