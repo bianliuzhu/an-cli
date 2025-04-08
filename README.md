@@ -8,7 +8,7 @@ an-cli 是 前端命令行工具，包含以下两个命令
 
 [anl type 命令](#anl type 命令)：基于 Swagger JSON 自动生成 TypeScript 类型定义和 API 请求函数的命令行工具。
 
-[anl lint 命令](#anl lint 命令)命令，生成 react 或 vue 项目 eslint、stylelint、prettier、commitLint、VSCode相关配置 
+[anl lint 命令](#anl lint 命令)：生成 react 或 vue 项目 eslint、stylelint、prettier、commitLint、VSCode相关配置
 
 ## 功能特点
 
