@@ -1,6 +1,6 @@
 {
 	"name": "anl",
-	"version": "1.5.10",
+	"version": "1.5.13",
 	"description": "FE command line tool",
 	"main": "bin/an-cli.js",
 	"scripts": {
@@ -23,7 +23,7 @@
 		"@rollup/plugin-json": "^4.1.0",
 		"@rollup/plugin-node-resolve": "^13.1.3",
 		"@rollup/plugin-typescript": "^8.3.0",
-		"@types/inquirer": "^9.0.3",
+		"@types/inquirer": "^9.0.7",
 		"@types/shelljs": "^0.8.11",
 		"@typescript-eslint/eslint-plugin": "^5.52.0",
 		"@typescript-eslint/parser": "^5.52.0",

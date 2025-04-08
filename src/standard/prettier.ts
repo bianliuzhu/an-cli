@@ -1,5 +1,5 @@
 import { exec } from 'child_process';
-import { copyFileSync } from 'fs';
+import { writeFileSync } from 'fs';
 import { join } from 'path';
 import createLogger from 'progress-estimator';
 import { spinner } from '../utils';
@@ -28,11 +28,29 @@ export const prettierHanlde = async () => {
 
 	const copyFile = new Promise((resolve, reject) => {
 		try {
-			copyFileSync(`${__dirname.replace('lib/src', 'template/prettierrc.js')}`, `${process.cwd()}/.prettierrc.js`);
+			const prettierConfig = [
+				'module.exports = {',
+				'printWidth: 80,',
+				'tabWidth: 2,',
+				'useTabs: true,',
+				'semi: true,',
+				'singleQuote: true,',
+				'quoteProps: "as-needed",',
+				'trailingComma: "none",',
+				'bracketSpacing: true,',
+				'arrowParens: "always",',
+				'rangeStart: 0,',
+				'proseWrap: "preserve",',
+				'htmlWhitespaceSensitivity: "css"',
+				'};',
+			];
+
+			const targetPath = join(process.cwd(), '.prettierrc.js');
+			writeFileSync(targetPath, prettierConfig.join('\n'), 'utf8');
 			spinner.success('✨ .prettierrc write done!');
 			resolve({ success: true });
 		} catch (error) {
-			spinner.error('❌ prettierrc write fail!');
+			spinner.error('prettierrc write fail!');
 			reject(error);
 		}
 	});

@@ -12,7 +12,7 @@ export function lintHandle(): void {
 			name: 'framework',
 			choices: ['React', 'Vue'],
 			filter: (val: string) => val.toLowerCase(),
-			validate: (answer) => {
+			validate: (answer: string) => {
 				if (!answer.length) {
 					return 'Choose the framework to use';
 				}

@@ -1,5 +1,23 @@
-import { copyFileSync, existsSync, mkdirSync, readFileSync, writeFileSync } from 'fs';
+import { existsSync, mkdirSync, readFileSync, writeFileSync } from 'fs';
 import { spinner } from '../utils';
+
+const defaultSettings = {
+	'editor.formatOnSave': true,
+	'[javascript]': {
+		'editor.defaultFormatter': 'vscode.typescript-language-features',
+	},
+	'[typescript]': {
+		'editor.defaultFormatter': 'esbenp.prettier-vscode',
+	},
+	'[json]': {
+		'editor.quickSuggestions': {
+			strings: true,
+		},
+		'editor.suggest.insertMode': 'replace',
+		'gitlens.codeLens.scopes': ['document'],
+		'editor.defaultFormatter': 'esbenp.prettier-vscode',
+	},
+};
 
 const vscodeHandle = async () => {
 	const setting_path = `${process.cwd()}/.vscode/settings.json`;
@@ -14,7 +32,7 @@ const vscodeHandle = async () => {
 		const vscodePath = `${process.cwd()}/.vscode`;
 		try {
 			mkdirSync(vscodePath);
-			copyFileSync(`${__dirname.replace('lib/src', 'template/settings.json')}`, `${vscodePath}/settings.json`);
+			writeFileSync(`${vscodePath}/settings.json`, JSON.stringify(defaultSettings, null, '\t'));
 			spinner.success('✨ .vscode/settings.json file write success');
 		} catch (error) {
 			spinner.error('.vscode/settings.json file write fail');

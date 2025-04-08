@@ -31,7 +31,7 @@ const configContent: ConfigType = {
 	importEnumPath: '../../../enums',
 	requestMethodsImportPath: './fetch',
 	dataLevel: 'serve',
-	swaggerJsonUrl: 'www.example.swagger.json.url',
+	swaggerJsonUrl: 'https://generator3.swagger.io/openapi.json',
 	headers: {},
 	formatting: {
 		indentation: '\t',
