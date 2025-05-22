@@ -77,17 +77,51 @@ $ anl type
 
 ## Configuración
 
-| Parámetro                | Tipo                         | Requerido | Descripción                                       |
-| ------------------------ | ---------------------------- | --------- | ------------------------------------------------- |
-| saveTypeFolderPath       | string                       | Sí        | Ruta para guardar archivos de definición de tipos |
-| saveApiListFolderPath    | string                       | Sí        | Ruta para guardar funciones de solicitud API      |
-| saveEnumFolderPath       | string                       | Sí        | Ruta para guardar tipos enum                      |
-| importEnumPath           | string                       | Sí        | Ruta de importación para tipos enum               |
-| swaggerJsonUrl           | string                       | Sí        | URL del documento Swagger JSON                    |
-| requestMethodsImportPath | string                       | Sí        | Ruta de importación para métodos de solicitud     |
-| dataLevel                | 'data' \| 'serve' \| 'axios' | Sí        | Nivel de datos de respuesta de la API             |
-| formatting               | object                       | No        | Configuración de formato de código                |
-| headers                  | object                       | No        | Configuración de encabezados de solicitud         |
+| Parámetro                | Tipo                                  | Requerido | Descripción                                       |
+| ------------------------ | ------------------------------------- | --------- | ------------------------------------------------- |
+| saveTypeFolderPath       | string                                | Sí        | Ruta para guardar archivos de definición de tipos |
+| saveApiListFolderPath    | string                                | Sí        | Ruta para guardar funciones de solicitud API      |
+| saveEnumFolderPath       | string                                | Sí        | Ruta para guardar tipos enum                      |
+| importEnumPath           | string                                | Sí        | Ruta de importación para tipos enum               |
+| swaggerJsonUrl           | string                                | Sí        | URL del documento Swagger JSON                    |
+| requestMethodsImportPath | string                                | Sí        | Ruta de importación para métodos de solicitud     |
+| dataLevel                | 'data' \| 'serve' \| 'axios'          | Sí        | Nivel de datos de respuesta de la API             |
+| formatting               | object                                | No        | Configuración de formato de código                |
+| headers                  | object                                | No        | Configuración de encabezados de solicitud         |
+| includeInterface         | Array<{path: string, method: string}> | No        | Lista de interfaces a incluir en la generación    |
+| excludeInterface         | Array<{path: string, method: string}> | No        | Lista de interfaces a excluir de la generación    |
+
+### Filtrado de Interfaces
+
+La herramienta permite filtrar las interfaces que se generarán mediante dos opciones de configuración:
+
+1. `includeInterface`: Define una lista de interfaces que se incluirán en la generación
+
+   - Solo se generarán las interfaces que coincidan con los patrones especificados
+   - Si está definido, `excludeInterface` será ignorado
+   - Ejemplo:
+
+   ```json
+   {
+   	"includeInterface": [
+   		{ "path": "/api/user", "method": "GET" },
+   		{ "path": "/api/order", "method": "POST" }
+   	]
+   }
+   ```
+
+2. `excludeInterface`: Define una lista de interfaces que se excluirán de la generación
+   - Se generarán todas las interfaces excepto las que coincidan con los patrones especificados
+   - Solo se aplica si `includeInterface` no está definido
+   - Ejemplo:
+   ```json
+   {
+   	"excludeInterface": [
+   		{ "path": "/api/admin", "method": "GET" },
+   		{ "path": "/api/system", "method": "POST" }
+   	]
+   }
+   ```
 
 ## Estructura de Archivos Generados
 
@@ -225,30 +259,4 @@ $ anl lint
 
 - Instalación automática de dependencias necesarias
 - Soporte para frameworks React/Vue
-- Generación automática de `.eslintrc.js` y `.eslintignore`
-- Integración con soporte TypeScript
-
-#### 2. Configuración de Prettier
-
-- Instalación automática de dependencias de prettier
-- Generación del archivo de configuración `.prettierrc.js`
-- Configuración predeterminada que incluye:
-  - Ancho de línea: 80
-  - Indentación con tabulaciones
-  - Uso de comillas simples
-  - Paréntesis en funciones flecha
-  - Otras normas de estilo de código
-
-#### 3. Configuración de CommitLint
-
-- Instalación de dependencias relacionadas con commitlint
-- Configuración de git hooks con husky
-- Generación de `commitlint.config.js`
-- Estandarización de mensajes git commit
-
-#### 4. Configuración de VSCode
-
-- Creación de `.vscode/settings.json`
-- Configuración de formato automático del editor
-- Configuración de la herramienta de formato predeterminada
-- Soporte para actualización de archivos de configuración existentes
+- Generación automática de `.eslintrc.js`
