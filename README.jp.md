@@ -8,7 +8,7 @@ an-cliは、以下の2つのコマンドを含むフロントエンドコマン�
 
 [anl typeコマンド](#anl-typeコマンド)：Swagger JSONに基づいてTypeScriptの型定義とAPIリクエスト関数を自動生成するツール。
 
-`anl lint`コマンド：ReactまたはVueプロジェクトのeslint、stylelint、prettier、commitLint、VSCode関連の設定を生成するツール。
+[anl lintコマンド](#anl-lintコマンド)：ReactまたはVueプロジェクトのeslint、stylelint、prettier、commitLint、VSCode関連の設定を生成するツール。
 
 ## 特徴
 
@@ -44,6 +44,15 @@ $ yarn global add anl
 
 ## 使用方法
 
+> [!TIP]
+>
+> 1. 初めて使用する場合、どのような結果が生成されるか不明な場合は、まずコマンドを実行し、プロジェクトにどのような変更が発生するかを確認してから、ドキュメントを参照して設定を調整し、再度生成して最終的に理想的な結果を得ることをお勧めします
+> 2. または、以下の手順に従って一つずつ実行することで、成果を得ることができます
+
+# anl typeコマンド
+
+## 使用方法
+
 1. コマンドの実行
 
 ```bash
@@ -53,8 +62,14 @@ $ anl type
 2. 設定の完了
 
 - 初めて `anl type` コマンドを実行すると、*プロジェクトのルートディレクトリ*に `an.config.json` という名前の設定ファイルが*自動的に作成*されます（手動で作成することも可能です）。
-- 具体的なパラメータについては設定項目の説明をご覧ください。
-- 設定ファイル名は変更できません。
+- `anl type` コマンドを実行すると、ユーザープロジェクトのルートディレクトリにある `an.config.json` 設定ファイルを探し、その設定情報を読み取って、対応するaxiosのラッパー、設定、インターフェースリスト、インターフェースリクエスト、レスポンスタイプを生成します
+- 設定ファイル内の設定項目は自由に変更できます
+
+3. `an.config.json`設定例
+
+- 設定ファイルはプロジェクトのルートディレクトリに配置する必要があり、移動できません
+- 設定ファイル名は変更できません
+- 具体的なパラメータについては[設定項目の説明](#設定項目の説明)をご覧ください
 
 ```json
 {
@@ -69,43 +84,63 @@ $ anl type
 		"indentation": "\t",
 		"lineEnding": "\n"
 	},
-	"headers": {}
+	"headers": {},
+	"includeInterface": [
+		{
+			"path": "/api/user",
+			"method": "get"
+		}
+	],
+	"excludeInterface": [
+		{
+			"path": "/api/admin",
+			"method": "post"
+		}
+	]
 }
 ```
 
-3. TypeScript型定義とAPIリクエスト関数の生成は、再度生成コマンドを実行するだけです。
+3. 必要に応じて設定ファイルを更新し、再度 `anl type` コマンドを実行すると、設定ファイルで指定された設定情報に基づいて、対応する型情報が生成されます
 
 ```bash
 $ anl type
 ```
 
+> [!NOTE]
+>
+> これらの設定が不明な場合は、まず `anl type` コマンドを実行して型を生成し、プロジェクトディレクトリを確認してから、設定項目の説明を参照して設定を調整し、再度生成して最終的に理想的な結果を得ることができます
+
 ## 設定項目の説明
 
-| 設定項目                 | 型                           | 必須   | 説明                               |
-| ------------------------ | ---------------------------- | ------ | ---------------------------------- |
-| saveTypeFolderPath       | string                       | はい   | 型定義ファイルの保存パス           |
-| saveApiListFolderPath    | string                       | はい   | APIリクエスト関数の保存パス        |
-| saveEnumFolderPath       | string                       | はい   | 列挙型ファイルの保存パス           |
-| importEnumPath           | string                       | はい   | 列挙型のインポートパス             |
-| swaggerJsonUrl           | string                       | はい   | Swagger JSONドキュメントのURL      |
-| requestMethodsImportPath | string                       | はい   | リクエストメソッドのインポートパス |
-| dataLevel                | 'data' \| 'serve' \| 'axios' | はい   | インターフェースの戻り値レベル     |
-| formatting               | object                       | いいえ | コードフォーマット設定             |
-| headers                  | object                       | いいえ | リクエストヘッダー設定             |
+| 設定項目                 | 型                                    | 必須   | 説明                                                                                                                                   |
+| ------------------------ | ------------------------------------- | ------ | -------------------------------------------------------------------------------------------------------------------------------------- |
+| saveTypeFolderPath       | string                                | はい   | 型定義ファイルの保存パス                                                                                                               |
+| saveApiListFolderPath    | string                                | はい   | APIリクエスト関数の保存パス                                                                                                            |
+| saveEnumFolderPath       | string                                | はい   | 列挙型ファイルの保存パス                                                                                                               |
+| importEnumPath           | string                                | はい   | 列挙型のインポートパス                                                                                                                 |
+| swaggerJsonUrl           | string                                | はい   | Swagger JSONドキュメントのURL                                                                                                          |
+| requestMethodsImportPath | string                                | はい   | リクエストメソッドのインポートパス                                                                                                     |
+| dataLevel                | 'data' \| 'serve' \| 'axios'          | はい   | インターフェースの戻り値レベル                                                                                                         |
+| formatting               | object                                | いいえ | コードフォーマット設定                                                                                                                 |
+| headers                  | object                                | いいえ | リクエストヘッダー設定                                                                                                                 |
+| includeInterface         | Array<{path: string, method: string}> | いいえ | 生成するインターフェースのリスト。この項目が設定されている場合、リスト内のインターフェースのみが生成されます                           |
+| excludeInterface         | Array<{path: string, method: string}> | いいえ | 除外するインターフェースのリスト。この項目が設定されている場合、リスト内のインターフェースを除くすべてのインターフェースが生成されます |
 
 ## 生成されるファイル構造
 
 - このファイル構造は設定ファイルに基づいて生成されます
 
+```
 project/
 ├── apps/
-│ ├── types/
-│ │ ├── models/ # すべての型定義ファイル（列挙型を除く）
-│ │ ├── connectors/ # API型定義（インターフェース定義ファイル）
-│ │ └── enums/ # 列挙型定義
-│ └── api/
-│ ├── fetch.ts # リクエストメソッドの実装
-│ └── index.ts # APIリクエスト関数
+│   ├── types/
+│   │   ├── models/          # すべての型定義ファイル（列挙型を除く）
+│   │   ├── connectors/      # API型定義（インターフェース定義ファイル）
+│   │   └── enums/           # 列挙型定義
+│   └── api/
+│       ├── fetch.ts         # リクエストメソッドの実装
+│       └── index.ts         # APIリクエスト関数
+```
 
 ## 生成されるコードの例
 
@@ -165,6 +200,42 @@ export const uploadFile = (params: UploadFile.Body) =>
 - 型生成失敗の警告
 - ファイル書き込みの例外処理
 
+### インターフェースフィルタリング
+
+ツールは設定を通じて生成するインターフェースをフィルタリングすることができます：
+
+1. 特定のインターフェースを含める
+
+   - `includeInterface` 設定項目で生成するインターフェースを指定
+   - 設定で指定されたインターフェースのみが生成されます
+   - 設定形式は `path` と `method` を含むオブジェクトの配列です
+
+2. 特定のインターフェースを除外
+   - `excludeInterface` 設定項目で除外するインターフェースを指定
+   - 設定で指定されたインターフェースを除くすべてのインターフェースが生成されます
+   - 設定形式は `path` と `method` を含むオブジェクトの配列です
+
+設定例：
+
+```json
+{
+	"includeInterface": [
+		{
+			"path": "/api/user",
+			"method": "get"
+		}
+	],
+	"excludeInterface": [
+		{
+			"path": "/api/admin",
+			"method": "post"
+		}
+	]
+}
+```
+
+注意：`includeInterface` と `excludeInterface` は同時に使用できません。両方が設定されている場合、`includeInterface` が優先されます。
+
 ## 開発
 
 ```bash
@@ -198,14 +269,6 @@ npm run blink
 2. リクエスト関数のインポートパスが間違っている
    - requestMethodsImportPathの設定が正しいか確認してください
    - リクエストメソッドファイルが存在するか確認してください
-
-## 貢献ガイド
-
-[Issue](https://github.com/bianliuzhu/an-cli/issues)や[Pull Request](https://github.com/bianliuzhu/an-cli/pulls)を歓迎します！
-
-## ライセンス
-
-ISC License
 
 # anl lintコマンド
 
@@ -257,3 +320,11 @@ $ anl lint
 - エディタの自動フォーマットを設定
 - デフォルトフォーマッタを設定
 - 既存の設定ファイルの更新をサポート
+
+## ライセンス
+
+ISC License
+
+## 貢献ガイド
+
+[Issue](https://github.com/bianliuzhu/an-cli/issues)や[Pull Request](https://github.com/bianliuzhu/an-cli/pulls)を歓迎します！
