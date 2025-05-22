@@ -67,7 +67,19 @@ $ anl type
 		"indentation": "\t",
 		"lineEnding": "\n"
 	},
-	"headers": {}
+	"headers": {},
+	"includeInterface": [
+		{
+			"path": "/api/user",
+			"method": "get"
+		}
+	],
+	"excludeInterface": [
+		{
+			"path": "/api/admin",
+			"method": "post"
+		}
+	]
 }
 ```
 

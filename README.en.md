@@ -76,7 +76,19 @@ $ anl type
 		"indentation": "\t",
 		"lineEnding": "\n"
 	},
-	"headers": {}
+	"headers": {},
+	"includeInterface": [
+		{
+			"path": "/api/user",
+			"method": "get"
+		}
+	],
+	"excludeInterface": [
+		{
+			"path": "/api/admin",
+			"method": "post"
+		}
+	]
 }
 ```
 
@@ -88,17 +100,19 @@ $ anl type
 
 ## Configuration Options
 
-| Option                   | Type                         | Required | Description                         |
-| ------------------------ | ---------------------------- | -------- | ----------------------------------- |
-| saveTypeFolderPath       | string                       | Yes      | Type definition file save path      |
-| saveApiListFolderPath    | string                       | Yes      | API request function file save path |
-| saveEnumFolderPath       | string                       | Yes      | Enum type file save path            |
-| importEnumPath           | string                       | Yes      | Enum type import path               |
-| swaggerJsonUrl           | string                       | Yes      | Swagger JSON documentation URL      |
-| requestMethodsImportPath | string                       | Yes      | Request method import path          |
-| dataLevel                | 'data' \| 'serve' \| 'axios' | Yes      | Interface return data level         |
-| formatting               | object                       | No       | Code formatting configuration       |
-| headers                  | object                       | No       | Request header configuration        |
+| Option                   | Type                                  | Required | Description                                                 |
+| ------------------------ | ------------------------------------- | -------- | ----------------------------------------------------------- |
+| saveTypeFolderPath       | string                                | Yes      | Type definition file save path                              |
+| saveApiListFolderPath    | string                                | Yes      | API request function file save path                         |
+| saveEnumFolderPath       | string                                | Yes      | Enum type file save path                                    |
+| importEnumPath           | string                                | Yes      | Enum type import path                                       |
+| swaggerJsonUrl           | string                                | Yes      | Swagger JSON documentation URL                              |
+| requestMethodsImportPath | string                                | Yes      | Request method import path                                  |
+| dataLevel                | 'data' \| 'serve' \| 'axios'          | Yes      | Interface return data level                                 |
+| formatting               | object                                | No       | Code formatting configuration                               |
+| headers                  | object                                | No       | Request header configuration                                |
+| includeInterface         | Array<{path: string, method: string}> | No       | Only generate interfaces that match these paths and methods |
+| excludeInterface         | Array<{path: string, method: string}> | No       | Skip interfaces that match these paths and methods          |
 
 ## Generated File Structure
 
