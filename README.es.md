@@ -8,7 +8,7 @@ an-cli es una herramienta de línea de comandos frontend que incluye dos comando
 
 [Comando anl type](#comando-anl-type): Una herramienta de línea de comandos que genera automáticamente definiciones de tipos TypeScript y funciones de solicitud de API basadas en Swagger JSON.
 
-Comando `anl lint`: Genera configuraciones relacionadas con eslint, stylelint, prettier, commitLint y VSCode para proyectos React o Vue.
+[Comando anl lint](#comando-anl-lint): Genera configuraciones relacionadas con eslint, stylelint, prettier, commitLint y VSCode para proyectos React o Vue.
 
 ## Características
 
@@ -32,11 +32,24 @@ Comando `anl lint`: Genera configuraciones relacionadas con eslint, stylelint, p
 
 ## Instalación
 
+> [!NOTE]
+>
+> Requiere instalación global
+
 ```bash
 $ npm install anl -g
 
 $ yarn global add anl
 ```
+
+## Uso
+
+> [!TIP]
+>
+> 1. Si es la primera vez que lo usa y no está seguro de qué resultados obtendrá, se recomienda ejecutar el comando primero, observar los cambios en el proyecto, y luego consultar la documentación para ajustar la configuración y generar nuevamente hasta alcanzar el resultado deseado
+> 2. O siga los pasos a continuación uno por uno para obtener resultados
+
+# Comando anl type
 
 ## Uso
 
@@ -46,11 +59,17 @@ $ yarn global add anl
 $ anl type
 ```
 
-2. Completar la configuración
+2. Explicación de la configuración
 
 - La primera vez que ejecute `anl type`, se creará automáticamente un archivo de configuración llamado `an.config.json` en la raíz del proyecto (también puede crearlo manualmente)
-- Consulte la descripción de la configuración para obtener detalles sobre los parámetros
-- El nombre del archivo de configuración no se puede modificar
+- Al ejecutar el comando `anl type`, buscará el archivo de configuración `an.config.json` en la raíz del proyecto y leerá su información de configuración para generar el encapsulamiento de axios, configuración, lista de interfaces, tipos de solicitud y respuesta
+- Los elementos de configuración en el archivo de configuración se pueden modificar libremente
+
+3. Ejemplo de configuración `an.config.json`
+
+- El archivo de configuración debe estar en la raíz del proyecto, no se puede mover
+- El nombre del archivo de configuración no se puede cambiar
+- Para detalles específicos de los parámetros, consulte [Descripción de la configuración](#descripción-de-la-configuración)
 
 ```json
 {
@@ -65,17 +84,33 @@ $ anl type
 		"indentation": "\t",
 		"lineEnding": "\n"
 	},
-	"headers": {}
+	"headers": {},
+	"includeInterface": [
+		{
+			"path": "/api/user",
+			"method": "get"
+		}
+	],
+	"excludeInterface": [
+		{
+			"path": "/api/admin",
+			"method": "post"
+		}
+	]
 }
 ```
 
-3. Generar definiciones de tipos TypeScript y funciones de solicitud de API, ejecute el comando nuevamente
+3. Actualice el archivo de configuración según sus necesidades, luego ejecute el comando `anl type` nuevamente, y generará la información de tipos correspondiente según la configuración especificada
 
 ```bash
 $ anl type
 ```
 
-## Configuración
+> [!NOTE]
+>
+> Si no está seguro de estas configuraciones, puede ejecutar primero el comando anl type para generar los tipos, luego revisar el directorio del proyecto, ajustar los elementos de configuración según la descripción de la configuración, y generar nuevamente hasta alcanzar el resultado deseado
+
+## Descripción de la configuración
 
 | Parámetro                | Tipo                                  | Requerido | Descripción                                       |
 | ------------------------ | ------------------------------------- | --------- | ------------------------------------------------- |
@@ -91,54 +126,25 @@ $ anl type
 | includeInterface         | Array<{path: string, method: string}> | No        | Lista de interfaces a incluir en la generación    |
 | excludeInterface         | Array<{path: string, method: string}> | No        | Lista de interfaces a excluir de la generación    |
 
-### Filtrado de Interfaces
-
-La herramienta permite filtrar las interfaces que se generarán mediante dos opciones de configuración:
-
-1. `includeInterface`: Define una lista de interfaces que se incluirán en la generación
-
-   - Solo se generarán las interfaces que coincidan con los patrones especificados
-   - Si está definido, `excludeInterface` será ignorado
-   - Ejemplo:
-
-   ```json
-   {
-   	"includeInterface": [
-   		{ "path": "/api/user", "method": "GET" },
-   		{ "path": "/api/order", "method": "POST" }
-   	]
-   }
-   ```
-
-2. `excludeInterface`: Define una lista de interfaces que se excluirán de la generación
-   - Se generarán todas las interfaces excepto las que coincidan con los patrones especificados
-   - Solo se aplica si `includeInterface` no está definido
-   - Ejemplo:
-   ```json
-   {
-   	"excludeInterface": [
-   		{ "path": "/api/admin", "method": "GET" },
-   		{ "path": "/api/system", "method": "POST" }
-   	]
-   }
-   ```
-
-## Estructura de Archivos Generados
+## Estructura de archivos generados
 
 - Esta estructura de archivos se genera según el archivo de configuración
-  project/
-  ├── apps/
-  │ ├── types/
-  │ │ ├── models/ # Todos los archivos de definición de tipos (excluyendo enums)
-  │ │ ├── connectors/ # Definiciones de tipos API (archivos de interfaz)
-  │ │ └── enums/ # Definiciones de tipos enum
-  │ └── api/
-  │ ├── fetch.ts # Implementación de métodos de solicitud
-  │ └── index.ts # Funciones de solicitud API
 
-## Ejemplos de Código Generado
+```
+project/
+├── apps/
+│   ├── types/
+│   │   ├── models/          # Todos los archivos de definición de tipos (excluyendo enums)
+│   │   ├── connectors/      # Definiciones de tipos API (archivos de interfaz)
+│   │   └── enums/           # Definiciones de tipos enum
+│   └── api/
+│       ├── fetch.ts         # Implementación de métodos de solicitud
+│       └── index.ts         # Funciones de solicitud API
+```
 
-### Archivo de Definición de Tipos
+## Ejemplos de código generado
+
+### Archivo de definición de tipos
 
 ```typescript
 declare namespace UserDetail_GET {
@@ -155,7 +161,7 @@ declare namespace UserDetail_GET {
 }
 ```
 
-### Función de Solicitud API
+### Función de solicitud API
 
 ```typescript
 import { GET } from './fetch';
@@ -166,16 +172,16 @@ import { GET } from './fetch';
 export const userDetailGet = (params: UserDetail_GET.Query) => GET<UserDetail_GET.Response>('/user/detail', params);
 ```
 
-## Características Detalladas
+## Características detalladas
 
-### Análisis de Tipos
+### Análisis de tipos
 
 - Soporta todos los tipos de datos del estándar OpenAPI 3.0
 - Manejo automático de tipos anidados complejos
 - Soporte para arrays, objetos, enums y otros tipos
 - Generación automática de comentarios de interfaz
 
-### Carga de Archivos
+### Carga de archivos
 
 Cuando se detecta un tipo de carga de archivo, se añade automáticamente el encabezado correspondiente:
 
@@ -186,13 +192,49 @@ export const uploadFile = (params: UploadFile.Body) =>
 	});
 ```
 
-### Manejo de Errores
+### Manejo de errores
 
 La herramienta incluye un mecanismo completo de manejo de errores:
 
 - Mensajes de error de análisis
 - Advertencias de fallos en la generación de tipos
 - Manejo de excepciones en la escritura de archivos
+
+### Filtrado de interfaces
+
+La herramienta permite filtrar las interfaces que se generarán mediante dos opciones de configuración:
+
+1. Incluir interfaces específicas
+
+   - A través del elemento de configuración `includeInterface`
+   - Solo se generarán las interfaces especificadas en la configuración
+   - El formato de configuración es un array de objetos con `path` y `method`
+
+2. Excluir interfaces específicas
+   - A través del elemento de configuración `excludeInterface`
+   - Se generarán todas las interfaces excepto las especificadas en la configuración
+   - El formato de configuración es un array de objetos con `path` y `method`
+
+Ejemplo de configuración:
+
+```json
+{
+	"includeInterface": [
+		{
+			"path": "/api/user",
+			"method": "get"
+		}
+	],
+	"excludeInterface": [
+		{
+			"path": "/api/admin",
+			"method": "post"
+		}
+	]
+}
+```
+
+Nota: `includeInterface` y `excludeInterface` no se pueden usar simultáneamente. Si ambos están configurados, se priorizará `includeInterface`.
 
 ## Desarrollo
 
@@ -217,7 +259,7 @@ npm run blink
 3. Los archivos generados sobrescribirán los archivos existentes con el mismo nombre
 4. Se recomienda incluir los archivos generados en el control de versiones
 
-## Problemas Comunes
+## Problemas comunes
 
 1. Fallo en el formato de los archivos de tipos generados
 
@@ -228,17 +270,9 @@ npm run blink
    - Verificar si la configuración de requestMethodsImportPath es correcta
    - Confirmar si existe el archivo de métodos de solicitud
 
-## Guía de Contribución
-
-¡Las Issues y Pull Requests son bienvenidas!
-
-## Licencia
-
-Licencia ISC
-
 # Comando anl lint
 
-### Descripción General
+### Descripción general
 
 Proporciona la funcionalidad de configurar varias herramientas lint para proyectos frontend con un solo comando, incluyendo:
 
@@ -253,10 +287,44 @@ Proporciona la funcionalidad de configurar varias herramientas lint para proyect
 $ anl lint
 ```
 
-### Detalles de Configuración
+### Detalles de configuración
 
 #### 1. Configuración de ESLint
 
 - Instalación automática de dependencias necesarias
 - Soporte para frameworks React/Vue
-- Generación automática de `.eslintrc.js`
+- Generación automática de `.eslintrc.js` y `.eslintignore`
+- Integración con soporte TypeScript
+
+#### 2. Configuración de Prettier
+
+- Instalación automática de dependencias prettier
+- Generación de archivo de configuración `.prettierrc.js`
+- Configuración predeterminada incluye:
+  - Ancho de línea: 80
+  - Indentación con tabulador
+  - Uso de comillas simples
+  - Paréntesis en funciones flecha
+  - Otras normas de estilo de código
+
+#### 3. Configuración de CommitLint
+
+- Instalación de dependencias commitlint
+- Configuración de husky git hooks
+- Generación de `commitlint.config.js`
+- Estandarización de mensajes de commit git
+
+#### 4. Configuración de VSCode
+
+- Creación de `.vscode/settings.json`
+- Configuración de formateo automático del editor
+- Establecimiento de herramienta de formateo predeterminada
+- Soporte para actualización de configuraciones existentes
+
+## Licencia
+
+Licencia ISC
+
+## Guía de contribución
+
+¡Las Issues y Pull Requests son bienvenidas!
