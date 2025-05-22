@@ -84,7 +84,19 @@ $ anl type
 		"indentation": "\t",
 		"lineEnding": "\n"
 	},
-	"headers": {}
+	"headers": {},
+	"includeInterface": [
+		{
+			"path": "/api/user",
+			"method": "get"
+		}
+	],
+	"excludeInterface": [
+		{
+			"path": "/api/admin",
+			"method": "post"
+		}
+	]
 }
 ```
 
@@ -100,17 +112,19 @@ $ anl type
 
 ## 配置项说明
 
-| 配置项                   | 类型                         | 必填 | 说明                     |
-| ------------------------ | ---------------------------- | ---- | ------------------------ |
-| saveTypeFolderPath       | string                       | 是   | 类型定义文件保存路径     |
-| saveApiListFolderPath    | string                       | 是   | API 请求函数文件保存路径 |
-| saveEnumFolderPath       | string                       | 是   | 枚举类型文件保存路径     |
-| importEnumPath           | string                       | 是   | 枚举类型导入路径         |
-| swaggerJsonUrl           | string                       | 是   | Swagger JSON 文档地址    |
-| requestMethodsImportPath | string                       | 是   | 请求方法导入路径         |
-| dataLevel                | 'data' \| 'serve' \| 'axios' | 是   | 接口返回数据层级         |
-| formatting               | object                       | 否   | 代码格式化配置           |
-| headers                  | object                       | 否   | 请求头配置               |
+| 配置项                   | 类型                                  | 必填 | 说明                                                       |
+| ------------------------ | ------------------------------------- | ---- | ---------------------------------------------------------- |
+| saveTypeFolderPath       | string                                | 是   | 类型定义文件保存路径                                       |
+| saveApiListFolderPath    | string                                | 是   | API 请求函数文件保存路径                                   |
+| saveEnumFolderPath       | string                                | 是   | 枚举类型文件保存路径                                       |
+| importEnumPath           | string                                | 是   | 枚举类型导入路径                                           |
+| swaggerJsonUrl           | string                                | 是   | Swagger JSON 文档地址                                      |
+| requestMethodsImportPath | string                                | 是   | 请求方法导入路径                                           |
+| dataLevel                | 'data' \| 'serve' \| 'axios'          | 是   | 接口返回数据层级                                           |
+| formatting               | object                                | 否   | 代码格式化配置                                             |
+| headers                  | object                                | 否   | 请求头配置                                                 |
+| includeInterface         | Array<{path: string, method: string}> | 否   | 需要包含的接口列表，如果设置了此项，则只会生成列表中的接口 |
+| excludeInterface         | Array<{path: string, method: string}> | 否   | 需要排除的接口列表，如果设置了此项，则会排除列表中的接口   |
 
 ## 生成的文件结构
 
@@ -185,6 +199,42 @@ export const uploadFile = (params: UploadFile.Body) =>
 - 解析错误提示
 - 类型生成失败警告
 - 文件写入异常处理
+
+### 接口过滤
+
+工具支持通过配置来过滤需要生成的接口：
+
+1. 包含特定接口
+
+   - 通过 `includeInterface` 配置项指定需要生成的接口
+   - 只会生成配置中指定的接口
+   - 配置格式为包含 `path` 和 `method` 的对象数组
+
+2. 排除特定接口
+   - 通过 `excludeInterface` 配置项指定需要排除的接口
+   - 会生成除了配置中指定接口之外的所有接口
+   - 配置格式为包含 `path` 和 `method` 的对象数组
+
+示例配置：
+
+```json
+{
+	"includeInterface": [
+		{
+			"path": "/api/user",
+			"method": "get"
+		}
+	],
+	"excludeInterface": [
+		{
+			"path": "/api/admin",
+			"method": "post"
+		}
+	]
+}
+```
+
+注意：`includeInterface` 和 `excludeInterface` 不能同时使用，如果同时配置，会优先使用 `includeInterface`。
 
 ## 开发
 
