@@ -186,6 +186,42 @@ The tool has built-in comprehensive error handling mechanisms:
 - Type generation failure warnings
 - File writing exception handling
 
+### Interface Filtering
+
+The tool supports filtering interfaces to be generated through configuration:
+
+1. Include specific interfaces
+
+   - Specify interfaces to be generated through the `includeInterface` configuration item
+   - Only interfaces specified in the configuration will be generated
+   - Configuration format is an array of objects containing `path` and `method`
+
+2. Exclude specific interfaces
+   - Specify interfaces to be excluded through the `excludeInterface` configuration item
+   - All interfaces except those specified in the configuration will be generated
+   - Configuration format is an array of objects containing `path` and `method`
+
+Example configuration:
+
+```json
+{
+	"includeInterface": [
+		{
+			"path": "/api/user",
+			"method": "get"
+		}
+	],
+	"excludeInterface": [
+		{
+			"path": "/api/admin",
+			"method": "post"
+		}
+	]
+}
+```
+
+Note: `includeInterface` and `excludeInterface` cannot be used simultaneously. If `includeInterface` is specified, `excludeInterface` will be ignored.
+
 ## Development
 
 ```bash
