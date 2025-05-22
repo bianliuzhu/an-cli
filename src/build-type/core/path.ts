@@ -709,7 +709,7 @@ export class PathParse {
 				if (this.config.includeInterface && this.config.includeInterface.length > 0) {
 					const include = this.config.includeInterface?.find((item) => pathKey.includes(item.path) && item.method === method);
 					if (!include) return;
-				} else {
+				} else if (this.config.excludeInterface && this.config.excludeInterface.length > 0) {
 					const exclude = this.config.excludeInterface?.find((item) => pathKey.includes(item.path) && item.method === method);
 					if (exclude) return;
 				}

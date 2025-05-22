@@ -29,14 +29,6 @@
     {
       "path": "/manageGame/{gameName}/getGameConfig",
       "method": "get"
-    },
-    {
-      "path": "/llm/recommend/{schema}/{rid}/role/union",
-      "method": "get"
-    },
-    {
-      "path": "/llm/extract/{id}/destroy",
-      "method": "delete"
     }
   ]
 }
