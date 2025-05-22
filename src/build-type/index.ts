@@ -11,13 +11,6 @@ import chalk from 'chalk';
 import path from 'path';
 
 let isConfigFile: boolean;
-/**
-	"saveTypeFolderPath": "apps/types",
-	"saveApiListFolderPath": "spps/services",
-	"swaggerJsonUrl": "",
-	"indent": "\t",
-	"headers": {}
- */
 
 interface ExecResult {
 	stdout: string;
@@ -51,7 +44,7 @@ export class Main {
 			let response: OpenAPIV3.Document;
 
 			if (process.env.NODE_ENV === 'development') {
-				response = (await import('../../data/open-api.json')).default as unknown as OpenAPIV3.Document;
+				response = (await import('../../data/umf.json')).default as unknown as OpenAPIV3.Document;
 			} else {
 				response = (await getSwaggerJson(config)) as OpenAPIV3.Document;
 			}

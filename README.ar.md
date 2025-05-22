@@ -79,17 +79,55 @@ $ anl type
 
 ## وصف الإعدادات
 
-| الإعداد                  | النوع                        | إلزامي | الوصف                           |
-| ------------------------ | ---------------------------- | ------ | ------------------------------- |
-| saveTypeFolderPath       | string                       | نعم    | مسار حفظ ملفات تعريف الأنواع    |
-| saveApiListFolderPath    | string                       | نعم    | مسار حفظ ملفات دوال API         |
-| saveEnumFolderPath       | string                       | نعم    | مسار حفظ ملفات الأنواع المعدودة |
-| importEnumPath           | string                       | نعم    | مسار استيراد الأنواع المعدودة   |
-| swaggerJsonUrl           | string                       | نعم    | عنوان وثيقة Swagger JSON        |
-| requestMethodsImportPath | string                       | نعم    | مسار استيراد طرق الطلب          |
-| dataLevel                | 'data' \| 'serve' \| 'axios' | نعم    | مستوى بيانات الاستجابة          |
-| formatting               | object                       | لا     | إعدادات تنسيق الكود             |
-| headers                  | object                       | لا     | إعدادات رؤوس الطلب              |
+| الإعداد                  | النوع                                 | إلزامي | الوصف                            |
+| ------------------------ | ------------------------------------- | ------ | -------------------------------- |
+| saveTypeFolderPath       | string                                | نعم    | مسار حفظ ملفات تعريف الأنواع     |
+| saveApiListFolderPath    | string                                | نعم    | مسار حفظ ملفات دوال API          |
+| saveEnumFolderPath       | string                                | نعم    | مسار حفظ ملفات الأنواع المعدودة  |
+| importEnumPath           | string                                | نعم    | مسار استيراد الأنواع المعدودة    |
+| swaggerJsonUrl           | string                                | نعم    | عنوان وثيقة Swagger JSON         |
+| requestMethodsImportPath | string                                | نعم    | مسار استيراد طرق الطلب           |
+| dataLevel                | 'data' \| 'serve' \| 'axios'          | نعم    | مستوى بيانات الاستجابة           |
+| formatting               | object                                | لا     | إعدادات تنسيق الكود              |
+| headers                  | object                                | لا     | إعدادات رؤوس الطلب               |
+| includeInterface         | Array<{path: string, method: string}> | لا     | قائمة الواجهات المطلوب تضمينها   |
+| excludeInterface         | Array<{path: string, method: string}> | لا     | قائمة الواجهات المطلوب استبعادها |
+
+## تصفية الواجهات
+
+يمكنك استخدام `includeInterface` و `excludeInterface` للتحكم في الواجهات التي سيتم إنشاؤها:
+
+### تضمين الواجهات (includeInterface)
+
+عند تحديد `includeInterface`، سيتم إنشاء فقط الواجهات المطابقة للمسارات والطرق المحددة:
+
+```json
+{
+	"includeInterface": [
+		{ "path": "/api/user", "method": "GET" },
+		{ "path": "/api/order", "method": "POST" }
+	]
+}
+```
+
+### استبعاد الواجهات (excludeInterface)
+
+عند تحديد `excludeInterface`، سيتم إنشاء جميع الواجهات باستثناء تلك المطابقة للمسارات والطرق المحددة:
+
+```json
+{
+	"excludeInterface": [
+		{ "path": "/api/admin", "method": "GET" },
+		{ "path": "/api/system", "method": "POST" }
+	]
+}
+```
+
+> [!NOTE]
+>
+> - لا يمكن استخدام `includeInterface` و `excludeInterface` في نفس الوقت
+> - إذا تم تحديد `includeInterface`، سيتم تجاهل `excludeInterface`
+> - المسارات تدعم المطابقة الجزئية (مثل `/api/user` سيطابق `/api/user/profile`)
 
 ## هيكل الملفات المنشأة
 

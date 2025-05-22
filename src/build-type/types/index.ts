@@ -124,6 +124,11 @@ export type ParseError = {
 
 type TDatalevel = 'data' | 'serve' | 'axios';
 
+export interface IncludeOrExcludeInterface {
+	path: string;
+	method: string;
+}
+
 export interface ConfigType {
 	/** 存放生成的类型文件的文件夹路径 */
 	saveTypeFolderPath: string;
@@ -148,6 +153,10 @@ export interface ConfigType {
 	saveEnumFolderPath: string;
 	/** enum 导入路径 */
 	importEnumPath: string;
+	/** 包含的接口 */
+	includeInterface?: IncludeOrExcludeInterface[];
+	/** 排除的接口 */
+	excludeInterface?: IncludeOrExcludeInterface[];
 }
 
 // 修改配置类型定义，将必需属性标记出来

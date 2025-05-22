@@ -706,6 +706,14 @@ export class PathParse {
 		for (const method in itemObject) {
 			const methodItems = itemObject[method as HttpMethods];
 			if (methodItems) {
+				if (this.config.includeInterface && this.config.includeInterface.length > 0) {
+					const include = this.config.includeInterface?.find((item) => pathKey.includes(item.path) && item.method === method);
+					if (!include) return;
+				} else {
+					const exclude = this.config.excludeInterface?.find((item) => pathKey.includes(item.path) && item.method === method);
+					if (exclude) return;
+				}
+
 				const methodUp = method.toUpperCase();
 				const mapKey = pathKey + '|' + methodUp;
 				const { apiName, typeName, fileName, path } = this.convertEndpointString(mapKey);
