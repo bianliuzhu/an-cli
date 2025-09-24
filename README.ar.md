@@ -6,9 +6,11 @@
 
 an-cli هي أداة سطر الأوامر للواجهة الأمامية، وتتضمن الأمرين التاليين:
 
-[أمر anl type](#أمر anl type): أداة سطر أوامر تقوم تلقائياً بإنشاء تعريفات أنواع TypeScript ودوال طلبات API استناداً إلى Swagger JSON.
+> `anl type`： أداة سطر أوامر تقوم تلقائياً بإنشاء تعريفات أنواع TypeScript ودوال طلبات API استناداً إلى Swagger JSON.
 
-[أمر anl lint](#أمر anl lint): يقوم بإنشاء إعدادات eslint و stylelint و prettier و commitLint و VSCode لمشاريع react أو vue
+> `anl lint`: يقوم بإنشاء إعدادات eslint و stylelint و prettier و commitLint و VSCode لمشاريع react أو vue
+
+> `anl git`: يُنشئ إعدادات Git المحلية؛ وتشمل الميزات الاختيارية إنشاء فروع gitflow القياسية، وتحديد موضوع رسائل الالتزام، وتكوين أوامر Git المخصصة
 
 ## المميزات
 

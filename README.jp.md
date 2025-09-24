@@ -6,9 +6,11 @@
 
 an-cliは、以下の2つのコマンドを含むフロントエンドコマンドラインツールです：
 
-[anl typeコマンド](#anl-typeコマンド)：Swagger JSONに基づいてTypeScriptの型定義とAPIリクエスト関数を自動生成するツール。
+> `anl type`：Swagger JSONに基づいてTypeScriptの型定義とAPIリクエスト関数を自動生成するツール。
 
-[anl lintコマンド](#anl-lintコマンド)：ReactまたはVueプロジェクトのeslint、stylelint、prettier、commitLint、VSCode関連の設定を生成するツール。
+> `anl lint`: ReactまたはVueプロジェクトのeslint、stylelint、prettier、commitLint、VSCode関連の設定を生成するツール。
+
+> `anl git`: ローカルGit設定を生成します。オプション機能として、gitflow標準ブランチの作成、コミットメッセージのサブジェクト設定、カスタムGitコマンドの構成を提供します
 
 ## 特徴
 
