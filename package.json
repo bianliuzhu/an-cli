@@ -44,7 +44,7 @@
 		"cac": "^6.7.12",
 		"chalk": "4.*",
 		"clear-console": "^1.1.0",
-		"commander": "^10.0.0",
+		"commander": "14.0.1",
 		"figures": "^6.1.0",
 		"inquirer": "^10.1.8",
 		"log-symbols": "^5.1.0",

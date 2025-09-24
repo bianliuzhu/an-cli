@@ -1,0 +1,58 @@
+#!/bin/sh
+
+# 设置字符编码
+export LANG=zh_CN.UTF-8
+export LC_ALL=zh_CN.UTF-8
+
+# 获取当前分支名称
+BRANCH_NAME=$(git symbolic-ref --short HEAD)
+
+# 提取分支前缀
+BRANCH_PREFIX=$(echo "$BRANCH_NAME" | cut -d'/' -f1)
+
+# 读取提交信息
+COMMIT_MSG_FILE=$1
+COMMIT_MSG=$(cat "$COMMIT_MSG_FILE")
+
+# 仓库根目录
+REPO_ROOT=$(git rev-parse --show-toplevel)
+
+# 从脚本获取 {emoji, subject}（JSON）
+META=$(node "$REPO_ROOT/.githooks/get-commit-emoji.js" "$BRANCH_PREFIX")
+
+EMOJI=$(printf "%s" "$META" | node -e 'const fs=require("fs");try{const m=JSON.parse(fs.readFileSync(0,"utf8"));process.stdout.write(m.emoji||"");}catch(e){process.stdout.write("")}' )
+SUBJECT_TYPE=$(printf "%s" "$META" | node -e 'const fs=require("fs");try{const m=JSON.parse(fs.readFileSync(0,"utf8"));process.stdout.write(m.subject||"");}catch(e){process.stdout.write("")}' )
+
+# 如果 subject 为空但拿到了 emoji，则根据 emoji 反查 subject 作为回退
+if [ -z "$SUBJECT_TYPE" ] && [ -n "$EMOJI" ]; then
+  SUBJECT_TYPE=$(node -e "const t=require(process.argv[1]).types; const e=process.argv[2]; for (const k in t){ if((t[k].emoji||'')===e){ process.stdout.write(t[k].subject||''); break; } }" "$REPO_ROOT/.commit-type.js" "$EMOJI")
+fi
+
+# 去除已存在的前缀（例如：features： 或 feat: 等），并去除前后空白
+RAW_MSG=$(printf "%s" "$COMMIT_MSG" | sed -E "s/^[^:：]+[:：][[:space:]]*//" | sed -E 's/^[[:space:]]+|[[:space:]]+$//g')
+
+# 构造新的提交信息：subject: message emoji（使用英文冒号+空格，emoji 后置）
+if [ -n "$SUBJECT_TYPE" ]; then
+  NEW_MSG="${SUBJECT_TYPE}: ${RAW_MSG}"
+else
+  NEW_MSG="$COMMIT_MSG"
+fi
+
+if [ -n "$EMOJI" ]; then
+  NEW_MSG="${NEW_MSG} ${EMOJI}"
+fi
+
+printf "%s" "$NEW_MSG" > "$COMMIT_MSG_FILE"
+
+# 读取更新后的提交信息
+UPDATED_MSG=$(cat "$COMMIT_MSG_FILE")
+
+# 检查主题是否为空（去除 type 与冒号后的内容）
+SUBJECT=$(echo "$UPDATED_MSG" | sed -E "s/^[^:：]+[:：][[:space:]]*//" | tr -d '[:space:]')
+if [ -z "$SUBJECT" ]; then
+  echo "错误：提交信息的主题不能为空"
+  exit 1
+fi
+
+# 最后使用 commitlint 进行其他规则检查
+npx --no-install commitlint --edit "$COMMIT_MSG_FILE"
