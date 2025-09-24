@@ -13,7 +13,6 @@ an-cliは、以下の2つのコマンドを含むフロントエンドコマン�
 ## 特徴
 
 - `anl type`
-
   - 🚀 Swagger JSON文書の自動解析
   - 📦 TypeScript型定義ファイルの生成
   - 🔄 型安全なAPIリクエスト関数の生成
@@ -205,7 +204,6 @@ export const uploadFile = (params: UploadFile.Body) =>
 ツールは設定を通じて生成するインターフェースをフィルタリングすることができます：
 
 1. 特定のインターフェースを含める
-
    - `includeInterface` 設定項目で生成するインターフェースを指定
    - 設定で指定されたインターフェースのみが生成されます
    - 設定形式は `path` と `method` を含むオブジェクトの配列です
@@ -262,7 +260,6 @@ npm run blink
 ## よくある質問
 
 1. 生成された型ファイルのフォーマットに失敗する
-
    - prettierがインストールされているか確認してください
    - プロジェクトルートディレクトリにprettier設定ファイルが存在するか確認してください
 
@@ -328,3 +325,36 @@ ISC License
 ## 貢献ガイド
 
 [Issue](https://github.com/bianliuzhu/an-cli/issues)や[Pull Request](https://github.com/bianliuzhu/an-cli/pulls)を歓迎します！
+
+# anl gitコマンド
+
+### 機能概要
+
+- 対話式プロンプトで現在のリポジトリにGit機能を適用：
+  - gitflow標準ブランチ作成
+    - `.gitscripts/`、`.gitconfig`、`.commit-type.js` を（存在しない場合のみ）プロジェクトへコピー
+    - `.gitscripts/random-branch.sh` を実行可能化
+    - `git config --local include.path ../.gitconfig` を実行
+  - コミットサブジェクトの自動設定
+    - `.githooks/commit-msg` をコピーし実行可能化
+    - `git config core.hooksPath .githooks` を実行
+  - カスタムgitコマンド
+    - `.gitattributes` を（存在しない場合のみ）追加
+
+### 使い方
+
+```bash
+$ anl git
+```
+
+プロンプトで機能を1つ以上選択します。ファイルは存在しない場合のみ作成され、既存ファイルは保持されます。
+
+### 注意
+
+- Gitリポジトリ内で実行してください。
+- 自動設定が失敗した場合は、以下を手動実行：
+
+```bash
+git config --local include.path ../.gitconfig
+git config core.hooksPath .githooks
+```

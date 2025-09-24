@@ -13,7 +13,6 @@ an-cli es una herramienta de línea de comandos frontend que incluye dos comando
 ## Características
 
 - `anl type`
-
   - 🚀 Análisis automático de documentación Swagger JSON
   - 📦 Genera archivos de definición de tipos TypeScript
   - 🔄 Genera funciones de solicitud de API con seguridad de tipos
@@ -205,7 +204,6 @@ La herramienta incluye un mecanismo completo de manejo de errores:
 La herramienta permite filtrar las interfaces que se generarán mediante dos opciones de configuración:
 
 1. Incluir interfaces específicas
-
    - A través del elemento de configuración `includeInterface`
    - Solo se generarán las interfaces especificadas en la configuración
    - El formato de configuración es un array de objetos con `path` y `method`
@@ -262,7 +260,6 @@ npm run blink
 ## Problemas comunes
 
 1. Fallo en el formato de los archivos de tipos generados
-
    - Verificar si prettier está instalado
    - Confirmar si existe un archivo de configuración de prettier en la raíz del proyecto
 
@@ -328,3 +325,36 @@ Licencia ISC
 ## Guía de contribución
 
 ¡Las Issues y Pull Requests son bienvenidas!
+
+# Comando anl git
+
+### Descripción general
+
+- Aplica funciones de Git al repositorio actual mediante un prompt interactivo:
+  - creación de ramas estándar gitflow
+    - Copia `.gitscripts/`, `.gitconfig`, `.commit-type.js` al proyecto (solo si no existen)
+    - Otorga permisos ejecutables a `.gitscripts/random-branch.sh`
+    - Ejecuta `git config --local include.path ../.gitconfig`
+  - establecer automáticamente el asunto del commit
+    - Copia `.githooks/commit-msg` y lo marca como ejecutable
+    - Ejecuta `git config core.hooksPath .githooks`
+  - comando git personalizado
+    - Agrega `.gitattributes` al proyecto (solo si no existe)
+
+### Uso
+
+```bash
+$ anl git
+```
+
+Seleccione una o varias funciones en el prompt. Los archivos solo se crean si no existen; los existentes se preservan.
+
+### Notas
+
+- Ejecútese dentro de un repositorio Git.
+- Si fallan los comandos de configuración automática, ejecútelos manualmente:
+
+```bash
+git config --local include.path ../.gitconfig
+git config core.hooksPath .githooks
+```

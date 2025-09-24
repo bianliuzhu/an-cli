@@ -13,7 +13,6 @@ an-cli est un outil en ligne de commande frontend qui comprend les deux commande
 ## Caractéristiques
 
 - `anl type`
-
   - 🚀 Analyse automatique de la documentation Swagger JSON
   - 📦 Génération de fichiers de définition de types TypeScript
   - 🔄 Génération de fonctions de requête API typées
@@ -205,7 +204,6 @@ L'outil intègre un mécanisme complet de gestion des erreurs :
 L'outil prend en charge le filtrage des interfaces à générer via la configuration :
 
 1. Inclure des interfaces spécifiques
-
    - Spécifier les interfaces à générer via l'option `includeInterface`
    - Seules les interfaces spécifiées dans la configuration seront générées
    - Format de configuration : tableau d'objets contenant `path` et `method`
@@ -262,7 +260,6 @@ npm run blink
 ## FAQ
 
 1. Échec du formatage des fichiers de types générés
-
    - Vérifiez si prettier est installé
    - Vérifiez la présence du fichier de configuration prettier dans la racine du projet
 
@@ -329,12 +326,44 @@ Licence ISC
 
 Les Issues et Pull Requests sont les bienvenus !
 
+# Commande anl git
+
+### Vue d'ensemble
+
+- Applique des fonctionnalités Git au dépôt courant via une invite interactive :
+  - création de branches standard gitflow
+    - Copie `.gitscripts/`, `.gitconfig`, `.commit-type.js` dans le projet (seulement si absent)
+    - Rend exécutable `.gitscripts/random-branch.sh`
+    - Exécute `git config --local include.path ../.gitconfig`
+  - définir automatiquement l'objet du commit
+    - Copie `.githooks/commit-msg` et le rend exécutable
+    - Exécute `git config core.hooksPath .githooks`
+  - commande git personnalisée
+    - Ajoute `.gitattributes` au projet (seulement si absent)
+
+### Utilisation
+
+```bash
+$ anl git
+```
+
+Sélectionnez une ou plusieurs fonctionnalités. Les fichiers ne sont créés que s'ils n'existent pas; les fichiers existants sont préservés.
+
+### Remarques
+
+- À exécuter dans un dépôt Git.
+- Si les commandes de configuration automatique échouent, exécutez-les manuellement :
+
+```bash
+git config --local include.path ../.gitconfig
+git config core.hooksPath .githooks
+```
+
 ## Documentation Multilingue
 
 Pour une meilleure maintenance de la documentation multilingue, nous suggérons :
 
 1. Convention de Nommage des Fichiers
-
    - Utilisation des codes de langue standard :
      - Chinois : `README.zh-CN.md`
      - Anglais : `README.en.md`
@@ -345,20 +374,17 @@ Pour une meilleure maintenance de la documentation multilingue, nous suggérons 
      - Japonais : `README.ja.md`
 
 2. Synchronisation des Documents
-
    - Utilisez le script `sync-docs.js` pour synchroniser automatiquement
    - Exécutez `npm run sync-docs` après les modifications
    - Maintenez une structure cohérente dans toutes les versions
 
 3. Normes de Traduction
-
    - Maintenir la cohérence des termes techniques
    - Conserver les exemples de code en anglais
    - Utiliser la langue correspondante pour les commentaires
    - Maintenir un format uniforme
 
 4. Guide de Contribution
-
    - Les suggestions d'amélioration multilingue sont bienvenues
    - Mettre à jour toutes les versions lors des PR
    - Signaler les problèmes de traduction via Issues

@@ -13,7 +13,6 @@ an-cli 是 前端命令行工具，包含以下两个命令
 ## 功能特点
 
 - `anl type`
-
   - 🚀 自动解析 Swagger JSON 文档
   - 📦 生成 TypeScript 类型定义文件
   - 🔄 生成类型安全的 API 请求函数
@@ -205,7 +204,6 @@ export const uploadFile = (params: UploadFile.Body) =>
 工具支持通过配置来过滤需要生成的接口：
 
 1. 包含特定接口
-
    - 通过 `includeInterface` 配置项指定需要生成的接口
    - 只会生成配置中指定的接口
    - 配置格式为包含 `path` 和 `method` 的对象数组
@@ -262,7 +260,6 @@ npm run blink
 ## 常见问题
 
 1. 生成的类型文件格式化失败
-
    - 检查是否安装了 prettier
    - 确认项目根目录下是否有 prettier 配置文件
 
@@ -328,3 +325,36 @@ ISC License
 # 贡献指南
 
 欢迎提交 [Issue](https://github.com/bianliuzhu/an-cli/issues) 和 [Pull Request](https://github.com/bianliuzhu/an-cli/pulls)！
+
+# anl git 命令
+
+### 功能概述
+
+- 通过交互式多选，为当前仓库应用以下 Git 能力：
+  - gitflow 标准分支创建
+    - 将 `.gitscripts/`、`.gitconfig`、`.commit-type.js` 复制到项目（仅在缺失时）
+    - 为 `.gitscripts/random-branch.sh` 添加可执行权限
+    - 执行 `git config --local include.path ../.gitconfig`
+  - 自动设置 commit subject
+    - 复制 `.githooks/commit-msg` 并设置为可执行
+    - 执行 `git config core.hooksPath .githooks`
+  - 自定义 git 命令
+    - 向项目添加 `.gitattributes`（仅在缺失时）
+
+### 使用方法
+
+```bash
+$ anl git
+```
+
+在提示中选择一个或多个功能。文件仅在不存在时创建；已有文件会被保留。
+
+### 注意事项
+
+- 请在 Git 仓库内运行。
+- 若自动执行的 git config 失败，请手动执行：
+
+```bash
+git config --local include.path ../.gitconfig
+git config core.hooksPath .githooks
+```
