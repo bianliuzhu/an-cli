@@ -113,19 +113,19 @@ $ anl type
 
 ## خيارات الإعداد
 
-| الخيار                   | النوع                                 | إلزامي  | الوصف                         |
-| ------------------------ | ------------------------------------- | ------- | ----------------------------- | --- | ---------------------- |
-| saveTypeFolderPath       | string                                | نعم     | مسار حفظ ملفات تعريف الأنواع  |
-| saveApiListFolderPath    | string                                | نعم     | مسار حفظ ملفات دوال طلبات API |
-| saveEnumFolderPath       | string                                | نعم     | مسار حفظ ملفات التعدادات      |
-| importEnumPath           | string                                | نعم     | مسار الاستيراد للتعدادات      |
-| swaggerJsonUrl           | string                                | نعم     | رابط ملف Swagger JSON         |
-| requestMethodsImportPath | string                                | نعم     | مسار الاستيراد لطرائق الطلب   |
-| dataLevel                | 'data'                                | 'serve' | 'axios'                       | نعم | مستوى بيانات الاستجابة |
-| formatting               | object                                | لا      | إعدادات تنسيق الشيفرة         |
-| headers                  | object                                | لا      | ترويسات الطلب                 |
-| includeInterface         | Array<{path: string, method: string}> | لا      | توليد الواجهات المذكورة فقط   |
-| excludeInterface         | Array<{path: string, method: string}> | لا      | استبعاد الواجهات المذكورة     |
+| الخيار                   | النوع                                 | إلزامي | الوصف                         |
+| ------------------------ | ------------------------------------- | ------ | ----------------------------- |
+| saveTypeFolderPath       | string                                | نعم    | مسار حفظ ملفات تعريف الأنواع  |
+| saveApiListFolderPath    | string                                | نعم    | مسار حفظ ملفات دوال طلبات API |
+| saveEnumFolderPath       | string                                | نعم    | مسار حفظ ملفات التعدادات      |
+| importEnumPath           | string                                | نعم    | مسار الاستيراد للتعدادات      |
+| swaggerJsonUrl           | string                                | نعم    | رابط ملف Swagger JSON         |
+| requestMethodsImportPath | string                                | نعم    | مسار الاستيراد لطرائق الطلب   |
+| dataLevel                | 'data' \| 'serve' \| 'axios'          | نعم    | مستوى بيانات الاستجابة        |
+| formatting               | object                                | لا     | إعدادات تنسيق الشيفرة         |
+| headers                  | object                                | لا     | ترويسات الطلب                 |
+| includeInterface         | Array<{path: string, method: string}> | لا     | توليد الواجهات المذكورة فقط   |
+| excludeInterface         | Array<{path: string, method: string}> | لا     | استبعاد الواجهات المذكورة     |
 
 ## بنية الملفات المولدة
 

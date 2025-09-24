@@ -114,14 +114,14 @@ $ anl type
 ## Config Options
 
 | Option                   | Type                                  | Required | Description                                                                |
-| ------------------------ | ------------------------------------- | -------- | -------------------------------------------------------------------------- | --- | ------------------- |
+| ------------------------ | ------------------------------------- | -------- | -------------------------------------------------------------------------- |
 | saveTypeFolderPath       | string                                | Yes      | Path to save type definition files                                         |
 | saveApiListFolderPath    | string                                | Yes      | Path to save API request function files                                    |
 | saveEnumFolderPath       | string                                | Yes      | Path to save enum type files                                               |
 | importEnumPath           | string                                | Yes      | Import path for enum types                                                 |
 | swaggerJsonUrl           | string                                | Yes      | Swagger JSON document URL                                                  |
 | requestMethodsImportPath | string                                | Yes      | Import path for request methods                                            |
-| dataLevel                | 'data'                                | 'serve'  | 'axios'                                                                    | Yes | Response data level |
+| dataLevel                | 'data' \| 'serve' \| 'axios'          | Yes      | Response data level                                                        |
 | formatting               | object                                | No       | Code formatting configuration                                              |
 | headers                  | object                                | No       | Request headers                                                            |
 | includeInterface         | Array<{path: string, method: string}> | No       | Only generate interfaces listed here; if set, only these will be generated |

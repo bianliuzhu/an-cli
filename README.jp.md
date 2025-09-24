@@ -113,19 +113,19 @@ $ anl type
 
 ## 設定項目
 
-| 項目                     | 型                                    | 必須    | 説明                                 |
-| ------------------------ | ------------------------------------- | ------- | ------------------------------------ | ---- | ---------------------- |
-| saveTypeFolderPath       | string                                | はい    | 型定義ファイルの保存パス             |
-| saveApiListFolderPath    | string                                | はい    | API リクエスト関数ファイルの保存パス |
-| saveEnumFolderPath       | string                                | はい    | 列挙型ファイルの保存パス             |
-| importEnumPath           | string                                | はい    | 列挙型のインポートパス               |
-| swaggerJsonUrl           | string                                | はい    | Swagger JSON の URL                  |
-| requestMethodsImportPath | string                                | はい    | リクエストメソッドのインポートパス   |
-| dataLevel                | 'data'                                | 'serve' | 'axios'                              | はい | レスポンスデータの階層 |
-| formatting               | object                                | いいえ  | コード整形の設定                     |
-| headers                  | object                                | いいえ  | リクエストヘッダー                   |
-| includeInterface         | Array<{path: string, method: string}> | いいえ  | 生成対象をこのリストに限定           |
-| excludeInterface         | Array<{path: string, method: string}> | いいえ  | このリストのインターフェースを除外   |
+| 項目                     | 型                                    | 必須   | 説明                                 |
+| ------------------------ | ------------------------------------- | ------ | ------------------------------------ |
+| saveTypeFolderPath       | string                                | はい   | 型定義ファイルの保存パス             |
+| saveApiListFolderPath    | string                                | はい   | API リクエスト関数ファイルの保存パス |
+| saveEnumFolderPath       | string                                | はい   | 列挙型ファイルの保存パス             |
+| importEnumPath           | string                                | はい   | 列挙型のインポートパス               |
+| swaggerJsonUrl           | string                                | はい   | Swagger JSON の URL                  |
+| requestMethodsImportPath | string                                | はい   | リクエストメソッドのインポートパス   |
+| dataLevel                | 'data' \| 'serve' \| 'axios'          | はい   | レスポンスデータの階層               |
+| formatting               | object                                | いいえ | コード整形の設定                     |
+| headers                  | object                                | いいえ | リクエストヘッダー                   |
+| includeInterface         | Array<{path: string, method: string}> | いいえ | 生成対象をこのリストに限定           |
+| excludeInterface         | Array<{path: string, method: string}> | いいえ | このリストのインターフェースを除外   |
 
 ## 生成されるファイル構成
 

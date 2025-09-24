@@ -113,19 +113,19 @@ $ anl type
 
 ## Options de configuration
 
-| Option                   | Type                                  | Requis  | Description                                       |
-| ------------------------ | ------------------------------------- | ------- | ------------------------------------------------- | --- | ------------------------------- |
-| saveTypeFolderPath       | string                                | Oui     | Chemin de sauvegarde des définitions de types     |
-| saveApiListFolderPath    | string                                | Oui     | Chemin de sauvegarde des fonctions de requête API |
-| saveEnumFolderPath       | string                                | Oui     | Chemin de sauvegarde des énumérations             |
-| importEnumPath           | string                                | Oui     | Chemin d'import des énumérations                  |
-| swaggerJsonUrl           | string                                | Oui     | URL du document Swagger JSON                      |
-| requestMethodsImportPath | string                                | Oui     | Chemin d'import des méthodes de requête           |
-| dataLevel                | 'data'                                | 'serve' | 'axios'                                           | Oui | Niveau de données de la réponse |
-| formatting               | object                                | Non     | Configuration du formatage du code                |
-| headers                  | object                                | Non     | En-têtes de requête                               |
-| includeInterface         | Array<{path: string, method: string}> | Non     | Générer seulement les interfaces listées ici      |
-| excludeInterface         | Array<{path: string, method: string}> | Non     | Exclure les interfaces listées ici                |
+| Option                   | Type                                  | Requis | Description                                       |
+| ------------------------ | ------------------------------------- | ------ | ------------------------------------------------- |
+| saveTypeFolderPath       | string                                | Oui    | Chemin de sauvegarde des définitions de types     |
+| saveApiListFolderPath    | string                                | Oui    | Chemin de sauvegarde des fonctions de requête API |
+| saveEnumFolderPath       | string                                | Oui    | Chemin de sauvegarde des énumérations             |
+| importEnumPath           | string                                | Oui    | Chemin d'import des énumérations                  |
+| swaggerJsonUrl           | string                                | Oui    | URL du document Swagger JSON                      |
+| requestMethodsImportPath | string                                | Oui    | Chemin d'import des méthodes de requête           |
+| dataLevel                | 'data' \| 'serve' \| 'axios'          | Oui    | Niveau de données de la réponse                   |
+| formatting               | object                                | Non    | Configuration du formatage du code                |
+| headers                  | object                                | Non    | En-têtes de requête                               |
+| includeInterface         | Array<{path: string, method: string}> | Non    | Générer seulement les interfaces listées ici      |
+| excludeInterface         | Array<{path: string, method: string}> | Non    | Exclure les interfaces listées ici                |
 
 ## Arborescence générée
 

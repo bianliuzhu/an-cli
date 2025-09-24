@@ -1,6 +1,6 @@
 {
 	"name": "anl",
-	"version": "1.6.3",
+	"version": "1.6.4",
 	"description": "FE command line tool",
 	"main": "bin/an-cli.js",
 	"scripts": {

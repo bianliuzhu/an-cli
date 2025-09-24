@@ -114,14 +114,14 @@ $ anl type
 ## Opciones de configuración
 
 | Opción                   | Tipo                                  | Requerido | Descripción                                                            |
-| ------------------------ | ------------------------------------- | --------- | ---------------------------------------------------------------------- | --- | ------------------------------ |
+| ------------------------ | ------------------------------------- | --------- | ---------------------------------------------------------------------- |
 | saveTypeFolderPath       | string                                | Sí        | Ruta para guardar archivos de definición de tipos                      |
 | saveApiListFolderPath    | string                                | Sí        | Ruta para guardar archivos de funciones de solicitud de API            |
 | saveEnumFolderPath       | string                                | Sí        | Ruta para guardar archivos de tipos de enumeración                     |
 | importEnumPath           | string                                | Sí        | Ruta de importación para tipos de enumeración                          |
 | swaggerJsonUrl           | string                                | Sí        | URL del documento Swagger JSON                                         |
 | requestMethodsImportPath | string                                | Sí        | Ruta de importación para métodos de solicitud                          |
-| dataLevel                | 'data'                                | 'serve'   | 'axios'                                                                | Sí  | Nivel de datos de la respuesta |
+| dataLevel                | 'data' \| 'serve' \| 'axios'          | Sí        | Nivel de datos de la respuesta                                         |
 | formatting               | object                                | No        | Configuración de formateo de código                                    |
 | headers                  | object                                | No        | Cabeceras de la solicitud                                              |
 | includeInterface         | Array<{path: string, method: string}> | No        | Solo generar las interfaces listadas aquí; si se establece, solo estas |
