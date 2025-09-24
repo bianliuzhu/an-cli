@@ -1,41 +1,41 @@
 # an-cli
 
-[English](./README.en.md) | [Español](./README.es.md) | [العربية](./README.ar.md) | [Français](./README.fr.md) | [Русский](./README.ru.md) | [日本語](./README.jp.md) | 简体中文
+[简体中文](./README.zh.md) | English | [Español](./README.es.md) | [العربية](./README.ar.md) | [Français](./README.fr.md) | [Русский](./README.ru.md) | [日本語](./README.jp.md)
 
-## 说明
+## Description
 
-an-cli 是 前端命令行工具，包含以下命令:
+an-cli is a frontend command-line tool with the following commands:
 
-> `anl type`：基于 Swagger JSON 自动生成 TypeScript 类型定义和 API 请求函数的命令行工具。
+> `anl type`: A CLI tool that automatically generates TypeScript type definitions and API request functions based on a Swagger/OpenAPI JSON document.
 
-> `anl lint`: 生成 react 或 vue 项目 eslint、stylelint、prettier、commitLint、VSCode相关配置
+> `anl lint`: Generates ESLint, Stylelint, Prettier, CommitLint, and VSCode-related configurations for React or Vue projects.
 
-> `anl git`: 生成 git 本地配置，可选的的功能有 gitflow 标准分支创建、git commit messages 主题、git 自定义命令配置
+> `anl git`: Generates local Git setup with optional features like gitflow standard branches, commit message subjects, and custom Git commands.
 
-## 功能特点
+## Features
 
 - `anl type`
-  - 🚀 自动解析 Swagger JSON 文档
-  - 📦 生成 TypeScript 类型定义文件
-  - 🔄 生成类型安全的 API 请求函数
-  - 🎯 支持路径参数、查询参数和请求体
-  - 📝 自动生成枚举类型定义
-  - 🎨 支持代码格式化
-  - ⚡️ 支持文件上传
-  - 🛠 可配置的代码生成选项
+  - 🚀 Automatically parses Swagger JSON documents
+  - 📦 Generates TypeScript type definition files
+  - 🔄 Generates type-safe API request functions
+  - 🎯 Supports path params, query params, and request bodies
+  - 📝 Auto-generates enum type definitions
+  - 🎨 Supports code formatting
+  - ⚡️ Supports file uploads
+  - 🛠 Configurable code generation options
 
 - `anl lint`
-  - 🔍 一键配置各种 lint 工具
-  - 🎨 ESLint 配置自动化
-  - 🎯Prettier 格式化配置
-  - 🔄 CommitLint 提交规范
-  - 📦 VSCode 编辑器配置
+  - 🔍 One-click setup for various lint tools
+  - 🎨 Automated ESLint configuration
+  - 🎯 Prettier formatting configuration
+  - 🔄 CommitLint commit conventions
+  - 📦 VSCode editor configuration
 
-## 安装
+## Installation
 
-> [!NOTE]
+> Note
 >
-> 需要全局安装
+> Install globally
 
 ```bash
 $ npm install anl -g
@@ -43,34 +43,34 @@ $ npm install anl -g
 $ yarn global add anl
 ```
 
-## 使用说明
+## Usage
 
-> [!TIP]
+> Tip
 >
-> 1. 如果初次使用，不清楚会产生什么结果，建议先执行命令，观察会在项目中发生什么变化，然后在结合文档，进一步修改配置，再次生成，最终达到自己理想中的样子
-> 2. 或者跟着下面步骤 一步一步做，就会有收获
+> 1. If this is your first time and you are unsure what will happen, run the command first to observe the changes in your project. Then combine with the docs to adjust your config, run again, and iterate until you reach your desired result.
+> 2. Or simply follow the steps below, one by one.
 
-# anl type 命令
+# anl type Command
 
-## 使用说明
+## How to Use
 
-1. 执行命令
+1. Run the command
 
 ```bash
 $ anl type
 ```
 
-2. 配置文件说明
+2. Config file overview
 
-- 首次执行 `anl type`, 命令，会在*项目根目录下*, _自动创建_ 以 `an.config.json` 为名的配置文件（手动创建也可以）。
-- 执行 `anl type` 命令时，会找用户项目根目录下的 `an.config.json` 配置文件，并读取其配置信息，生成对应的axios封装、配置、接口列表、接口请求及响应类型
-- 配置文件内的配置项是可自由修改的
+- The first time you run `anl type`, a configuration file named `an.config.json` is automatically created in the project root (you can also create it manually).
+- When running `anl type`, the tool looks for `an.config.json` in your project root, reads it, and generates the Axios wrapper, config, API list, and request/response types accordingly.
+- The config items in the file are fully editable.
 
-3. `an.config.json`配置项示例
+3. Example `an.config.json`
 
-- 配置文件必须在项目根目录下，不可移动位置
-- 配置文件名称不可更改
-- 具体参数说明请看[配置项说明](#配置项说明)
+- The config file must reside in the project root and cannot be moved.
+- The config file name cannot be changed.
+- For parameter details, see Config Options.
 
 ```json
 {
@@ -101,51 +101,51 @@ $ anl type
 }
 ```
 
-3. 按照自己的需要更新配置文件，然后再次执行 `anl type` 命令，会依照配置文件中的指定配置信息生成，生成对应的类型信息
+3. Update the config file as needed, then run `anl type` again. The tool will generate code according to your configuration.
 
 ```bash
 $ anl type
 ```
 
-> [!NOTE]
+> Note
 >
-> 如果不清楚这些配置，可以先执行 anl type 命令，将类型先生成，然后检查项目目录，结合配置项说明，调整配置项，再次生成，最终达到想要的效果
+> If you are unsure about these options, just run `anl type` once to generate everything, inspect the output in your project, adjust the options based on the explanations, and run again until it matches what you want.
 
-## 配置项说明
+## Config Options
 
-| 配置项                   | 类型                                  | 必填 | 说明                                                       |
-| ------------------------ | ------------------------------------- | ---- | ---------------------------------------------------------- |
-| saveTypeFolderPath       | string                                | 是   | 类型定义文件保存路径                                       |
-| saveApiListFolderPath    | string                                | 是   | API 请求函数文件保存路径                                   |
-| saveEnumFolderPath       | string                                | 是   | 枚举类型文件保存路径                                       |
-| importEnumPath           | string                                | 是   | 枚举类型导入路径                                           |
-| swaggerJsonUrl           | string                                | 是   | Swagger JSON 文档地址                                      |
-| requestMethodsImportPath | string                                | 是   | 请求方法导入路径                                           |
-| dataLevel                | 'data' \| 'serve' \| 'axios'          | 是   | 接口返回数据层级                                           |
-| formatting               | object                                | 否   | 代码格式化配置                                             |
-| headers                  | object                                | 否   | 请求头配置                                                 |
-| includeInterface         | Array<{path: string, method: string}> | 否   | 需要包含的接口列表，如果设置了此项，则只会生成列表中的接口 |
-| excludeInterface         | Array<{path: string, method: string}> | 否   | 需要排除的接口列表，如果设置了此项，则会排除列表中的接口   |
+| Option                   | Type                                  | Required | Description                                                                |
+| ------------------------ | ------------------------------------- | -------- | -------------------------------------------------------------------------- | --- | ------------------- |
+| saveTypeFolderPath       | string                                | Yes      | Path to save type definition files                                         |
+| saveApiListFolderPath    | string                                | Yes      | Path to save API request function files                                    |
+| saveEnumFolderPath       | string                                | Yes      | Path to save enum type files                                               |
+| importEnumPath           | string                                | Yes      | Import path for enum types                                                 |
+| swaggerJsonUrl           | string                                | Yes      | Swagger JSON document URL                                                  |
+| requestMethodsImportPath | string                                | Yes      | Import path for request methods                                            |
+| dataLevel                | 'data'                                | 'serve'  | 'axios'                                                                    | Yes | Response data level |
+| formatting               | object                                | No       | Code formatting configuration                                              |
+| headers                  | object                                | No       | Request headers                                                            |
+| includeInterface         | Array<{path: string, method: string}> | No       | Only generate interfaces listed here; if set, only these will be generated |
+| excludeInterface         | Array<{path: string, method: string}> | No       | Exclude interfaces listed here; others will be generated                   |
 
-## 生成的文件结构
+## Generated File Structure
 
-- 这个文件结构是根据配置文件生成的
+- The structure below is generated based on your config file.
 
 ```
 project/
 ├── apps/
 │   ├── types/
-│   │   ├── models/          # 所有类型定义文件（不包含枚举类型）
-│   │   ├── connectors/      # API 类型定义（接口定义文件）
-│   │   └── enums/           # 枚举类型定义
+│   │   ├── models/          # All type definitions (excluding enums)
+│   │   ├── connectors/      # API type definitions (interface definitions)
+│   │   └── enums/           # Enum type definitions
 │   └── api/
-│       ├── fetch.ts         # 请求方法实现
-│       └── index.ts         # API 请求函数
+│       ├── fetch.ts         # Request method implementation
+│       └── index.ts         # API request functions
 ```
 
-## 生成的代码示例
+## Generated Code Examples
 
-### 类型定义文件
+### Type Definitions
 
 ```typescript
 declare namespace UserDetail_GET {
@@ -162,29 +162,29 @@ declare namespace UserDetail_GET {
 }
 ```
 
-### API 请求函数
+### API Request Function
 
 ```typescript
 import { GET } from './fetch';
 
 /**
- * 获取用户详情
+ * Get user details
  */
 export const userDetailGet = (params: UserDetail_GET.Query) => GET<UserDetail_GET.Response>('/user/detail', params);
 ```
 
-## 特性说明
+## Additional Features
 
-### 类型解析
+### Type Parsing
 
-- 支持所有 OpenAPI 3.0 规范的数据类型
-- 自动处理复杂的嵌套类型
-- 支持数组、对象、枚举等类型
-- 自动生成接口注释
+- Supports all OpenAPI 3.0 data types
+- Automatically handles complex nested types
+- Supports arrays, objects, enums, etc.
+- Auto-generates interface comments
 
-### 文件上传
+### File Upload
 
-当检测到文件上传类型时，会自动添加对应的请求头：
+When a file upload type is detected, the corresponding headers are automatically added:
 
 ```typescript
 export const uploadFile = (params: UploadFile.Body) =>
@@ -193,29 +193,29 @@ export const uploadFile = (params: UploadFile.Body) =>
 	});
 ```
 
-### 错误处理
+### Error Handling
 
-工具内置了完善的错误处理机制：
+The tool includes robust error handling:
 
-- 解析错误提示
-- 类型生成失败警告
-- 文件写入异常处理
+- Parsing error messages
+- Warnings when type generation fails
+- File write exception handling
 
-### 接口过滤
+### Interface Filtering
 
-工具支持通过配置来过滤需要生成的接口：
+Control which interfaces are generated via config:
 
-1. 包含特定接口
-   - 通过 `includeInterface` 配置项指定需要生成的接口
-   - 只会生成配置中指定的接口
-   - 配置格式为包含 `path` 和 `method` 的对象数组
+1. Include specific interfaces
+   - Use `includeInterface` to specify interfaces to generate
+   - Only interfaces listed will be generated
+   - Format: array of objects with `path` and `method`
 
-2. 排除特定接口
-   - 通过 `excludeInterface` 配置项指定需要排除的接口
-   - 会生成除了配置中指定接口之外的所有接口
-   - 配置格式为包含 `path` 和 `method` 的对象数组
+2. Exclude specific interfaces
+   - Use `excludeInterface` to specify interfaces to skip
+   - All other interfaces will be generated
+   - Format: array of objects with `path` and `method`
 
-示例配置：
+Example:
 
 ```json
 {
@@ -234,129 +234,130 @@ export const uploadFile = (params: UploadFile.Body) =>
 }
 ```
 
-注意：`includeInterface` 和 `excludeInterface` 不能同时使用，如果同时配置，会优先使用 `includeInterface`。
+Note: `includeInterface` and `excludeInterface` cannot be used at the same time. If both are set, `includeInterface` takes precedence.
 
-## 开发
+## Development
 
 ```bash
-# 安装依赖
+# Install dependencies
 npm install
 
-# 开发模式
-按 F5 进行调试
+# Development mode
+Press F5 to debug
 
-# 构建
+# Build
 npm run build
 
-# 本地链接调试
+# Local link for debugging
 npm run blink
 ```
 
-## 注意事项
+## Notes
 
-1. 确保 Swagger JSON 文档地址可访问
-2. 配置文件中的路径需要是相对于项目根目录的路径
-3. 生成的文件会覆盖已存在的同名文件
-4. 建议将生成的文件加入版本控制
+1. Ensure the Swagger JSON URL is reachable
+2. Paths in the config file are relative to the project root
+3. Generated files will overwrite existing files with the same name
+4. It is recommended to commit generated files to version control
 
-## 常见问题
+## FAQ
 
-1. 生成的类型文件格式化失败
-   - 检查是否安装了 prettier
-   - 确认项目根目录下是否有 prettier 配置文件
+1. Generated type files fail to format
+   - Check if Prettier is installed
+   - Ensure there is a Prettier config file in the project root
 
-2. 请求函数导入路径错误
-   - 检查 requestMethodsImportPath 配置是否正确
-   - 确认请求方法文件是否存在
+2. Incorrect import path in request functions
+   - Verify the `requestMethodsImportPath` is correct
+   - Ensure the request method file exists
 
-# anl lint 命令
+# anl lint Command
 
-### 功能概述
+### Overview
 
-提供一键配置前端项目各种 lint 工具的功能，包括：
+Provides one-click setup for various frontend lint tools, including:
 
-- ESLint 代码检查
-- Prettier 代码格式化
-- CommitLint 提交信息规范
-- VSCode 编辑器配置
+- ESLint code linting
+- Prettier code formatting
+- CommitLint commit message conventions
+- VSCode editor configuration
 
-### 使用方法
+### Usage
 
 ```bash
 $ anl lint
 ```
 
-### 配置详情
+### Configuration Details
 
-#### 1. ESLint 配置
+#### 1. ESLint
 
-- 自动安装所需依赖
-- 支持 React/Vue 框架
-- 自动生成 `.eslintrc.js` 和 `.eslintignore`
-- 集成 TypeScript 支持
+- Automatically installs required dependencies
+- Supports React/Vue frameworks
+- Auto-generates `.eslintrc.js` and `.eslintignore`
+- Integrates TypeScript support
 
-#### 2. Prettier 配置
+#### 2. Prettier
 
-- 自动安装 prettier 相关依赖
-- 生成 `.prettierrc.js` 配置文件
-- 默认配置包括：
-  - 行宽：80
-  - Tab 缩进
-  - 使用单引号
-  - 箭头函数括号
-  - 其他代码风格规范
+- Automatically installs Prettier dependencies
+- Generates `.prettierrc.js`
+- Default settings include:
+  - Print width: 80
+  - Tab indentation
+  - Single quotes
+  - Arrow function parentheses
+  - Other style rules
 
-#### 3. CommitLint 配置
+#### 3. CommitLint
 
-- 安装 commitlint 相关依赖
-- 配置 husky git hooks
-- 生成 `commitlint.config.js`
-- 规范化 git commit message
+- Installs CommitLint dependencies
+- Configures Husky git hooks
+- Generates `commitlint.config.js`
+- Standardizes git commit messages
 
-#### 4. VSCode 配置
+#### 4. VSCode
 
-- 创建 `.vscode/settings.json`
-- 配置编辑器自动格式化
-- 设置默认格式化工具
-- 支持已有配置文件更新
+- Creates `.vscode/settings.json`
+- Configures editor auto-format on save
+- Sets default formatter
+- Supports updating existing configs
 
-# 许可证
+# anl git Command
 
-ISC License
+### Overview
 
-# 贡献指南
+Apply the following Git capabilities to the current repository via interactive multi-select:
 
-欢迎提交 [Issue](https://github.com/bianliuzhu/an-cli/issues) 和 [Pull Request](https://github.com/bianliuzhu/an-cli/pulls)！
+- gitflow standard branch creation
+  - Copy `.gitscripts/`, `.gitconfig`, `.commit-type.js` into the project (only if missing)
+  - Add executable permission to `.gitscripts/random-branch.sh`
+  - Run `git config --local include.path ../.gitconfig`
+- Auto set commit subject
+  - Copy `.githooks/commit-msg` and set it executable
+  - Run `git config core.hooksPath .githooks`
+- Custom git commands
+  - Add `.gitattributes` to the project (only if missing)
 
-# anl git 命令
-
-### 功能概述
-
-- 通过交互式多选，为当前仓库应用以下 Git 能力：
-  - gitflow 标准分支创建
-    - 将 `.gitscripts/`、`.gitconfig`、`.commit-type.js` 复制到项目（仅在缺失时）
-    - 为 `.gitscripts/random-branch.sh` 添加可执行权限
-    - 执行 `git config --local include.path ../.gitconfig`
-  - 自动设置 commit subject
-    - 复制 `.githooks/commit-msg` 并设置为可执行
-    - 执行 `git config core.hooksPath .githooks`
-  - 自定义 git 命令
-    - 向项目添加 `.gitattributes`（仅在缺失时）
-
-### 使用方法
+### Usage
 
 ```bash
 $ anl git
 ```
 
-在提示中选择一个或多个功能。文件仅在不存在时创建；已有文件会被保留。
+Select one or more features from the prompts. Files are only created when missing; existing files are preserved.
 
-### 注意事项
+### Notes
 
-- 请在 Git 仓库内运行。
-- 若自动执行的 git config 失败，请手动执行：
+- Run inside a Git repository.
+- If automatic git config steps fail, run manually:
 
 ```bash
 git config --local include.path ../.gitconfig
 git config core.hooksPath .githooks
 ```
+
+# License
+
+ISC License
+
+# Contributing
+
+Issues and Pull Requests are welcome: https://github.com/bianliuzhu/an-cli
