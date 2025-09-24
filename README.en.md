@@ -13,7 +13,6 @@ an-cli is a frontend command line tool that includes the following two commands:
 ## Features
 
 - `anl type`
-
   - 🚀 Automatic parsing of Swagger JSON documentation
   - 📦 Generate TypeScript type definition files
   - 🔄 Generate type-safe API request functions
@@ -191,7 +190,6 @@ The tool has built-in comprehensive error handling mechanisms:
 The tool supports filtering interfaces to be generated through configuration:
 
 1. Include specific interfaces
-
    - Specify interfaces to be generated through the `includeInterface` configuration item
    - Only interfaces specified in the configuration will be generated
    - Configuration format is an array of objects containing `path` and `method`
@@ -248,7 +246,6 @@ npm run blink
 ## Common Issues
 
 1. Generated type file formatting fails
-
    - Check if prettier is installed
    - Confirm if prettier configuration file exists in the project root
 
@@ -263,6 +260,39 @@ Issues and Pull Requests are welcome!
 ## License
 
 ISC License
+
+# anl git command
+
+### Feature Overview
+
+- Git features can be applied to the current repository via an interactive prompt:
+  - gitflow standard branch creation
+    - Copies `.gitscripts/`, `.gitconfig`, `.commit-type.js` to your project (only if missing)
+    - Makes `.gitscripts/random-branch.sh` executable
+    - Executes `git config --local include.path ../.gitconfig`
+  - automatically set commit subject
+    - Copies `.githooks/commit-msg` and sets it executable
+    - Executes `git config core.hooksPath .githooks`
+  - custom git command
+    - Adds `.gitattributes` to the project (only if missing)
+
+### Usage
+
+```bash
+$ anl git
+```
+
+Select one or more features in the prompt. Files are only created if missing; existing files are preserved.
+
+### Notes
+
+- Run inside a Git repository.
+- If automatic git config commands fail, execute manually:
+
+```bash
+git config --local include.path ../.gitconfig
+git config core.hooksPath .githooks
+```
 
 # anl lint command
 
