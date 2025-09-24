@@ -4,11 +4,13 @@
 
 ## 说明
 
-an-cli 是 前端命令行工具，包含以下两个命令
+an-cli 是 前端命令行工具，包含以下命令:
 
-[anl type 命令](#anl type 命令)：基于 Swagger JSON 自动生成 TypeScript 类型定义和 API 请求函数的命令行工具。
+> `anl type`：基于 Swagger JSON 自动生成 TypeScript 类型定义和 API 请求函数的命令行工具。
 
-[anl lint 命令](#anl lint 命令)：生成 react 或 vue 项目 eslint、stylelint、prettier、commitLint、VSCode相关配置
+> `anl lint`: 生成 react 或 vue 项目 eslint、stylelint、prettier、commitLint、VSCode相关配置
+
+> `anl git`: 生成 git 本地配置，可选的的功能有 gitflow 标准分支创建、git commit messages 主题、git 自定义命令配置
 
 ## 功能特点
 

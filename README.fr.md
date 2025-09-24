@@ -6,9 +6,11 @@
 
 an-cli est un outil en ligne de commande frontend qui comprend les deux commandes suivantes :
 
-[Commande anl type](#commande-anl-type) : Un outil en ligne de commande qui génère automatiquement des définitions de types TypeScript et des fonctions de requête API basées sur Swagger JSON.
+> `anl type`：Un outil en ligne de commande qui génère automatiquement des définitions de types TypeScript et des fonctions de requête API basées sur Swagger JSON.
 
-[Commande anl lint](#commande-anl-lint) : Génère des configurations ESLint, Stylelint, Prettier, CommitLint et VSCode pour les projets React ou Vue.
+> `anl lint`: Génère des configurations ESLint, Stylelint, Prettier, CommitLint et VSCode pour les projets React ou Vue.
+
+> `anl git`: Génère la configuration Git locale ; les fonctionnalités optionnelles incluent la création de branches standard gitflow, les sujets des messages de commit, et la configuration de commandes Git personnalisées
 
 ## Caractéristiques
 
