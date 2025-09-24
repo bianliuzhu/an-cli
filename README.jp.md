@@ -1,39 +1,39 @@
 # an-cli
 
-[English](./README.en.md) | [Español](./README.es.md) | [العربية](./README.ar.md) | [Français](./README.fr.md) | [Русский](./README.ru.md) | 日本語 | [简体中文](./README.md)
+[简体中文](./README.zh.md) | [English](./README.md) | [Español](./README.es.md) | [العربية](./README.ar.md) | [Français](./README.fr.md) | [Русский](./README.ru.md) | 日本語
 
-## 概要
+## 説明
 
-an-cliは、以下の2つのコマンドを含むフロントエンドコマンドラインツールです：
+an-cli は以下のコマンドを提供するフロントエンド向け CLI ツールです：
 
-> `anl type`：Swagger JSONに基づいてTypeScriptの型定義とAPIリクエスト関数を自動生成するツール。
+> `anl type`: Swagger/OpenAPI の JSON に基づいて、TypeScript 型定義と API リクエスト関数を自動生成する CLI ツール。
 
-> `anl lint`: ReactまたはVueプロジェクトのeslint、stylelint、prettier、commitLint、VSCode関連の設定を生成するツール。
+> `anl lint`: React または Vue プロジェクト向けに、ESLint、Stylelint、Prettier、CommitLint、VSCode 設定を生成。
 
-> `anl git`: ローカルGit設定を生成します。オプション機能として、gitflow標準ブランチの作成、コミットメッセージのサブジェクト設定、カスタムGitコマンドの構成を提供します
+> `anl git`: gitflow 標準ブランチの作成、コミットメッセージのサブジェクト設定、カスタム Git コマンドなどのローカル Git 設定を生成。
 
-## 特徴
+## 機能
 
 - `anl type`
-  - 🚀 Swagger JSON文書の自動解析
-  - 📦 TypeScript型定義ファイルの生成
-  - 🔄 型安全なAPIリクエスト関数の生成
-  - 🎯 パスパラメータ、クエリパラメータ、リクエストボディのサポート
-  - 📝 列挙型定義の自動生成
-  - 🎨 コードフォーマットのサポート
-  - ⚡️ ファイルアップロードのサポート
-  - 🛠 設定可能なコード生成オプション
+  - 🚀 Swagger JSON ドキュメントを自動解析
+  - 📦 TypeScript 型定義ファイルを生成
+  - 🔄 型安全な API リクエスト関数を生成
+  - 🎯 パス・クエリ・ボディの各パラメータに対応
+  - 📝 列挙型の定義を自動生成
+  - 🎨 コード整形をサポート
+  - ⚡️ ファイルアップロードをサポート
+  - 🛠 柔軟な生成オプション
 
 - `anl lint`
-  - 🔍 各種リントツールのワンクリック設定
-  - 🎨 ESLint設定の自動化
-  - 🎯 Prettierフォーマット設定
-  - 🔄 CommitLintコミット規約
-  - 📦 VSCodeエディタ設定
+  - 🔍 各種 Lint ツールをワンクリック設定
+  - 🎨 ESLint 設定を自動化
+  - 🎯 Prettier 設定
+  - 🔄 CommitLint によるコミット規約
+  - 📦 VSCode エディタ設定
 
 ## インストール
 
-> [!NOTE]
+> 注意
 >
 > グローバルインストールが必要です
 
@@ -43,34 +43,34 @@ $ npm install anl -g
 $ yarn global add anl
 ```
 
-## 使用方法
+## 使い方
 
-> [!TIP]
+> ヒント
 >
-> 1. 初めて使用する場合、どのような結果が生成されるか不明な場合は、まずコマンドを実行し、プロジェクトにどのような変更が発生するかを確認してから、ドキュメントを参照して設定を調整し、再度生成して最終的に理想的な結果を得ることをお勧めします
-> 2. または、以下の手順に従って一つずつ実行することで、成果を得ることができます
+> 1. 初めての場合はまずコマンドを実行し、プロジェクトにどんな変化が起きるかを確認してください。その後、ドキュメントを参照しつつ設定を調整・再生成し、理想の形に近づけます。
+> 2. もしくは以下の手順に従って一歩ずつ進めてください。
 
-# anl typeコマンド
+# anl type コマンド
 
-## 使用方法
+## 手順
 
-1. コマンドの実行
+1. コマンドを実行
 
 ```bash
 $ anl type
 ```
 
-2. 設定の完了
+2. 設定ファイルの説明
 
-- 初めて `anl type` コマンドを実行すると、*プロジェクトのルートディレクトリ*に `an.config.json` という名前の設定ファイルが*自動的に作成*されます（手動で作成することも可能です）。
-- `anl type` コマンドを実行すると、ユーザープロジェクトのルートディレクトリにある `an.config.json` 設定ファイルを探し、その設定情報を読み取って、対応するaxiosのラッパー、設定、インターフェースリスト、インターフェースリクエスト、レスポンスタイプを生成します
-- 設定ファイル内の設定項目は自由に変更できます
+- 初回の `anl type` 実行時、プロジェクトルートに `an.config.json` が自動作成されます（手動作成も可）。
+- 実行時にルートの `an.config.json` を読み込み、Axios ラッパー、設定、API 一覧、リクエスト/レスポンス型を生成します。
+- 設定項目は自由に編集できます。
 
-3. `an.config.json`設定例
+3. `an.config.json` の例
 
-- 設定ファイルはプロジェクトのルートディレクトリに配置する必要があり、移動できません
-- 設定ファイル名は変更できません
-- 具体的なパラメータについては[設定項目の説明](#設定項目の説明)をご覧ください
+- 設定ファイルはプロジェクトルート固定です。
+- ファイル名は変更不可です。
+- パラメータの詳細は「設定項目」を参照してください。
 
 ```json
 {
@@ -101,51 +101,51 @@ $ anl type
 }
 ```
 
-3. 必要に応じて設定ファイルを更新し、再度 `anl type` コマンドを実行すると、設定ファイルで指定された設定情報に基づいて、対応する型情報が生成されます
+3. 必要に応じて設定を更新し、再度 `anl type` を実行してください。設定に基づいて生成されます。
 
 ```bash
 $ anl type
 ```
 
-> [!NOTE]
+> 注意
 >
-> これらの設定が不明な場合は、まず `anl type` コマンドを実行して型を生成し、プロジェクトディレクトリを確認してから、設定項目の説明を参照して設定を調整し、再度生成して最終的に理想的な結果を得ることができます
+> 不明点がある場合は、まず一度 `anl type` を実行して出力を確認し、説明を参考に設定を調整して再実行してください。
 
-## 設定項目の説明
+## 設定項目
 
-| 設定項目                 | 型                                    | 必須   | 説明                                                                                                                                   |
-| ------------------------ | ------------------------------------- | ------ | -------------------------------------------------------------------------------------------------------------------------------------- |
-| saveTypeFolderPath       | string                                | はい   | 型定義ファイルの保存パス                                                                                                               |
-| saveApiListFolderPath    | string                                | はい   | APIリクエスト関数の保存パス                                                                                                            |
-| saveEnumFolderPath       | string                                | はい   | 列挙型ファイルの保存パス                                                                                                               |
-| importEnumPath           | string                                | はい   | 列挙型のインポートパス                                                                                                                 |
-| swaggerJsonUrl           | string                                | はい   | Swagger JSONドキュメントのURL                                                                                                          |
-| requestMethodsImportPath | string                                | はい   | リクエストメソッドのインポートパス                                                                                                     |
-| dataLevel                | 'data' \| 'serve' \| 'axios'          | はい   | インターフェースの戻り値レベル                                                                                                         |
-| formatting               | object                                | いいえ | コードフォーマット設定                                                                                                                 |
-| headers                  | object                                | いいえ | リクエストヘッダー設定                                                                                                                 |
-| includeInterface         | Array<{path: string, method: string}> | いいえ | 生成するインターフェースのリスト。この項目が設定されている場合、リスト内のインターフェースのみが生成されます                           |
-| excludeInterface         | Array<{path: string, method: string}> | いいえ | 除外するインターフェースのリスト。この項目が設定されている場合、リスト内のインターフェースを除くすべてのインターフェースが生成されます |
+| 項目                     | 型                                    | 必須    | 説明                                 |
+| ------------------------ | ------------------------------------- | ------- | ------------------------------------ | ---- | ---------------------- |
+| saveTypeFolderPath       | string                                | はい    | 型定義ファイルの保存パス             |
+| saveApiListFolderPath    | string                                | はい    | API リクエスト関数ファイルの保存パス |
+| saveEnumFolderPath       | string                                | はい    | 列挙型ファイルの保存パス             |
+| importEnumPath           | string                                | はい    | 列挙型のインポートパス               |
+| swaggerJsonUrl           | string                                | はい    | Swagger JSON の URL                  |
+| requestMethodsImportPath | string                                | はい    | リクエストメソッドのインポートパス   |
+| dataLevel                | 'data'                                | 'serve' | 'axios'                              | はい | レスポンスデータの階層 |
+| formatting               | object                                | いいえ  | コード整形の設定                     |
+| headers                  | object                                | いいえ  | リクエストヘッダー                   |
+| includeInterface         | Array<{path: string, method: string}> | いいえ  | 生成対象をこのリストに限定           |
+| excludeInterface         | Array<{path: string, method: string}> | いいえ  | このリストのインターフェースを除外   |
 
-## 生成されるファイル構造
+## 生成されるファイル構成
 
-- このファイル構造は設定ファイルに基づいて生成されます
+- 以下の構成は設定ファイルに基づいて生成されます。
 
 ```
 project/
 ├── apps/
 │   ├── types/
-│   │   ├── models/          # すべての型定義ファイル（列挙型を除く）
-│   │   ├── connectors/      # API型定義（インターフェース定義ファイル）
+│   │   ├── models/          # 列挙型を除くすべての型定義
+│   │   ├── connectors/      # API 型定義（インターフェース定義）
 │   │   └── enums/           # 列挙型定義
 │   └── api/
-│       ├── fetch.ts         # リクエストメソッドの実装
-│       └── index.ts         # APIリクエスト関数
+│       ├── fetch.ts         # リクエストメソッド実装
+│       └── index.ts         # API リクエスト関数
 ```
 
-## 生成されるコードの例
+## 生成コード例
 
-### 型定義ファイル
+### 型定義
 
 ```typescript
 declare namespace UserDetail_GET {
@@ -162,29 +162,29 @@ declare namespace UserDetail_GET {
 }
 ```
 
-### APIリクエスト関数
+### API リクエスト関数
 
 ```typescript
 import { GET } from './fetch';
 
 /**
- * ユーザー詳細の取得
+ * ユーザー詳細を取得
  */
 export const userDetailGet = (params: UserDetail_GET.Query) => GET<UserDetail_GET.Response>('/user/detail', params);
 ```
 
-## 機能の説明
+## 追加機能
 
 ### 型解析
 
-- OpenAPI 3.0仕様のすべてのデータ型をサポート
+- OpenAPI 3.0 の全データ型に対応
 - 複雑なネスト型を自動処理
-- 配列、オブジェクト、列挙型などをサポート
+- 配列、オブジェクト、列挙型などに対応
 - インターフェースコメントを自動生成
 
 ### ファイルアップロード
 
-ファイルアップロード型が検出された場合、対応するリクエストヘッダーが自動的に追加されます：
+アップロード型を検出した場合、適切なヘッダーを自動付与：
 
 ```typescript
 export const uploadFile = (params: UploadFile.Body) =>
@@ -193,29 +193,29 @@ export const uploadFile = (params: UploadFile.Body) =>
 	});
 ```
 
-### エラー処理
+### エラーハンドリング
 
-ツールには包括的なエラー処理メカニズムが組み込まれています：
+堅牢なエラーハンドリングを内蔵：
 
-- 解析エラーの通知
-- 型生成失敗の警告
-- ファイル書き込みの例外処理
+- 解析エラーメッセージ
+- 型生成失敗時の警告
+- ファイル書き込み時の例外処理
 
-### インターフェースフィルタリング
+### インターフェースのフィルタリング
 
-ツールは設定を通じて生成するインターフェースをフィルタリングすることができます：
+設定により生成対象を制御：
 
 1. 特定のインターフェースを含める
-   - `includeInterface` 設定項目で生成するインターフェースを指定
-   - 設定で指定されたインターフェースのみが生成されます
-   - 設定形式は `path` と `method` を含むオブジェクトの配列です
+   - `includeInterface` で生成対象を指定
+   - 指定されたもののみ生成
+   - 形式：`path` と `method` を持つオブジェクト配列
 
 2. 特定のインターフェースを除外
-   - `excludeInterface` 設定項目で除外するインターフェースを指定
-   - 設定で指定されたインターフェースを除くすべてのインターフェースが生成されます
-   - 設定形式は `path` と `method` を含むオブジェクトの配列です
+   - `excludeInterface` で除外対象を指定
+   - その他は生成
+   - 形式：`path` と `method` を持つオブジェクト配列
 
-設定例：
+例：
 
 ```json
 {
@@ -234,7 +234,7 @@ export const uploadFile = (params: UploadFile.Body) =>
 }
 ```
 
-注意：`includeInterface` と `excludeInterface` は同時に使用できません。両方が設定されている場合、`includeInterface` が優先されます。
+注意：`includeInterface` と `excludeInterface` は同時使用できません。両方設定された場合は `includeInterface` が優先されます。
 
 ## 開発
 
@@ -243,44 +243,44 @@ export const uploadFile = (params: UploadFile.Body) =>
 npm install
 
 # 開発モード
-F5キーでデバッグ
+F5 を押してデバッグ
 
 # ビルド
 npm run build
 
-# ローカルリンクデバッグ
+# ローカルリンクでのデバッグ
 npm run blink
 ```
 
 ## 注意事項
 
-1. Swagger JSONドキュメントのURLにアクセスできることを確認してください
-2. 設定ファイルのパスはプロジェクトルートディレクトリからの相対パスである必要があります
-3. 生成されたファイルは既存の同名ファイルを上書きします
-4. 生成されたファイルはバージョン管理に含めることをお勧めします
+1. Swagger JSON の URL にアクセスできることを確認
+2. 設定ファイル内のパスはプロジェクトルート起点
+3. 生成ファイルは同名の既存ファイルを上書き
+4. 生成ファイルはバージョン管理に含めることを推奨
 
 ## よくある質問
 
-1. 生成された型ファイルのフォーマットに失敗する
-   - prettierがインストールされているか確認してください
-   - プロジェクトルートディレクトリにprettier設定ファイルが存在するか確認してください
+1. 生成された型ファイルの整形に失敗する
+   - Prettier がインストールされているか確認
+   - プロジェクトルートに Prettier 設定があるか確認
 
-2. リクエスト関数のインポートパスが間違っている
-   - requestMethodsImportPathの設定が正しいか確認してください
-   - リクエストメソッドファイルが存在するか確認してください
+2. リクエスト関数のインポートパスが誤っている
+   - `requestMethodsImportPath` が正しいか確認
+   - リクエストメソッドのファイルが存在するか確認
 
-# anl lintコマンド
+# anl lint コマンド
 
-### 機能概要
+### 概要
 
-フロントエンドプロジェクトの各種リントツールをワンクリックで設定する機能を提供します：
+フロントエンドの各種 Lint ツールをワンクリックで設定：
 
-- ESLintコード検査
-- Prettierコードフォーマット
-- CommitLintコミットメッセージ規約
-- VSCodeエディタ設定
+- ESLint によるコードチェック
+- Prettier による整形
+- CommitLint によるコミットメッセージ規約
+- VSCode エディタ設定
 
-### 使用方法
+### 使い方
 
 ```bash
 $ anl lint
@@ -288,60 +288,53 @@ $ anl lint
 
 ### 設定詳細
 
-#### 1. ESLint設定
+#### 1. ESLint
 
-- 必要な依存関係を自動インストール
-- React/Vueフレームワークをサポート
-- `.eslintrc.js`と`.eslintignore`を自動生成
-- TypeScriptサポートを統合
+- 必要な依存を自動インストール
+- React/Vue をサポート
+- `.eslintrc.js` と `.eslintignore` を生成
+- TypeScript を統合
 
-#### 2. Prettier設定
+#### 2. Prettier
 
-- prettier関連の依存関係を自動インストール
-- `.prettierrc.js`設定ファイルを生成
-- デフォルト設定には以下が含まれます：
-  - 行幅：80
+- Prettier 関連依存を自動インストール
+- `.prettierrc.js` を生成
+- 既定：
+  - 行幅 80
   - タブインデント
-  - シングルクォートの使用
+  - シングルクォート
   - アロー関数の括弧
-  - その他のコードスタイル規約
+  - その他スタイル規約
 
-#### 3. CommitLint設定
+#### 3. CommitLint
 
-- commitlint関連の依存関係をインストール
-- husky git hooksを設定
-- `commitlint.config.js`を生成
-- gitコミットメッセージを標準化
+- CommitLint 依存をインストール
+- Husky git hooks を設定
+- `commitlint.config.js` を生成
+- コミットメッセージを標準化
 
-#### 4. VSCode設定
+#### 4. VSCode
 
-- `.vscode/settings.json`を作成
-- エディタの自動フォーマットを設定
-- デフォルトフォーマッタを設定
-- 既存の設定ファイルの更新をサポート
+- `.vscode/settings.json` を作成
+- 保存時の自動整形を設定
+- 既定のフォーマッタを設定
+- 既存設定の更新に対応
 
-## ライセンス
+# anl git コマンド
 
-ISC License
+### 概要
 
-## 貢献ガイド
+対話式の複数選択で、現在のリポジトリに以下の Git 機能を適用：
 
-[Issue](https://github.com/bianliuzhu/an-cli/issues)や[Pull Request](https://github.com/bianliuzhu/an-cli/pulls)を歓迎します！
-
-# anl gitコマンド
-
-### 機能概要
-
-- 対話式プロンプトで現在のリポジトリにGit機能を適用：
-  - gitflow標準ブランチ作成
-    - `.gitscripts/`、`.gitconfig`、`.commit-type.js` を（存在しない場合のみ）プロジェクトへコピー
-    - `.gitscripts/random-branch.sh` を実行可能化
-    - `git config --local include.path ../.gitconfig` を実行
-  - コミットサブジェクトの自動設定
-    - `.githooks/commit-msg` をコピーし実行可能化
-    - `git config core.hooksPath .githooks` を実行
-  - カスタムgitコマンド
-    - `.gitattributes` を（存在しない場合のみ）追加
+- gitflow 標準ブランチの作成
+  - `.gitscripts/`、`.gitconfig`、`.commit-type.js` をプロジェクトにコピー（不足時のみ）
+  - `.gitscripts/random-branch.sh` に実行権限を付与
+  - `git config --local include.path ../.gitconfig` を実行
+- コミットサブジェクトの自動設定
+  - `.githooks/commit-msg` をコピーし実行可能に設定
+  - `git config core.hooksPath .githooks` を実行
+- カスタム Git コマンド
+  - `.gitattributes` を追加（不足時のみ）
 
 ### 使い方
 
@@ -349,14 +342,22 @@ ISC License
 $ anl git
 ```
 
-プロンプトで機能を1つ以上選択します。ファイルは存在しない場合のみ作成され、既存ファイルは保持されます。
+プロンプトで 1 つ以上の機能を選択します。ファイルは不足時のみ作成され、既存ファイルは保持されます。
 
 ### 注意
 
-- Gitリポジトリ内で実行してください。
-- 自動設定が失敗した場合は、以下を手動実行：
+- 必ず Git リポジトリ内で実行してください。
+- 自動設定が失敗した場合は手動で実行：
 
 ```bash
 git config --local include.path ../.gitconfig
 git config core.hooksPath .githooks
 ```
+
+# ライセンス
+
+ISC License
+
+# コントリビューション
+
+Issues / Pull Requests を歓迎します: https://github.com/bianliuzhu/an-cli
