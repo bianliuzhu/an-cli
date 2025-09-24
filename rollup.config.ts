@@ -42,7 +42,10 @@ export default defineConfig({
 		commonjs({ extensions: ['.js', '.ts', '.json'] }),
 		terser(),
 		copy({
-			targets: [{ src: 'ajax-config/*', dest: 'lib/ajax-config' }],
+			targets: [
+				{ src: 'postbuild-assets/ajax-config/*', dest: 'lib/ajax-config' },
+				{ src: 'postbuild-assets/git-local-config/*', dest: 'lib/git-local-config' },
+			],
 			hook: 'writeBundle', // 在写入捆绑包后执行
 		}),
 	],

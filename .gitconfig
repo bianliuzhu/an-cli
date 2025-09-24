@@ -1,0 +1,18 @@
+[alias]
+    nb = "!f() { SCRIPT_DIR=\"$(git rev-parse --show-toplevel)/.gitscripts\"; if [ \"$OS\" = \"Windows_NT\" ]; then \"$SCRIPT_DIR/random-branch.bat\" \"$@\"; else bash \"$SCRIPT_DIR/random-branch.sh\" \"$@\"; fi; }; f"
+
+    # 删除已合并的本地分支，排除 stage、develop 和 release/* 分支
+    rmm = "!git branch --merged | grep -v '\\*\\|stage\\|develop\\|release/' | xargs -n 1 git branch -d"
+
+    # 强制删除所有本地分支(已合并和未合并)，排除 stage、develop 和 release/* 分支
+    rma = "!git branch | grep -v '\\*\\|stage\\|develop\\|release/' | xargs -n 1 git branch -D"
+
+    # 将 develop 分支覆盖到 stage 分支
+    ovstage = "!f() { git checkout stage && git fetch origin && git reset --hard origin/develop && git push -f origin stage; }; f"
+
+		# 将 develop 分支覆盖到 uat 分支
+    ovuat = "!f() { git checkout uat && git fetch origin && git reset --hard origin/develop && git push -f origin uat; }; f"
+
+
+[log]
+    date = format:%Y-%m-%d %H:%M:%S
