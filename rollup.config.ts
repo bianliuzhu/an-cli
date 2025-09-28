@@ -44,7 +44,7 @@ export default defineConfig({
 		copy({
 			targets: [
 				{ src: 'postbuild-assets/ajax-config/*', dest: 'lib/ajax-config' },
-				{ src: 'postbuild-assets/git-local-config/*', dest: 'lib/git-local-config' },
+				{ src: 'postbuild-assets/git-local-config', dest: 'lib/git-local-config' },
 			],
 			hook: 'writeBundle', // 在写入捆绑包后执行
 		}),

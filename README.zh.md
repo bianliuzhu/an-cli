@@ -6,11 +6,11 @@
 
 an-cli 是 前端命令行工具，包含以下命令:
 
-> `anl type`：基于 Swagger JSON 自动生成 TypeScript 类型定义和 API 请求函数的命令行工具。
+- `anl type` 命令：基于 Swagger JSON 自动生成 TypeScript 类型定义和 API 请求函数的命令行工具。
 
-> `anl lint`: 生成 react 或 vue 项目 eslint、stylelint、prettier、commitLint、VSCode相关配置
+- `anl lint` 命令: 生成 react 或 vue 项目 eslint、stylelint、prettier、commitLint、VSCode相关配置
 
-> `anl git`: 生成 git 本地配置，可选的的功能有 gitflow 标准分支创建、git commit messages 主题、git 自定义命令配置
+- `anl git` 命令: 生成 git 本地配置，可选的的功能有 gitflow 标准分支创建、git commit messages 主题、git 自定义命令配置
 
 ## 功能特点
 
@@ -31,15 +31,23 @@ an-cli 是 前端命令行工具，包含以下命令:
   - 🔄 CommitLint 提交规范
   - 📦 VSCode 编辑器配置
 
+- `anl git`
+  - 🔍 多种功能可选安装
+  - 🎨 标准 git flow 分支创建
+  - 🎯 符合 CommitLint 提交规范的主题自动设置
+  - 🔄 提供 git 自定义命令配置以及入口
+  - 📦 自动化生成 0 配置
+
 ## 安装
 
 > [!NOTE]
->
 > 需要全局安装
 
 ```bash
 $ npm install anl -g
+```
 
+```bash
 $ yarn global add anl
 ```
 
@@ -50,27 +58,37 @@ $ yarn global add anl
 > 1. 如果初次使用，不清楚会产生什么结果，建议先执行命令，观察会在项目中发生什么变化，然后在结合文档，进一步修改配置，再次生成，最终达到自己理想中的样子
 > 2. 或者跟着下面步骤 一步一步做，就会有收获
 
-# anl type 命令
+# `anl type` 命令使用说明
 
-## 使用说明
+>  请在项目根目录执行 `anl type` 命令
 
-1. 执行命令
+## 配置文件说明
 
-```bash
-$ anl type
-```
+- 首次执行 `anl type`, 命令，会在*项目根目录下*, _自动创建_ 以 `an.config.json` 为名的配置文件（手动创建也可以）初始化配置模板。
 
-2. 配置文件说明
+- 执行 `anl type` 命令时，会找用户项目根目录下的 `an.config.json` 配置文件，并读取其配置信息，生成对应的axios封装、配置、接口列表、接口请求及每个接口请求参数及响应的TS类型
 
-- 首次执行 `anl type`, 命令，会在*项目根目录下*, _自动创建_ 以 `an.config.json` 为名的配置文件（手动创建也可以）。
-- 执行 `anl type` 命令时，会找用户项目根目录下的 `an.config.json` 配置文件，并读取其配置信息，生成对应的axios封装、配置、接口列表、接口请求及响应类型
 - 配置文件内的配置项是可自由修改的
 
-3. `an.config.json`配置项示例
+- 关于 `an.config.json` 配置文件
 
-- 配置文件必须在项目根目录下，不可移动位置
-- 配置文件名称不可更改
-- 具体参数说明请看[配置项说明](#配置项说明)
+  - 配置文件必须在项目根目录下
+
+  - 配置文件名称不可更改
+
+  - 具体参数说明请看[配置项说明](#配置项说明)
+
+- 按照自己的需要更新配置文件，然后再次执行 `anl type` 命令，会依照配置文件中的指定配置信息生成，生成对应的类型信息
+
+> [!NOTE]
+>
+> 如果不清楚这些配置，可以先执行 anl type 命令，将类型先生成，然后检查项目目录，结合配置项说明，调整配置项，再次生成，逐步验证配置项目作用，完成最终配置
+
+
+
+## 配置项说明
+
+#### 配置文件示例
 
 ```json
 {
@@ -101,17 +119,7 @@ $ anl type
 }
 ```
 
-3. 按照自己的需要更新配置文件，然后再次执行 `anl type` 命令，会依照配置文件中的指定配置信息生成，生成对应的类型信息
-
-```bash
-$ anl type
-```
-
-> [!NOTE]
->
-> 如果不清楚这些配置，可以先执行 anl type 命令，将类型先生成，然后检查项目目录，结合配置项说明，调整配置项，再次生成，最终达到想要的效果
-
-## 配置项说明
+#### 配置项说明
 
 | 配置项                   | 类型                                  | 必填 | 说明                                                       |
 | ------------------------ | ------------------------------------- | ---- | ---------------------------------------------------------- |
@@ -127,20 +135,20 @@ $ anl type
 | includeInterface         | Array<{path: string, method: string}> | 否   | 需要包含的接口列表，如果设置了此项，则只会生成列表中的接口 |
 | excludeInterface         | Array<{path: string, method: string}> | 否   | 需要排除的接口列表，如果设置了此项，则会排除列表中的接口   |
 
-## 生成的文件结构
+#### 配置项与生成的文件对应关系
 
-- 这个文件结构是根据配置文件生成的
+> 文件结构是依据配置文件产生的
 
 ```
 project/
 ├── apps/
-│   ├── types/
+│   ├── types/               # 由 saveTypeFolderPath 配置项指定
 │   │   ├── models/          # 所有类型定义文件（不包含枚举类型）
 │   │   ├── connectors/      # API 类型定义（接口定义文件）
-│   │   └── enums/           # 枚举类型定义
-│   └── api/
+│   │   └── enums/           # 枚举数据类型定义：由 saveEnumFolderPath 配置项指定
+│   └── api/                 # 请求文件：由 saveApiListFolderPath 配置项指定
 │       ├── fetch.ts         # 请求方法实现
-│       └── index.ts         # API 请求函数
+│       └── index.ts         # API 请求函数列表
 ```
 
 ## 生成的代码示例
