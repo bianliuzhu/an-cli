@@ -1,5 +1,5 @@
 
-const { types } = require('../.commit-type.js');
+const { types } = require('../.commit-type.cjs');
 
 const typeToMeta = {};
 

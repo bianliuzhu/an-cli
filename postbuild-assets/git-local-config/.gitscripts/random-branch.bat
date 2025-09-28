@@ -17,7 +17,7 @@ if errorlevel 1 (
 )
 
 :: 使用 Node.js 读取配置文件
-for /f "delims=" %%i in ('node "%SCRIPT_DIR%get-branch-types.js"') do set "BRANCH_TYPES_JSON=%%i"
+for /f "delims=" %%i in ('node "%SCRIPT_DIR%get-branch-types.cjs"') do set "BRANCH_TYPES_JSON=%%i"
 
 :: 如果 Node.js 命令执行失败，显示错误并退出
 if errorlevel 1 (

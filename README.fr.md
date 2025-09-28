@@ -327,7 +327,7 @@ $ anl lint
 Applique les capacités Git suivantes via une sélection multiple interactive :
 
 - Création de branches standard gitflow
-  - Copier `.gitscripts/`, `.gitconfig`, `.commit-type.js` dans le projet (si manquants)
+  - Copier `.gitscripts/`, `.gitconfig`, `.commit-type.cjs` dans le projet (si manquants)
   - Rendre exécutable `.gitscripts/random-branch.sh`
   - Exécuter `git config --local include.path ../.gitconfig`
 - Définition automatique du sujet de commit

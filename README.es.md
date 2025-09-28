@@ -327,7 +327,7 @@ $ anl lint
 Aplica las siguientes capacidades de Git al repositorio actual mediante selección múltiple interactiva:
 
 - Creación de ramas estándar gitflow
-  - Copia `.gitscripts/`, `.gitconfig`, `.commit-type.js` al proyecto (solo si faltan)
+  - Copia `.gitscripts/`, `.gitconfig`, `.commit-type.cjs` al proyecto (solo si faltan)
   - Agrega permiso de ejecución a `.gitscripts/random-branch.sh`
   - Ejecuta `git config --local include.path ../.gitconfig`
 - Configuración automática del asunto del commit

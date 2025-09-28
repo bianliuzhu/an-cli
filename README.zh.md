@@ -60,7 +60,7 @@ $ yarn global add anl
 
 # `anl type` 命令使用说明
 
->  请在项目根目录执行 `anl type` 命令
+> 请在项目根目录执行 `anl type` 命令
 
 ## 配置文件说明
 
@@ -71,7 +71,6 @@ $ yarn global add anl
 - 配置文件内的配置项是可自由修改的
 
 - 关于 `an.config.json` 配置文件
-
   - 配置文件必须在项目根目录下
 
   - 配置文件名称不可更改
@@ -83,8 +82,6 @@ $ yarn global add anl
 > [!NOTE]
 >
 > 如果不清楚这些配置，可以先执行 anl type 命令，将类型先生成，然后检查项目目录，结合配置项说明，调整配置项，再次生成，逐步验证配置项目作用，完成最终配置
-
-
 
 ## 配置项说明
 
@@ -334,7 +331,7 @@ $ anl lint
 
 - 通过交互式多选，为当前仓库应用以下 Git 能力：
   - gitflow 标准分支创建
-    - 将 `.gitscripts/`、`.gitconfig`、`.commit-type.js` 复制到项目（仅在缺失时）
+    - 将 `.gitscripts/`、`.gitconfig`、`.commit-type.cjs` 复制到项目（仅在缺失时）
     - 为 `.gitscripts/random-branch.sh` 添加可执行权限
     - 执行 `git config --local include.path ../.gitconfig`
   - 自动设置 commit subject

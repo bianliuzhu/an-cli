@@ -327,7 +327,7 @@ $ anl lint
 対話式の複数選択で、現在のリポジトリに以下の Git 機能を適用：
 
 - gitflow 標準ブランチの作成
-  - `.gitscripts/`、`.gitconfig`、`.commit-type.js` をプロジェクトにコピー（不足時のみ）
+  - `.gitscripts/`、`.gitconfig`、`.commit-type.cjs` をプロジェクトにコピー（不足時のみ）
   - `.gitscripts/random-branch.sh` に実行権限を付与
   - `git config --local include.path ../.gitconfig` を実行
 - コミットサブジェクトの自動設定
