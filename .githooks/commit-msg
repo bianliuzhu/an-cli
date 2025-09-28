@@ -18,14 +18,14 @@ COMMIT_MSG=$(cat "$COMMIT_MSG_FILE")
 REPO_ROOT=$(git rev-parse --show-toplevel)
 
 # 从脚本获取 {emoji, subject}（JSON）
-META=$(node "$REPO_ROOT/.githooks/get-commit-emoji.js" "$BRANCH_PREFIX")
+META=$(node "$REPO_ROOT/.githooks/get-commit-emoji.cjs" "$BRANCH_PREFIX")
 
 EMOJI=$(printf "%s" "$META" | node -e 'const fs=require("fs");try{const m=JSON.parse(fs.readFileSync(0,"utf8"));process.stdout.write(m.emoji||"");}catch(e){process.stdout.write("")}' )
 SUBJECT_TYPE=$(printf "%s" "$META" | node -e 'const fs=require("fs");try{const m=JSON.parse(fs.readFileSync(0,"utf8"));process.stdout.write(m.subject||"");}catch(e){process.stdout.write("")}' )
 
 # 如果 subject 为空但拿到了 emoji，则根据 emoji 反查 subject 作为回退
 if [ -z "$SUBJECT_TYPE" ] && [ -n "$EMOJI" ]; then
-  SUBJECT_TYPE=$(node -e "const t=require(process.argv[1]).types; const e=process.argv[2]; for (const k in t){ if((t[k].emoji||'')===e){ process.stdout.write(t[k].subject||''); break; } }" "$REPO_ROOT/.commit-type.js" "$EMOJI")
+  SUBJECT_TYPE=$(node -e "const t=require(process.argv[1]).types; const e=process.argv[2]; for (const k in t){ if((t[k].emoji||'')===e){ process.stdout.write(t[k].subject||''); break; } }" "$REPO_ROOT/.commit-type.cjs" "$EMOJI")
 fi
 
 # 去除已存在的前缀（例如：features： 或 feat: 等），并去除前后空白
@@ -55,4 +55,41 @@ if [ -z "$SUBJECT" ]; then
 fi
 
 # 最后使用 commitlint 进行其他规则检查
-npx --no-install commitlint --edit "$COMMIT_MSG_FILE"
+# 通用解决方案：自动检测可用的包管理器和执行方式
+run_commitlint() {
+  local msg_file="$1"
+  local repo_root="$2"
+  
+  # 切换到仓库根目录
+  cd "$repo_root" || exit 1
+  
+  # 按优先级尝试不同的执行方式
+  if command -v pnpm >/dev/null 2>&1 && [ -f "pnpm-lock.yaml" ]; then
+    # 优先使用 pnpm（如果存在 pnpm-lock.yaml）
+    pnpm exec commitlint --edit "$msg_file" 2>/dev/null && return 0
+  fi
+  
+  if command -v yarn >/dev/null 2>&1 && [ -f "yarn.lock" ]; then
+    # 使用 yarn（如果存在 yarn.lock）
+    yarn commitlint --edit "$msg_file" 2>/dev/null && return 0
+  fi
+  
+  if command -v npm >/dev/null 2>&1 && [ -f "package-lock.json" ]; then
+    # 使用 npm（如果存在 package-lock.json）
+    npm exec commitlint --edit "$msg_file" 2>/dev/null && return 0
+  fi
+  
+  # 回退到 npx（通用方案）
+  npx --no-install commitlint --edit "$msg_file" 2>/dev/null && return 0
+  
+  # 最后的回退方案：直接使用 node_modules 中的二进制文件
+  if [ -f "node_modules/.bin/commitlint" ]; then
+    node_modules/.bin/commitlint --edit "$msg_file" 2>/dev/null && return 0
+  fi
+  
+  echo "警告：无法找到可用的 commitlint 执行方式"
+  return 1
+}
+
+# 执行 commitlint 检查
+run_commitlint "$COMMIT_MSG_FILE" "$REPO_ROOT"

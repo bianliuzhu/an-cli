@@ -327,7 +327,7 @@ $ anl lint
 Apply the following Git capabilities to the current repository via interactive multi-select:
 
 - gitflow standard branch creation
-  - Copy `.gitscripts/`, `.gitconfig`, `.commit-type.js` into the project (only if missing)
+  - Copy `.gitscripts/`, `.gitconfig`, `.commit-type.cjs` into the project (only if missing)
   - Add executable permission to `.gitscripts/random-branch.sh`
   - Run `git config --local include.path ../.gitconfig`
 - Auto set commit subject

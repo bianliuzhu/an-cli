@@ -327,7 +327,7 @@ $ anl lint
 Применение возможностей Git к текущему репо через интерактивный мультивыбор:
 
 - Создание стандартных веток gitflow
-  - Копировать `.gitscripts/`, `.gitconfig`, `.commit-type.js` (только если отсутствуют)
+  - Копировать `.gitscripts/`, `.gitconfig`, `.commit-type.cjs` (только если отсутствуют)
   - Сделать исполняемым `.gitscripts/random-branch.sh`
   - Выполнить `git config --local include.path ../.gitconfig`
 - Автонастройка темы коммита

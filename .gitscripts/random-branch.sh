@@ -16,7 +16,7 @@ if ! command -v jq &> /dev/null; then
 fi
 
 # 使用 Node.js 读取配置文件
-BRANCH_TYPES_JSON=$(node "$SCRIPT_DIR/get-branch-types.js")
+BRANCH_TYPES_JSON=$(node "$SCRIPT_DIR/get-branch-types.cjs")
 
 # 如果 Node.js 命令执行失败，显示错误并退出
 if [ $? -ne 0 ]; then

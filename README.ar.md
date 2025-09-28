@@ -327,7 +327,7 @@ $ anl lint
 تطبيق قدرات Git التالية عبر اختيار متعدد تفاعلي:
 
 - إنشاء فروع gitflow القياسية
-  - نسخ `.gitscripts/` و`.gitconfig` و`.commit-type.js` إلى المشروع (إن لم تكن موجودة)
+  - نسخ `.gitscripts/` و`.gitconfig` و`.commit-type.cjs` إلى المشروع (إن لم تكن موجودة)
   - إعطاء صلاحية التنفيذ لـ `.gitscripts/random-branch.sh`
   - تنفيذ `git config --local include.path ../.gitconfig`
 - ضبط موضوع رسالة الالتزام تلقائيًا
