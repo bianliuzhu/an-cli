@@ -157,6 +157,8 @@ export interface ConfigType {
 	includeInterface?: IncludeOrExcludeInterface[];
 	/** 排除的接口 */
 	excludeInterface?: IncludeOrExcludeInterface[];
+	/** 公共前缀 */
+	publicPrefix?: string;
 }
 
 // 修改配置类型定义，将必需属性标记出来

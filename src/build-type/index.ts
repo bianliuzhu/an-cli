@@ -17,12 +17,14 @@ interface ExecResult {
 	stderr: string;
 }
 const isDev = process.env.NODE_ENV === 'development';
+
 const configContent: ConfigType = {
 	saveTypeFolderPath: isDev ? 'apps/types' : 'src/api/types',
 	saveApiListFolderPath: isDev ? 'apps/types' : 'src/api',
 	saveEnumFolderPath: isDev ? 'apps/types/enums' : 'src/enums',
 	importEnumPath: '../../../enums',
 	requestMethodsImportPath: './fetch',
+	publicPrefix: '/api',
 	dataLevel: 'serve',
 	swaggerJsonUrl: 'https://generator3.swagger.io/openapi.json',
 	headers: {},
@@ -30,6 +32,8 @@ const configContent: ConfigType = {
 		indentation: '\t',
 		lineEnding: '\n',
 	},
+	includeInterface: [],
+	excludeInterface: [],
 };
 
 export class Main {
@@ -43,7 +47,7 @@ export class Main {
 		try {
 			let response: OpenAPIV3.Document;
 
-			if (process.env.NODE_ENV === 'development') {
+			if (isDev) {
 				response = (await import('../../data/open-api.json')).default as unknown as OpenAPIV3.Document;
 			} else {
 				response = (await getSwaggerJson(config)) as OpenAPIV3.Document;
@@ -59,14 +63,15 @@ export class Main {
 			const components = new Components(this.schemas, config);
 			const paths = new PathParse(this.paths, response.components?.parameters, config);
 
-			await Promise.all([components.handle(), paths.handle()]);
+			await components.handle();
+			await paths.handle();
 
 			return true;
 		} catch (error: unknown) {
 			if (error instanceof Error) {
-				throw new Error(`处理 Swagger 数据失败: ${error.message}`);
+				throw new Error(`Handle Swagger data failed: ${error.message}`);
 			}
-			throw new Error('处理 Swagger 数据失败: 未知错误');
+			throw new Error('Handle Swagger data failed: unknown error');
 		}
 	}
 
@@ -87,12 +92,16 @@ export class Main {
 			});
 
 			if (stderr) {
-				throw new Error(stderr);
+				console.log('\n');
+				console.log('$', chalk.yellow(formatCommand));
+				console.log('\n');
 			}
-			log.success('文件格式化成功');
+			log.success('File formatting successful');
+			console.log('\n');
 		} catch (error: unknown) {
 			console.log('');
-			log.error('格式化失败，请手动执行以下命令：');
+			console.log(error);
+			log.error('Format failed, please manually execute the following command:');
 			console.log('$', chalk.yellow(formatCommand));
 			console.log('');
 		}
@@ -104,7 +113,7 @@ export class Main {
 	private async copyAjaxConfigFiles(saveApiListFolderPath: string) {
 		try {
 			const filesToCopy = ['config.ts', 'error-message.ts', 'fetch.ts', 'api-type.d.ts'];
-			const sourceDir = path.join(__dirname, '..', '..', 'ajax-config');
+			const sourceDir = isDev ? path.join(__dirname, '..', '..', 'postbuild-assets', 'ajax-config') : path.join(__dirname, '..', '..', 'ajax-config');
 			const destDir = saveApiListFolderPath;
 
 			for (const file of filesToCopy) {
@@ -115,18 +124,35 @@ export class Main {
 					await fs.promises.access(sourceFile);
 					try {
 						await fs.promises.access(destFile);
-						log.info(`${file} 已存在，跳过生成.`);
+						log.info(`${file} already exists, skipping generation.`);
 					} catch {
 						await fs.promises.copyFile(sourceFile, destFile);
 						log.success(`${file} create done.`);
 					}
 				} catch (error) {
-					log.error(`源文件 ${sourceFile} 不存在`);
+					log.error(`Source file ${sourceFile} does not exist`);
 					continue;
 				}
 			}
 		} catch (error) {
 			return error;
+		}
+	}
+
+	/**
+	 * 获取配置文件
+	 */
+	private async getConfig(configFilePath: string): Promise<ConfigType> {
+		try {
+			const data = await fs.promises.readFile(configFilePath, 'utf8');
+			isConfigFile = true;
+			return JSON.parse(data) as ConfigType;
+		} catch (error: unknown) {
+			isConfigFile = false;
+			log.warning('Config file does not exist, will automatically create config file.');
+			await writeFileRecursive(configFilePath, JSON.stringify(configContent, null, 2));
+			log.success('Please check the an.config.json file in the project root directory');
+			return configContent;
 		}
 	}
 
@@ -153,26 +179,12 @@ export class Main {
 
 			// 对生成文件进行格式化
 			await this.formatGeneratedFiles(config);
-		} catch (error: unknown) {
-			const message = error instanceof Error ? error.message : '未知错误';
-			log.error(`初始化失败: ${message}`);
-		}
-	}
 
-	/**
-	 * 获取配置文件
-	 */
-	private async getConfig(configFilePath: string): Promise<ConfigType> {
-		try {
-			const data = await fs.promises.readFile(configFilePath, 'utf8');
-			isConfigFile = true;
-			return JSON.parse(data) as ConfigType;
+			log.success('Successfully, all done, see you next time!');
+			console.log('\n');
 		} catch (error: unknown) {
-			isConfigFile = false;
-			log.warning('配置文件不存在，将自动创建配置文件。');
-			await writeFileRecursive(configFilePath, JSON.stringify(configContent, null, 2));
-			log.success('请查看项目根目录下的 an.config.json 文件');
-			return configContent;
+			const message = error instanceof Error ? error.message : 'Unknown error';
+			log.error(`Initialization failed: ${message}`);
 		}
 	}
 }
