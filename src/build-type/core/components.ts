@@ -296,7 +296,7 @@ class Components {
 							// 将枚举名转换为大驼峰命名
 							const enumName = name.charAt(0).toUpperCase() + name.slice(1);
 							// console.log(enumName, name);
-							if (isValidJSON(schema.example)) {
+							if (schema.example && isValidJSON(schema.example)) {
 								const header = `import type { ${enumName} } from '${this.config.importEnumPath}';`;
 								if (!headerRef.includes(header)) headerRef.push(header);
 								const fileName = this.typeNameToFileName(enumName);
@@ -424,12 +424,15 @@ class Components {
 		for (const [, value] of this.enumsMap) {
 			const P = async ({ fileName, content }: TrenderType) => {
 				exportFileContent.push(`export * from './${fileName}';`);
-				await writeFileRecursive(`${this.config.saveEnumFolderPath}/${fileName}.ts`, content);
+				const _path = `${this.config.saveEnumFolderPath}/${fileName}.ts`;
+				await writeFileRecursive(_path, content);
+				log.info(`${_path.padEnd(80)} - Write done!`);
 			};
 			Plist.push(P(value));
 		}
 		await Promise.all(Plist);
 		await writeFileRecursive(`${this.config.saveEnumFolderPath}/index.ts`, exportFileContent.join('\n'));
+		log.success('Enums write done!');
 	}
 
 	private async writeFile(): Promise<void> {
@@ -440,20 +443,22 @@ class Components {
 		for (const [, value] of this.schemasMap) {
 			const P = async ({ fileName, content }: TrenderType) => {
 				exportFileContent.push(`export * from './${fileName}';`);
-				await writeFileRecursive(`${saveTypeFolderPath}${fileName}.ts`, content);
+				const _path = `${saveTypeFolderPath}${fileName}.ts`;
+				await writeFileRecursive(_path, content);
+				log.info(`${_path.padEnd(80)} - Write done!`);
 			};
 			Plist.push(P(value));
 		}
 
 		await Promise.all(Plist);
 		await writeFileRecursive(`${saveTypeFolderPath}index.ts`, exportFileContent.join('\n'));
+		log.success('Component parse & write done!');
 	}
 
 	async handle(): Promise<void> {
 		await this.parseData();
 		await this.writeFile();
 		await this.writeEnums();
-		log.success('Component parse & write done!');
 	}
 }
 

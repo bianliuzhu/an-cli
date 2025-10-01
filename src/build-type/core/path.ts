@@ -746,30 +746,95 @@ export class PathParse {
 	}
 
 	/**
-	 * 转换端点字符串
+	 * 名称转换
 	 * @param apiString API字符串
 	 * @returns 转换后的端点信息对象
 	 */
 	convertEndpointString(apiString: string) {
+		// 确保路径以 / 开头
 		let completionPath = apiString;
 		if (!apiString.startsWith('/')) {
 			completionPath = '/' + apiString;
 		}
+
 		const [path, method] = completionPath.split('|');
-		const trimmedPath = path.replace('/api/', '').split('/');
 
-		const pathName = trimmedPath
-			.map((part) => (part.includes('{') ? `$${part.slice(1, -1)}` : part.charAt(0).toUpperCase() + part.slice(1)))
-			.join('');
+		// 规范化公共前缀
+		let normalizedPrefix = '';
+		if (this.config.publicPrefix) {
+			// 移除前后的斜杠，统一处理
+			normalizedPrefix = this.config.publicPrefix.replace(/^\/+|\/+$/g, '');
+		}
 
-		const str = `${pathName}_${method}`;
+		// 规范化路径并移除公共前缀
+		let normalizedPath = path.replace(/^\/+/, ''); // 移除开头的斜杠
 
-		return {
-			apiName: str.charAt(0).toLowerCase() + str.slice(1),
-			fileName: (path.slice(1).replace(/\//g, '-').replace('api-', '') + '-' + method).toLowerCase(),
-			typeName: str.charAt(0).toUpperCase() + str.slice(1),
-			path: path.replace(/(\/api)|(api)/g, '').replace(/\{\w+\}/g, (s) => `$${s}`),
+		// 如果存在公共前缀，尝试移除它
+		if (normalizedPrefix && normalizedPath.startsWith(normalizedPrefix + '/')) {
+			normalizedPath = normalizedPath.slice(normalizedPrefix.length + 1);
+		} else if (normalizedPrefix && normalizedPath === normalizedPrefix) {
+			normalizedPath = '';
+		} else if (normalizedPrefix && normalizedPath.startsWith(normalizedPrefix)) {
+			// 处理 publicPrefix 后面没有斜杠的情况
+			const afterPrefix = normalizedPath.slice(normalizedPrefix.length);
+			if (afterPrefix.startsWith('/') || afterPrefix === '') {
+				normalizedPath = afterPrefix.replace(/^\/+/, '');
+			}
+		}
+
+		// 分割路径段
+		const pathSegments = normalizedPath ? normalizedPath.split('/').filter((seg) => seg) : [];
+
+		// 生成路径名称（小写版本，用于 apiName）
+		const pathNameLower = pathSegments
+			.map((part) => {
+				if (part.includes('{')) {
+					// 处理路径参数，移除花括号
+					return part.slice(1, -1);
+				}
+				return part;
+			})
+			.join('_');
+
+		// 生成路径名称（首字母大写版本，用于 typeName）
+		const pathNameUpper = pathSegments
+			.map((part) => {
+				if (part.includes('{')) {
+					// 处理路径参数，如 {petId} -> PetId
+					const paramName = part.slice(1, -1);
+					return paramName.charAt(0).toUpperCase() + paramName.slice(1);
+				}
+				// 普通路径段首字母大写
+				return part.charAt(0).toUpperCase() + part.slice(1);
+			})
+			.join('_');
+
+		// 生成文件名：使用原始路径（移除前缀后）
+		let fileName = '';
+		if (pathSegments.length > 0) {
+			fileName = pathSegments
+				.map((seg) => seg.replace(/[{}]/g, '')) // 移除花括号
+				.join('-');
+			fileName = `${fileName}-${method}`.toLowerCase();
+		} else {
+			fileName = `${method}`.toLowerCase();
+		}
+
+		// 生成最终请求路径：保留斜杠开头，移除公共前缀，参数加上 $ 符号
+		let finalPath = '/' + normalizedPath;
+		if (!normalizedPath) {
+			finalPath = '/';
+		}
+		finalPath = finalPath.replace(/\{(\w+)\}/g, (_, param) => `\${${param}}`);
+
+		const result = {
+			apiName: pathNameLower ? `${pathNameLower}_${method}` : method,
+			fileName: fileName,
+			typeName: pathNameUpper ? `${pathNameUpper}_${method}` : method,
+			path: finalPath,
 		};
+
+		return result;
 	}
 
 	/**
@@ -826,8 +891,12 @@ export class PathParse {
 					const apistr = this.apiRequestItemHandle(content);
 					apiListFileContent.push(apistr, '\n');
 
-					writeFileRecursive(`${saveTypeFolderPath}/connectors/${fileName}.d.ts`, contentArray.join('\n'))
-						.then(() => resolve(1))
+					const _path = `${saveTypeFolderPath}/connectors/${fileName}.d.ts`;
+					writeFileRecursive(_path, contentArray.join('\n'))
+						.then(() => {
+							log.info(`${_path.padEnd(80)} - Write done!`);
+							resolve(1);
+						})
 						.catch((err) => {
 							this.handleError({
 								type: 'FILE_WRITE',
@@ -854,6 +923,7 @@ export class PathParse {
 
 		try {
 			await Promise.all(Plist);
+			log.success('Path parse & write done!');
 
 			apiListFileContent.unshift(`import { ${methodList.join(', ')} } from '${this.config.requestMethodsImportPath || './api'}';`, '\n');
 
@@ -882,7 +952,6 @@ export class PathParse {
 		try {
 			await this.parseData();
 			await this.writeFile();
-			log.success('Path parse & write done!');
 		} catch (error) {
 			this.handleError({
 				type: 'SCHEMA',

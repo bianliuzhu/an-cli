@@ -32,7 +32,7 @@ export const pathExists = async (targetPath: string) => {
 export const copyFileIfMissing = async (sourceFilePath: string, targetFilePath: string) => {
 	const exists = await pathExists(targetFilePath);
 	if (exists) {
-		log.info(`${path.basename(targetFilePath)} 已存在，跳过生成.`);
+		log.info(`${path.basename(targetFilePath)} Already exists, skip generation.`);
 		return;
 	}
 	await ensureDir(path.dirname(targetFilePath));
@@ -48,7 +48,7 @@ export const copyFileIfMissing = async (sourceFilePath: string, targetFilePath: 
 export const copyDirectoryRecursive = async (sourceDirectoryPath: string, targetDirectoryPath: string) => {
 	const sourceStat = await fs.promises.stat(sourceDirectoryPath);
 	if (!sourceStat.isDirectory()) {
-		throw new Error(`${sourceDirectoryPath} 不是目录`);
+		throw new Error(`${sourceDirectoryPath} is not a directory`);
 	}
 
 	await ensureDir(targetDirectoryPath);

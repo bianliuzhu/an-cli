@@ -2,75 +2,97 @@
 
 [简体中文](./README.zh.md) | [English](./README.md) | Español | [العربية](./README.ar.md) | [Français](./README.fr.md) | [Русский](./README.ru.md) | [日本語](./README.jp.md)
 
-## Descripción
+# Descripción General de Funciones
 
-an-cli es una herramienta de línea de comandos para frontend con los siguientes comandos:
+> an-cli es una herramienta de línea de comandos para frontend que incluye los siguientes comandos:
+>
+> - Comando `anl type`: Herramienta de línea de comandos que genera automáticamente definiciones de tipos TypeScript y funciones de solicitud API basadas en Swagger JSON.
+> - Comando `anl lint`: Genera configuraciones de eslint, stylelint, prettier, commitLint y VSCode para proyectos React o Vue.
+> - Comando `anl git`: Genera configuración local de git con funciones opcionales: creación de ramas estándar gitflow, temas de mensajes git commit y configuración de comandos personalizados de git.
 
-> `anl type`: Herramienta CLI que genera automáticamente definiciones de tipos TypeScript y funciones de solicitud de API basadas en un documento Swagger/OpenAPI JSON.
-
-> `anl lint`: Genera configuraciones de ESLint, Stylelint, Prettier, CommitLint y VSCode para proyectos React o Vue.
-
-> `anl git`: Genera configuración local de Git con funciones opcionales como ramas estándar de gitflow, asuntos de mensajes de commit y comandos personalizados de Git.
-
-## Características
+# Características
 
 - `anl type`
-  - 🚀 Analiza automáticamente documentos Swagger JSON
-  - 📦 Genera archivos de definición de tipos TypeScript
-  - 🔄 Genera funciones de solicitud de API con tipos seguros
-  - 🎯 Soporta parámetros de ruta, consulta y cuerpo
-  - 📝 Genera automáticamente definiciones de tipos de enumeración
-  - 🎨 Soporta formateo de código
-  - ⚡️ Soporta carga de archivos
-  - 🛠 Opciones de generación configurables
+  - 🚀 Análisis automático de documentos Swagger JSON
+  - 📦 Generación de archivos de definición de tipos TypeScript
+  - 🔄 Generación de funciones de solicitud API con seguridad de tipos
+  - 🎯 Soporte para parámetros de ruta, parámetros de consulta y cuerpo de solicitud
+  - 📝 Generación automática de definiciones de tipos enum
+  - 🎨 Soporte para formateo de código
+  - ⚡️ Soporte para carga de archivos
+  - 🛠 Opciones de generación de código configurables
 
 - `anl lint`
-  - 🔍 Configuración en un clic de varias herramientas de lint
-  - 🎨 Configuración automatizada de ESLint
-  - 🎯 Configuración de Prettier
-  - 🔄 Convenciones de commit con CommitLint
+  - 🔍 Configuración de varias herramientas lint con un solo clic
+  - 🎨 Automatización de configuración ESLint
+  - 🎯 Configuración de formateo Prettier
+  - 🔄 Especificaciones de commits CommitLint
   - 📦 Configuración del editor VSCode
 
-## Instalación
+- `anl git`
+  - 🔍 Instalación opcional de múltiples funciones
+  - 🎨 Creación de ramas estándar git flow
+  - 🎯 Configuración automática de temas que cumplen con las especificaciones CommitLint
+  - 🔄 Proporciona configuración de comandos personalizados de git y punto de entrada
+  - 📦 Generación automatizada con 0 configuración
 
-> Nota
->
-> Instalar globalmente
+# Instalación
+
+> [!NOTE]
+> Requiere instalación global
 
 ```bash
 $ npm install anl -g
+```
 
+```bash
 $ yarn global add anl
 ```
 
-## Uso
-
-> Consejo
->
-> 1. Si es tu primera vez y no sabes qué ocurrirá, ejecuta el comando primero para observar los cambios en tu proyecto. Luego, con la documentación, ajusta la configuración y vuelve a ejecutar hasta lograr el resultado deseado.
-> 2. O sigue los pasos a continuación, uno por uno.
-
-# Comando anl type
-
-## Modo de uso
-
-1. Ejecuta el comando
-
 ```bash
-$ anl type
+$ pnpm add -g anl
 ```
 
-2. Descripción del archivo de configuración
+# Instrucciones de Uso
 
-- La primera vez que ejecutes `anl type`, se creará automáticamente un archivo de configuración llamado `an.config.json` en la raíz del proyecto (también puedes crearlo manualmente).
-- Al ejecutar `anl type`, la herramienta buscará `an.config.json` en la raíz del proyecto, lo leerá y generará el wrapper de Axios, configuración, lista de APIs y los tipos de solicitud/respuesta según corresponda.
-- Los elementos de configuración del archivo son totalmente editables.
+> [!TIP]
+>
+> 1. Si es la primera vez que lo usas y no estás seguro de qué resultados producirá, se recomienda ejecutar primero el comando, observar qué cambios ocurren en el proyecto y luego, combinando con la documentación, modificar la configuración y generar nuevamente hasta alcanzar el resultado deseado.
+> 2. O sigue los pasos a continuación paso a paso para obtener resultados.
+> 3. Por favor, ejecuta los comandos `anl type`, `anl lint` y `anl git` en el directorio raíz del proyecto.
 
-3. Ejemplo de `an.config.json`
+## Instrucciones de Uso del Comando `anl type`
 
-- El archivo de configuración debe residir en la raíz del proyecto y no puede moverse.
-- El nombre del archivo de configuración no se puede cambiar.
-- Para detalles de parámetros, consulta Opciones de configuración.
+- La **primera vez** que ejecutes el comando `anl type`, se creará automáticamente en el _directorio raíz del proyecto_ un archivo de configuración llamado `an.config.json` (también puedes crearlo manualmente) con una plantilla de configuración inicializada.
+
+- Al ejecutar el comando `anl type`, buscará el archivo de configuración `an.config.json` en el directorio raíz del proyecto del usuario, leerá su información de configuración y generará el correspondiente wrapper de axios, configuración, lista de interfaces, solicitudes de interfaz y tipos TS de parámetros y respuestas para cada solicitud de interfaz.
+
+- Los elementos de configuración en el archivo de configuración se pueden modificar libremente.
+
+- Acerca del archivo de configuración `an.config.json`
+  - El archivo de configuración debe estar en el directorio raíz del proyecto
+  - El nombre del archivo de configuración no se puede cambiar
+  - Para descripciones detalladas de parámetros, consulta [Explicación Detallada del Archivo de Configuración](#explicación-detallada-del-archivo-de-configuración)
+
+- Actualiza el archivo de configuración según tus necesidades y luego ejecuta nuevamente el comando `anl type`, generará según la información de configuración especificada en el archivo de configuración, generando la información de tipo correspondiente.
+
+- Si los archivos 'config.ts', 'error-message.ts', 'fetch.ts', 'api-type.d.ts' existen, no se generarán nuevamente.
+
+-
+
+> [!NOTE]
+>
+> Si no estás seguro de estas configuraciones, puedes ejecutar primero el comando anl type para generar los tipos, luego revisar el directorio del proyecto, combinar con las descripciones de los elementos de configuración, ajustar los elementos de configuración, generar nuevamente y verificar gradualmente el efecto de los elementos de configuración para completar la configuración final.
+
+### Método de Uso
+
+```bash
+$ anl lint
+```
+
+### Explicación Detallada del Archivo de Configuración
+
+#### Ejemplo de Archivo de Configuración
 
 ```json
 {
@@ -101,51 +123,46 @@ $ anl type
 }
 ```
 
-3. Actualiza el archivo de configuración según sea necesario y vuelve a ejecutar `anl type`. La herramienta generará el código de acuerdo a tu configuración.
+#### Descripción de Elementos de Configuración
 
-```bash
-$ anl type
-```
+| Elemento de Configuración | Tipo                                  | Requerido | Descripción                                                                                                                                                                                         |
+| ------------------------- | ------------------------------------- | --------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| saveTypeFolderPath        | string                                | Sí        | Ruta de guardado de archivos de definición de tipos                                                                                                                                                 |
+| saveApiListFolderPath     | string                                | Sí        | Ruta de guardado de archivos de funciones de solicitud API                                                                                                                                          |
+| saveEnumFolderPath        | string                                | Sí        | Ruta de guardado de archivos de datos enum                                                                                                                                                          |
+| importEnumPath            | string                                | Sí        | Ruta de importación de enum (ruta de referencia de archivos enum en apps/types/models/\*.ts)                                                                                                        |
+| swaggerJsonUrl            | string                                | Sí        | Dirección del documento Swagger JSON                                                                                                                                                                |
+| requestMethodsImportPath  | string                                | Sí        | Ruta de importación de métodos de solicitud                                                                                                                                                         |
+| dataLevel                 | 'data' \| 'serve' \| 'axios'          | Sí        | Nivel de datos de retorno de interfaz                                                                                                                                                               |
+| formatting                | object                                | No        | Configuración de formateo de código                                                                                                                                                                 |
+| headers                   | object                                | No        | Configuración de encabezados de solicitud                                                                                                                                                           |
+| includeInterface          | Array<{path: string, method: string}> | No        | Interfaces incluidas: el archivo de lista de interfaces especificado por `saveApiListFolderPath` solo incluirá las interfaces en la lista, es mutuamente excluyente con el campo `excludeInterface` |
+| excludeInterface          | Array<{path: string, method: string}> | No        | Interfaces excluidas: el texto de lista de interfaces especificado por `saveApiListFolderPath` no incluirá las interfaces en esta lista, es mutuamente excluyente con `includeInterface`            |
+| publicPrefix              | string                                | No        | Prefijo público en la ruta URL, por ejemplo: api/users, api/users/{id}, api es el prefijo público                                                                                                   |
 
-> Nota
->
-> Si no estás seguro sobre estas opciones, ejecuta `anl type` una vez para generar todo, inspecciona la salida en tu proyecto, ajusta las opciones según las explicaciones y vuelve a ejecutar hasta que coincida con lo que deseas.
+#### Relación entre Elementos de Configuración y Archivos Generados
 
-## Opciones de configuración
-
-| Opción                   | Tipo                                  | Requerido | Descripción                                                            |
-| ------------------------ | ------------------------------------- | --------- | ---------------------------------------------------------------------- |
-| saveTypeFolderPath       | string                                | Sí        | Ruta para guardar archivos de definición de tipos                      |
-| saveApiListFolderPath    | string                                | Sí        | Ruta para guardar archivos de funciones de solicitud de API            |
-| saveEnumFolderPath       | string                                | Sí        | Ruta para guardar archivos de tipos de enumeración                     |
-| importEnumPath           | string                                | Sí        | Ruta de importación para tipos de enumeración                          |
-| swaggerJsonUrl           | string                                | Sí        | URL del documento Swagger JSON                                         |
-| requestMethodsImportPath | string                                | Sí        | Ruta de importación para métodos de solicitud                          |
-| dataLevel                | 'data' \| 'serve' \| 'axios'          | Sí        | Nivel de datos de la respuesta                                         |
-| formatting               | object                                | No        | Configuración de formateo de código                                    |
-| headers                  | object                                | No        | Cabeceras de la solicitud                                              |
-| includeInterface         | Array<{path: string, method: string}> | No        | Solo generar las interfaces listadas aquí; si se establece, solo estas |
-| excludeInterface         | Array<{path: string, method: string}> | No        | Excluir las interfaces listadas aquí; se generarán las demás           |
-
-## Estructura de archivos generados
-
-- La siguiente estructura se genera en base a tu archivo de configuración.
+> La estructura de archivos se genera según el archivo de configuración. Marcado como **no controlado** indica que: esta carpeta y sus archivos se generan automáticamente y no están controlados por los elementos de configuración
 
 ```
 project/
 ├── apps/
-│   ├── types/
-│   │   ├── models/          # Todas las definiciones de tipos (excluye enums)
-│   │   ├── connectors/      # Definiciones de tipos de API (definiciones de interfaces)
-│   │   └── enums/           # Definiciones de tipos de enumeración
-│   └── api/
-│       ├── fetch.ts         # Implementación de métodos de solicitud
-│       └── index.ts         # Funciones de solicitud de API
+│   ├── types/               		# Especificado por el elemento de configuración saveTypeFolderPath
+│   │   ├── models/          				# Todos los archivos de definición de tipos (sin incluir tipos enum) no controlado
+│   │   ├── connectors/      				# Definiciones de tipos API (archivos de definición de interfaz) no controlado
+│   └── api/                 		# Archivos de solicitud: especificado por el elemento de configuración saveApiListFolderPath
+│   │    ├── fetch.ts        				# Implementación de métodos de solicitud no controlado
+│   │    └── index.ts        				# Lista de funciones de solicitud API no controlado
+│   │    └── api-type.d.ts      		# Archivo de definición de tipos de solicitud no controlado
+│   │    └── config.ts       				# Solicitud, interceptor de respuesta, configuración de solicitud no controlado
+│   │    └── error-message.ts   		# Mensajes de error a nivel de sistema no controlado
+│   │    ├── fetch.ts        				# Wrapper de solicitud axios, se puede cambiar a fetch no controlado
+│   └── enums/               		# Definición de tipos de datos enum: especificado por el elemento de configuración saveEnumFolderPath
 ```
 
-## Ejemplos de código generado
+### Ejemplos de Código Generado
 
-### Definiciones de tipos
+#### Definición de Tipos de Interfaz
 
 ```typescript
 declare namespace UserDetail_GET {
@@ -162,29 +179,29 @@ declare namespace UserDetail_GET {
 }
 ```
 
-### Función de solicitud de API
+#### Función de Solicitud API
 
 ```typescript
 import { GET } from './fetch';
 
 /**
- * Obtener detalles del usuario
+ * Obtener detalles de usuario
  */
 export const userDetailGet = (params: UserDetail_GET.Query) => GET<UserDetail_GET.Response>('/user/detail', params);
 ```
 
-## Funcionalidades adicionales
+### Descripción de Características
 
-### Análisis de tipos
+#### Análisis de Tipos
 
-- Soporta todos los tipos de datos de OpenAPI 3.0
-- Maneja automáticamente tipos anidados complejos
-- Soporta arreglos, objetos, enums, etc.
-- Genera automáticamente comentarios de interfaces
+- Soporte para todos los tipos de datos de la especificación OpenAPI 3.0
+- Manejo automático de tipos anidados complejos
+- Soporte para tipos como arrays, objetos, enums, etc.
+- Generación automática de comentarios de interfaz
 
-### Carga de archivos
+#### Carga de Archivos
 
-Cuando se detecta un tipo de carga de archivos, se agregan automáticamente los encabezados correspondientes:
+Cuando se detecta un tipo de carga de archivo, se añaden automáticamente los encabezados de solicitud correspondientes:
 
 ```typescript
 export const uploadFile = (params: UploadFile.Body) =>
@@ -193,29 +210,29 @@ export const uploadFile = (params: UploadFile.Body) =>
 	});
 ```
 
-### Manejo de errores
+#### Manejo de Errores
 
-La herramienta incluye un manejo de errores robusto:
+La herramienta tiene un mecanismo completo de manejo de errores integrado:
 
 - Mensajes de error de análisis
-- Advertencias cuando falla la generación de tipos
-- Manejo de excepciones al escribir archivos
+- Advertencias de fallo en generación de tipos
+- Manejo de excepciones de escritura de archivos
 
-### Filtrado de interfaces
+#### Filtrado de Interfaces
 
-Controla qué interfaces se generan mediante la configuración:
+La herramienta admite filtrado de interfaces a generar mediante configuración:
 
 1. Incluir interfaces específicas
-   - Usa `includeInterface` para especificar las interfaces a generar
-   - Solo se generarán las interfaces listadas
-   - Formato: arreglo de objetos con `path` y `method`
+   - Especifica las interfaces a generar mediante el elemento de configuración `includeInterface`
+   - Solo se generarán las interfaces especificadas en la configuración
+   - El formato de configuración es un array de objetos que contienen `path` y `method`
 
 2. Excluir interfaces específicas
-   - Usa `excludeInterface` para especificar interfaces a omitir
-   - Se generarán todas las demás interfaces
-   - Formato: arreglo de objetos con `path` y `method`
+   - Especifica las interfaces a excluir mediante el elemento de configuración `excludeInterface`
+   - Se generarán todas las interfaces excepto las especificadas en la configuración
+   - El formato de configuración es un array de objetos que contienen `path` y `method`
 
-Ejemplo:
+Ejemplo de configuración: Esta configuración va en `an.config.json`
 
 ```json
 {
@@ -234,120 +251,101 @@ Ejemplo:
 }
 ```
 
-Nota: `includeInterface` y `excludeInterface` no pueden usarse al mismo tiempo. Si ambos están establecidos, `includeInterface` tiene prioridad.
+Nota: `includeInterface` y `excludeInterface` no se pueden usar simultáneamente. Si se configuran ambos, se usará `includeInterface` con prioridad.
 
-## Desarrollo
+### Notas
 
-```bash
-# Instalar dependencias
-npm install
-
-# Modo de desarrollo
-Presiona F5 para depurar
-
-# Construcción
-npm run build
-
-# Enlace local para depuración
-npm run blink
-```
-
-## Notas
-
-1. Asegúrate de que la URL del Swagger JSON sea accesible
-2. Las rutas del archivo de configuración son relativas a la raíz del proyecto
+1. Asegúrate de que la dirección del documento Swagger JSON sea accesible
+2. Las rutas en el archivo de configuración deben ser relativas al directorio raíz del proyecto
 3. Los archivos generados sobrescribirán archivos existentes con el mismo nombre
-4. Se recomienda agregar los archivos generados al control de versiones
+4. Se recomienda incluir los archivos generados en el control de versiones
 
-## Preguntas frecuentes
+### Preguntas Frecuentes
 
-1. Fallo al formatear archivos de tipos generados
-   - Verifica si Prettier está instalado
-   - Asegura que exista un archivo de configuración de Prettier en la raíz
+1. Fallo en el formateo de archivos de tipos generados
+   - Verifica si prettier está instalado
+   - Confirma si hay un archivo de configuración de prettier en el directorio raíz del proyecto
 
-2. Ruta de importación incorrecta en funciones de solicitud
-   - Verifica que `requestMethodsImportPath` sea correcta
-   - Asegura que el archivo del método de solicitud exista
+2. Error en la ruta de importación de funciones de solicitud
+   - Verifica si la configuración de requestMethodsImportPath es correcta
+   - Confirma si el archivo de métodos de solicitud existe
 
-# Comando anl lint
+# Instrucciones de Uso del Comando `anl lint`
 
-### Descripción general
+> Proporciona funcionalidad de configuración con un solo clic para varias herramientas lint de proyectos frontend, incluyendo:
+>
+> - ESLint para verificación de código
+> - Prettier para formateo de código
+> - CommitLint para especificación de mensajes de commit
+> - Configuración del editor VSCode
 
-Proporciona configuración en un clic para varias herramientas de lint del frontend, incluyendo:
-
-- ESLint para linting de código
-- Prettier para formateo de código
-- CommitLint para convenciones de mensajes de commit
-- Configuración del editor VSCode
-
-### Uso
+### Método de Uso
 
 ```bash
 $ anl lint
 ```
 
-### Detalles de configuración
+### Detalles de Configuración
 
-#### 1. ESLint
+#### 1. Configuración ESLint
 
-- Instala automáticamente las dependencias requeridas
-- Soporta frameworks React/Vue
-- Genera `.eslintrc.js` y `.eslintignore`
-- Integra soporte para TypeScript
+- Instalación automática de dependencias necesarias
+- Soporte para frameworks React/Vue
+- Generación automática de `.eslintrc.js` y `.eslintignore`
+- Integración de soporte TypeScript
 
-#### 2. Prettier
+#### 2. Configuración Prettier
 
-- Instala automáticamente dependencias de Prettier
-- Genera `.prettierrc.js`
-- Configuración por defecto incluye:
+- Instalación automática de dependencias relacionadas con prettier
+- Generación del archivo de configuración `.prettierrc.js`
+- La configuración predeterminada incluye:
   - Ancho de línea: 80
-  - Indentación con tabulaciones
-  - Comillas simples
+  - Indentación con Tab
+  - Uso de comillas simples
   - Paréntesis en funciones flecha
-  - Otras reglas de estilo
+  - Otras especificaciones de estilo de código
 
-#### 3. CommitLint
+#### 3. Configuración CommitLint
 
-- Instala dependencias de CommitLint
-- Configura hooks de git con Husky
-- Genera `commitlint.config.js`
-- Estandariza los mensajes de commit
+- Instalación de dependencias relacionadas con commitlint
+- Configuración de git hooks de husky
+- Generación de `commitlint.config.js`
+- Estandarización de mensajes git commit
 
-#### 4. VSCode
+#### 4. Configuración VSCode
 
-- Crea `.vscode/settings.json`
-- Configura formateo automático del editor al guardar
-- Establece el formateador por defecto
-- Soporta actualización de configuraciones existentes
+- Creación de `.vscode/settings.json`
+- Configuración de formateo automático del editor
+- Configuración de herramienta de formateo predeterminada
+- Soporte para actualización de archivos de configuración existentes
 
-# Comando anl git
+# Comando `anl git`
 
-### Descripción general
+### Descripción General de Funciones
 
-Aplica las siguientes capacidades de Git al repositorio actual mediante selección múltiple interactiva:
+- A través de selección múltiple interactiva, aplica las siguientes capacidades de Git al repositorio actual:
+  - Creación de ramas estándar gitflow
+    - Copia `.gitscripts/`, `.gitconfig`, `.commit-type.cjs` al proyecto (solo si faltan)
+    - Añade permisos de ejecución a `.gitscripts/random-branch.sh`
+    - Ejecuta `git config --local include.path ../.gitconfig`
+  - Configuración automática de commit subject
+    - Copia `.githooks/commit-msg` y lo hace ejecutable
+    - Ejecuta `git config core.hooksPath .githooks`
+  - Comandos git personalizados
+    - Añade `.gitattributes` al proyecto (solo si falta)
 
-- Creación de ramas estándar gitflow
-  - Copia `.gitscripts/`, `.gitconfig`, `.commit-type.cjs` al proyecto (solo si faltan)
-  - Agrega permiso de ejecución a `.gitscripts/random-branch.sh`
-  - Ejecuta `git config --local include.path ../.gitconfig`
-- Configuración automática del asunto del commit
-  - Copia `.githooks/commit-msg` y lo establece como ejecutable
-  - Ejecuta `git config core.hooksPath .githooks`
-- Comandos personalizados de git
-  - Agrega `.gitattributes` al proyecto (solo si falta)
-
-### Uso
+### Método de Uso
 
 ```bash
 $ anl git
 ```
 
-Selecciona una o varias funciones en los prompts. Los archivos solo se crean cuando faltan; los existentes se preservan.
+En el prompt, selecciona una o más funciones. Los archivos solo se crean si no existen; los archivos existentes se conservan.
 
 ### Notas
 
-- Ejecuta dentro de un repositorio Git.
-- Si las configuraciones automáticas fallan, ejecútalas manualmente:
+- Por favor, ejecuta dentro de un repositorio Git.
+- Si los comandos git config ejecutados automáticamente fallan, ejecuta manualmente:
 
 ```bash
 git config --local include.path ../.gitconfig
@@ -356,8 +354,8 @@ git config core.hooksPath .githooks
 
 # Licencia
 
-Licencia ISC
+ISC License
 
-# Contribuciones
+# Guía de Contribución
 
-Se aceptan Issues y Pull Requests: https://github.com/bianliuzhu/an-cli
+¡Bienvenidos a enviar [Issue](https://github.com/bianliuzhu/an-cli/issues) y [Pull Request](https://github.com/bianliuzhu/an-cli/pulls)!

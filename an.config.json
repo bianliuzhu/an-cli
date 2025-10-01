@@ -1,34 +1,17 @@
 {
-  "saveTypeFolderPath": "apps/types",
-  "saveApiListFolderPath": "apps/api/",
-  "saveEnumFolderPath": "apps/enums",
-  "importEnumPath": "../../enums",
-  "swaggerJsonUrl": "http://localhost:3000/api-json",
-  "requestMethodsImportPath": "./fetch",
-  "dataLevel": "serve",
-  "formatting": {
-    "indentation": "\t",
-    "lineEnding": "\n"
-  },
-  "headers": {},
-  "includeInterface": [
-    {
-      "path": "/manageGame/{gameName}/getGameConfig",
-      "method": "get"
-    },
-    {
-      "path": "/llm/recommend/{schema}/{rid}/role/union",
-      "method": "get"
-    },
-    {
-      "path": "/llm/extract/{id}/destroy",
-      "method": "delete"
-    }
-  ],
-  "excludeInterface": [
-    {
-      "path": "/manageGame/{gameName}/getGameConfig",
-      "method": "get"
-    }
-  ]
+	"saveTypeFolderPath": "apps/types",
+	"saveApiListFolderPath": "apps/api/",
+	"saveEnumFolderPath": "apps/enums",
+	"importEnumPath": "../../enums",
+	"swaggerJsonUrl": "http://localhost:3000/api-json",
+	"requestMethodsImportPath": "./fetch",
+	"dataLevel": "serve",
+	"formatting": {
+		"indentation": "\t",
+		"lineEnding": "\n"
+	},
+	"headers": {},
+	"includeInterface": [],
+	"excludeInterface": [],
+	"publicPrefix": "api"
 }

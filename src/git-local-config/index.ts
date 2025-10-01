@@ -37,7 +37,8 @@ const copyGitConfigFiles = async () => {
 	// 为 random-branch.sh 增加可执行权限
 	try {
 		fs.chmodSync(path.join(targetScriptsDir, 'random-branch.sh'), 0o755);
-		log.success(`chmod +x .gitscripts/random-branch.sh`);
+		// log.success(`chmod +x .gitscripts/random-branch.sh`);
+		log.success(`random-branch.sh Raise power`);
 	} catch (e) {
 		log.error(`设置 .githooks/commit-msg 可执行权限失败: ${e instanceof Error ? e.message : e}`);
 	}
@@ -45,7 +46,8 @@ const copyGitConfigFiles = async () => {
 	// git config --local include.path ../.gitconfig
 	try {
 		execSync('git config --local include.path ../.gitconfig', { stdio: 'ignore' });
-		log.success(`git config --local include.path ../.gitconfig`);
+		// log.success(`git config --local include.path ../.gitconfig`);
+		log.success(`.gitconfig git set`);
 	} catch (e) {
 		log.error(`执行 git config --local include.path ../.gitconfig 失败，请手动执行该命令`);
 	}
@@ -69,7 +71,7 @@ const copyCommitSubjectFiles = async () => {
 	// 为 commit-msg 增加可执行权限
 	try {
 		fs.chmodSync(path.join(targetHooksDir, 'commit-msg'), 0o755);
-		log.success(`chmod +x .githooks/commit-msg`);
+		log.success(`commit-msg raise power done.`);
 	} catch (e) {
 		log.error(`设置 .githooks/commit-msg 可执行权限失败: ${e instanceof Error ? e.message : e}`);
 	}
@@ -77,9 +79,9 @@ const copyCommitSubjectFiles = async () => {
 	// 设置 git hooks 路径到 .githooks
 	try {
 		execSync('git config core.hooksPath .githooks', { stdio: 'ignore' });
-		log.success(`git config core.hooksPath .githooks`);
+		log.success(`git set .githooks done.`);
 	} catch (e) {
-		log.error(`执行 git config core.hooksPath .githooks 失败，请手动执行该命令`);
+		log.error(`Execute [git config core.hooksPath .githooks] failed, please execute the command manually`);
 	}
 };
 
