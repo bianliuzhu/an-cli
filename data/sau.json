@@ -6,7 +6,7 @@
 	},
 	"servers": [
 		{
-			"url": "https://serviceoneapi-stg.tesla.cn/core"
+			"url": "https://serviceoneapi-stg.cn/core"
 		}
 	],
 	"paths": {
