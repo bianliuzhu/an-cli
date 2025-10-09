@@ -104,6 +104,8 @@ export class PathParse {
 	private referenceCache = new Map<string, string>();
 
 	parameters: OpenAPIV3.ComponentsObject['parameters'] = {};
+	/** schemas 对象，用于判断类型是否为枚举 */
+	schemas: OpenAPIV3.ComponentsObject['schemas'] = {};
 
 	/** 字符串模板对象 */
 	private readonly templates = {
@@ -112,10 +114,16 @@ export class PathParse {
 		interfaceDefinition: (name: string) => `interface ${name}`,
 	};
 
-	constructor(pathsObject: OpenAPIV3.PathsObject, parameters: OpenAPIV3.ComponentsObject['parameters'], config: PathParseConfig) {
+	constructor(
+		pathsObject: OpenAPIV3.PathsObject,
+		parameters: OpenAPIV3.ComponentsObject['parameters'],
+		schemas: OpenAPIV3.ComponentsObject['schemas'],
+		config: PathParseConfig
+	) {
 		this.pathsObject = pathsObject;
 		// 合并配置，确保必需的属性来自传入的 config
 		this.parameters = parameters ?? {};
+		this.schemas = schemas ?? {};
 
 		this.config = {
 			...defaultConfig,
@@ -322,8 +330,15 @@ export class PathParse {
 			}
 
 			const fileName = this.typeNameToFileName(typeName);
+
+			// 改进的枚举检测逻辑：
+			// 1. 首先检查类型名称中是否包含 "enum"
+			// 2. 然后检查 schema 定义中是否有 enum 字段
 			const regEnum = /enum/gi;
-			const isEnum = regEnum.test(typeName);
+			const hasEnumInName = regEnum.test(typeName);
+			const schema = this.schemas?.[typeName];
+			const hasEnumField = schema && 'enum' in schema && Array.isArray(schema.enum);
+			const isEnum = hasEnumInName || hasEnumField;
 
 			// 如果是枚举类型，根据配置决定是否添加 Type 后缀
 			const finalTypeName = isEnum ? this.getEnumTypeName(typeName) : typeName;

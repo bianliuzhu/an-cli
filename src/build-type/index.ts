@@ -58,14 +58,14 @@ export class Main {
 				throw new Error('无法获取 Swagger 数据');
 			}
 
-			this.schemas = response.components?.schemas || {};
-			this.paths = response.paths || {};
+		this.schemas = response.components?.schemas || {};
+		this.paths = response.paths || {};
 
-			const components = new Components(this.schemas, config);
-			const paths = new PathParse(this.paths, response.components?.parameters, config);
+		const components = new Components(this.schemas, config);
+		const paths = new PathParse(this.paths, response.components?.parameters, this.schemas, config);
 
-			await components.handle();
-			await paths.handle();
+		await components.handle();
+		await paths.handle();
 
 			return true;
 		} catch (error: unknown) {
