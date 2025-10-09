@@ -14,5 +14,5 @@
 	"includeInterface": [],
 	"excludeInterface": [],
 	"publicPrefix": "api",
-	"erasableSyntaxOnly": true
+	"erasableSyntaxOnly": false
 }
