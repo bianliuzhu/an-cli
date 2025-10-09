@@ -87,7 +87,7 @@ $ pnpm add -g anl
 ### Método de Uso
 
 ```bash
-$ anl lint
+$ anl type
 ```
 
 ### Explicación Detallada del Archivo de Configuración

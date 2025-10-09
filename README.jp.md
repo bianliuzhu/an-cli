@@ -89,7 +89,7 @@ $ pnpm add -g anl
 ### 使用方法
 
 ```bash
-$ anl lint
+$ anl type
 ```
 
 ### 設定ファイル詳細
