@@ -147,6 +147,20 @@ export class PathParse {
 	}
 
 	/**
+	 * 根据配置获取枚举类型名
+	 * 如果启用了 erasableSyntaxOnly，在枚举名后添加 Type 后缀以区分类型和常量
+	 */
+	private getEnumTypeName(enumName: string): string {
+		if (!this.config.erasableSyntaxOnly) {
+			return enumName;
+		}
+
+		// erasableSyntaxOnly 模式下，添加 Type 后缀以区分类型名和常量名
+		// 例如：SCReferenceTypeEnum => SCReferenceTypeEnumType
+		return `${enumName}Type`;
+	}
+
+	/**
 	 * 将类型名转换为文件名
 	 * @param str 类型名
 	 * @returns 转换后的文件名
@@ -309,8 +323,13 @@ export class PathParse {
 
 			const fileName = this.typeNameToFileName(typeName);
 			const regEnum = /enum/gi;
-			const importStatement = regEnum.test(typeName)
-				? `import('${this.config.importEnumPath}/${fileName}').${typeName}`
+			const isEnum = regEnum.test(typeName);
+
+			// 如果是枚举类型，根据配置决定是否添加 Type 后缀
+			const finalTypeName = isEnum ? this.getEnumTypeName(typeName) : typeName;
+
+			const importStatement = isEnum
+				? `import('${this.config.importEnumPath}/${fileName}').${finalTypeName}`
 				: `import('../models/${fileName}').${typeName}`;
 
 			// 存入缓存
@@ -789,10 +808,11 @@ export class PathParse {
 		const pathNameLower = pathSegments
 			.map((part) => {
 				if (part.includes('{')) {
-					// 处理路径参数，移除花括号
-					return part.slice(1, -1);
+					// 处理路径参数，移除花括号，将中划线转换为下划线
+					return part.slice(1, -1).replace(/-/g, '_');
 				}
-				return part;
+				// 将中划线转换为下划线
+				return part.replace(/-/g, '_');
 			})
 			.join('_');
 
@@ -800,12 +820,19 @@ export class PathParse {
 		const pathNameUpper = pathSegments
 			.map((part) => {
 				if (part.includes('{')) {
-					// 处理路径参数，如 {petId} -> PetId
+					// 处理路径参数，如 {petId} -> PetId，{poster-path} -> Poster_Path
 					const paramName = part.slice(1, -1);
-					return paramName.charAt(0).toUpperCase() + paramName.slice(1);
+					return paramName
+						.split('-')
+						.map((word) => word.charAt(0).toUpperCase() + word.slice(1))
+						.join('_');
 				}
-				// 普通路径段首字母大写
-				return part.charAt(0).toUpperCase() + part.slice(1);
+				// 普通路径段，将中划线分隔的单词转换为下划线分隔的首字母大写形式
+				// 例如：poster-path -> Poster_Path
+				return part
+					.split('-')
+					.map((word) => word.charAt(0).toUpperCase() + word.slice(1))
+					.join('_');
 			})
 			.join('_');
 

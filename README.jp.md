@@ -141,6 +141,7 @@ $ anl type
 | includeInterface         | Array<{path: string, method: string}> | いいえ | 含めるインターフェース：`saveApiListFolderPath` で指定されたインターフェースリストファイルには、このリストに含まれるインターフェースのみが含まれます。`excludeInterface` フィールドと相互排他的です |
 | excludeInterface         | Array<{path: string, method: string}> | いいえ | 除外するインターフェース：`saveApiListFolderPath` で指定されたインターフェースリストテキストには、このリストに含まれないインターフェースが含まれます。`includeInterface` と相互排他的です           |
 | publicPrefix             | string                                | いいえ | URL パス上の共通プレフィックス、例：api/users、api/users/{id}、api が共通プレフィックスです                                                                                                         |
+| erasableSyntaxOnly       | boolean                               | はい   | tsconfig.json の `compilerOptions.erasableSyntaxOnly` オプションと一致させます。`true` の場合、enum ではなく const オブジェクトを生成します（型のみの構文）。デフォルト値：`false`                  |
 
 #### 設定項目と生成ファイルの対応関係
 
@@ -200,6 +201,49 @@ export const userDetailGet = (params: UserDetail_GET.Query) => GET<UserDetail_GE
 - 複雑なネストされた型の自動処理
 - 配列、オブジェクト、列挙型などの型をサポート
 - インターフェースコメントの自動生成
+
+#### 列挙型生成
+
+ツールは 2 つの列挙型生成モードをサポートしており、`erasableSyntaxOnly` 設定で制御します：
+
+**従来の列挙型モード** (`erasableSyntaxOnly: false`、デフォルト値):
+
+```typescript
+export enum Status {
+	Success = 'Success',
+	Error = 'Error',
+	Pending = 'Pending',
+}
+```
+
+**定数オブジェクトモード** (`erasableSyntaxOnly: true`):
+
+```typescript
+export const Status = {
+	Success: 'Success',
+	Error: 'Error',
+	Pending: 'Pending',
+} as const;
+
+export type StatusType = (typeof Status)[keyof typeof Status];
+```
+
+> **なぜ定数オブジェクトモードを使用するのか？**
+> TypeScript の `compilerOptions.erasableSyntaxOnly` が `true` に設定されている場合、コードは削除可能な型構文のみを使用できます。従来の `enum` は実行時コードを生成しますが、定数オブジェクトは純粋な型であり、コンパイル後に完全に削除されます。これにより、型のみの構文を要求するビルドツールとの互換性が保証されます。
+
+**型での使用：**
+
+```typescript
+// 従来の列挙型モード
+interface User {
+	status: Status; // 列挙型を直接型として使用
+}
+
+// 定数オブジェクトモード
+interface User {
+	status: StatusType; // 生成された 'Type' サフィックス付きの型を使用
+}
+```
 
 #### ファイルアップロード
 

@@ -34,6 +34,7 @@ const configContent: ConfigType = {
 	},
 	includeInterface: [],
 	excludeInterface: [],
+	erasableSyntaxOnly: false,
 };
 
 export class Main {
@@ -48,7 +49,7 @@ export class Main {
 			let response: OpenAPIV3.Document;
 
 			if (isDev) {
-				response = (await import('../../data/open-api.json')).default as unknown as OpenAPIV3.Document;
+				response = (await import('../../data/sw.json')).default as unknown as OpenAPIV3.Document;
 			} else {
 				response = (await getSwaggerJson(config)) as OpenAPIV3.Document;
 			}
