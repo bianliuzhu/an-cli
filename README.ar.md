@@ -89,7 +89,7 @@ $ pnpm add -g anl
 ### طريقة الاستخدام
 
 ```bash
-$ anl lint
+$ anl type
 ```
 
 ### شرح ملف التكوين بالتفصيل
@@ -127,20 +127,21 @@ $ anl lint
 
 #### شرح عناصر التكوين
 
-| عنصر التكوين             | النوع                                 | مطلوب | الوصف                                                                                                                                   |
-| ------------------------ | ------------------------------------- | ----- | --------------------------------------------------------------------------------------------------------------------------------------- |
-| saveTypeFolderPath       | string                                | نعم   | مسار حفظ ملفات تعريف الأنواع                                                                                                            |
-| saveApiListFolderPath    | string                                | نعم   | مسار حفظ ملفات دوال طلبات API                                                                                                           |
-| saveEnumFolderPath       | string                                | نعم   | مسار حفظ ملفات بيانات التعداد                                                                                                           |
-| importEnumPath           | string                                | نعم   | مسار استيراد التعداد (مسار ملف enum المُشار إليه في apps/types/models/\*.ts)                                                            |
-| swaggerJsonUrl           | string                                | نعم   | عنوان مستند Swagger JSON                                                                                                                |
-| requestMethodsImportPath | string                                | نعم   | مسار استيراد طرق الطلب                                                                                                                  |
-| dataLevel                | 'data' \| 'serve' \| 'axios'          | نعم   | مستوى بيانات استجابة الواجهة                                                                                                            |
-| formatting               | object                                | لا    | تكوين تنسيق الكود                                                                                                                       |
-| headers                  | object                                | لا    | تكوين رأس الطلب                                                                                                                         |
-| includeInterface         | Array<{path: string, method: string}> | لا    | الواجهات المضمنة: ملف قائمة الواجهات المحدد بـ `saveApiListFolderPath` سيتضمن فقط الواجهات في القائمة، متعارض مع حقل `excludeInterface` |
-| excludeInterface         | Array<{path: string, method: string}> | لا    | الواجهات المستبعدة: نص قائمة الواجهات المحدد بـ `saveApiListFolderPath` لن يتضمن الواجهات في هذه القائمة، متعارض مع `includeInterface`  |
-| publicPrefix             | string                                | لا    | البادئة العامة على مسار url، على سبيل المثال: api/users، api/users/{id}، api هي البادئة العامة                                          |
+| عنصر التكوين             | النوع                                 | مطلوب | الوصف                                                                                                                                                                    |
+| ------------------------ | ------------------------------------- | ----- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| saveTypeFolderPath       | string                                | نعم   | مسار حفظ ملفات تعريف الأنواع                                                                                                                                             |
+| saveApiListFolderPath    | string                                | نعم   | مسار حفظ ملفات دوال طلبات API                                                                                                                                            |
+| saveEnumFolderPath       | string                                | نعم   | مسار حفظ ملفات بيانات التعداد                                                                                                                                            |
+| importEnumPath           | string                                | نعم   | مسار استيراد التعداد (مسار ملف enum المُشار إليه في apps/types/models/\*.ts)                                                                                             |
+| swaggerJsonUrl           | string                                | نعم   | عنوان مستند Swagger JSON                                                                                                                                                 |
+| requestMethodsImportPath | string                                | نعم   | مسار استيراد طرق الطلب                                                                                                                                                   |
+| dataLevel                | 'data' \| 'serve' \| 'axios'          | نعم   | مستوى بيانات استجابة الواجهة                                                                                                                                             |
+| formatting               | object                                | لا    | تكوين تنسيق الكود                                                                                                                                                        |
+| headers                  | object                                | لا    | تكوين رأس الطلب                                                                                                                                                          |
+| includeInterface         | Array<{path: string, method: string}> | لا    | الواجهات المضمنة: ملف قائمة الواجهات المحدد بـ `saveApiListFolderPath` سيتضمن فقط الواجهات في القائمة، متعارض مع حقل `excludeInterface`                                  |
+| excludeInterface         | Array<{path: string, method: string}> | لا    | الواجهات المستبعدة: نص قائمة الواجهات المحدد بـ `saveApiListFolderPath` لن يتضمن الواجهات في هذه القائمة، متعارض مع `includeInterface`                                   |
+| publicPrefix             | string                                | لا    | البادئة العامة على مسار url، على سبيل المثال: api/users، api/users/{id}، api هي البادئة العامة                                                                           |
+| erasableSyntaxOnly       | boolean                               | نعم   | يتوافق مع خيار `compilerOptions.erasableSyntaxOnly` في tsconfig.json. عندما يكون `true`، يتم إنشاء كائن const بدلاً من enum (صيغة النوع فقط). القيمة الافتراضية: `false` |
 
 #### العلاقة بين عناصر التكوين والملفات المولدة
 
@@ -200,6 +201,49 @@ export const userDetailGet = (params: UserDetail_GET.Query) => GET<UserDetail_GE
 - معالجة تلقائية للأنواع المتداخلة المعقدة
 - يدعم أنواع المصفوفات والكائنات والتعدادات وغيرها
 - توليد تعليقات الواجهة تلقائيًا
+
+#### توليد التعداد
+
+تدعم الأداة وضعين لتوليد التعداد، يتم التحكم فيهما من خلال تكوين `erasableSyntaxOnly`:
+
+**وضع التعداد التقليدي** (`erasableSyntaxOnly: false`، القيمة الافتراضية):
+
+```typescript
+export enum Status {
+	Success = 'Success',
+	Error = 'Error',
+	Pending = 'Pending',
+}
+```
+
+**وضع الكائن الثابت** (`erasableSyntaxOnly: true`):
+
+```typescript
+export const Status = {
+	Success: 'Success',
+	Error: 'Error',
+	Pending: 'Pending',
+} as const;
+
+export type StatusType = (typeof Status)[keyof typeof Status];
+```
+
+> **لماذا نستخدم وضع الكائن الثابت؟**
+> عندما يتم تعيين `compilerOptions.erasableSyntaxOnly` في TypeScript إلى `true`، يمكن للكود استخدام صيغة النوع القابلة للمسح فقط. يولد `enum` التقليدي كود وقت التشغيل، بينما الكائن الثابت هو نوع خالص ويتم مسحه بالكامل بعد الترجمة. هذا يضمن التوافق مع أدوات البناء التي تتطلب صيغة النوع فقط.
+
+**الاستخدام في الأنواع:**
+
+```typescript
+// وضع التعداد التقليدي
+interface User {
+	status: Status; // استخدام التعداد مباشرة كنوع
+}
+
+// وضع الكائن الثابت
+interface User {
+	status: StatusType; // استخدام النوع المولد بلاحقة 'Type'
+}
+```
 
 #### تحميل الملفات
 

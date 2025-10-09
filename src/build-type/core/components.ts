@@ -35,6 +35,20 @@ class Components {
 		return `${v ? ' | null' : ''}`;
 	}
 
+	/**
+	 * 根据配置获取枚举类型名
+	 * 如果启用了 erasableSyntaxOnly，在枚举名后添加 Type 后缀以区分类型和常量
+	 */
+	getEnumTypeName(enumName: string): string {
+		if (!this.config.erasableSyntaxOnly) {
+			return enumName;
+		}
+
+		// erasableSyntaxOnly 模式下，添加 Type 后缀以区分类型名和常量名
+		// 例如：ActivityCorrectionPartStatusEnum => ActivityCorrectionPartStatusEnumType
+		return `${enumName}Type`;
+	}
+
 	fieldComment(schemaSource: NonArraySchemaObject) {
 		const { description } = schemaSource;
 		if (description) {
@@ -73,7 +87,8 @@ class Components {
 		let header: string;
 
 		if (dataType === 'enum') {
-			header = `import type { ${typeName} } from '${this.config.importEnumPath}';`;
+			const importTypeName = this.getEnumTypeName(typeName);
+			header = `import type { ${importTypeName} } from '${this.config.importEnumPath}';`;
 		} else {
 			header = `import type { ${typeName} } from './${fileName}';`;
 		}
@@ -113,10 +128,13 @@ class Components {
 				this.enumsMap.set(fileName, { fileName, content: enumContent });
 			}
 
+			// 如果是枚举类型，需要使用正确的类型名
+			const finalTypeName = dataType === 'enum' ? this.getEnumTypeName(typeName) : typeName;
+
 			return {
 				headerRef: headerRefStr,
-				renderStr: `${INDENT}${name}${this.requiredFieldS.includes(name) ? '' : '?'}: Array<${typeName}>${this.nullable(nullable)};`,
-				typeName,
+				renderStr: `${INDENT}${name}${this.requiredFieldS.includes(name) ? '' : '?'}: Array<${finalTypeName}>${this.nullable(nullable)};`,
+				typeName: finalTypeName,
 			};
 		}
 
@@ -138,28 +156,68 @@ class Components {
 	parseEnum(value: NonArraySchemaObject, enumName: string): TReturnType {
 		if (!Array.isArray(value.enum)) return null;
 
-		if (value.type === 'integer') {
-			const enumValues = value.enum.map((item: number) => `${INDENT}NUMBER_${item} = ${item},`);
-			return {
-				headerRef: '',
-				renderStr: [`export enum ${enumName} {`, ...enumValues, `}`].join('\n'),
-			};
-		}
+		if (this.config.erasableSyntaxOnly) {
+			// 生成 const 对象形式
+			if (value.type === 'integer') {
+				const enumValues = value.enum.map((item: number) => `${INDENT}NUMBER_${item}: ${item},`);
+				return {
+					headerRef: '',
+					renderStr: [
+						`export const ${enumName} = {`,
+						...enumValues,
+						`} as const;`,
+						'',
+						`export type ${this.getEnumTypeName(enumName)} = typeof ${enumName}[keyof typeof ${enumName}];`,
+					].join('\n'),
+				};
+			}
 
-		if (value.type === 'string') {
-			const isAllNumeric = value.enum.every((item: string) => !isNaN(Number(item)));
+			if (value.type === 'string') {
+				const isAllNumeric = value.enum.every((item: string) => !isNaN(Number(item)));
 
-			const enumValues = value.enum.map((item: string) => {
-				if (isAllNumeric) {
-					return `${INDENT}NUMBER_${item} = '${item}',`;
-				}
-				return `${INDENT}${item.toUpperCase()} = '${item}',`;
-			});
+				const enumValues = value.enum.map((item: string) => {
+					if (isAllNumeric) {
+						return `${INDENT}NUMBER_${item}: '${item}',`;
+					}
+					return `${INDENT}${item.toUpperCase()}: '${item}',`;
+				});
 
-			return {
-				headerRef: '',
-				renderStr: [`export enum ${enumName} {`, ...enumValues, `}`].join('\n'),
-			};
+				return {
+					headerRef: '',
+					renderStr: [
+						`export const ${enumName} = {`,
+						...enumValues,
+						`} as const;`,
+						'',
+						`export type ${this.getEnumTypeName(enumName)} = typeof ${enumName}[keyof typeof ${enumName}];`,
+					].join('\n'),
+				};
+			}
+		} else {
+			// 生成传统 enum 形式
+			if (value.type === 'integer') {
+				const enumValues = value.enum.map((item: number) => `${INDENT}NUMBER_${item} = ${item},`);
+				return {
+					headerRef: '',
+					renderStr: [`export enum ${enumName} {`, ...enumValues, `}`].join('\n'),
+				};
+			}
+
+			if (value.type === 'string') {
+				const isAllNumeric = value.enum.every((item: string) => !isNaN(Number(item)));
+
+				const enumValues = value.enum.map((item: string) => {
+					if (isAllNumeric) {
+						return `${INDENT}NUMBER_${item} = '${item}',`;
+					}
+					return `${INDENT}${item.toUpperCase()} = '${item}',`;
+				});
+
+				return {
+					headerRef: '',
+					renderStr: [`export enum ${enumName} {`, ...enumValues, `}`].join('\n'),
+				};
+			}
 		}
 
 		return null;
@@ -181,10 +239,20 @@ class Components {
 	convertJsonToEnumString(jsonStr: string, enumName: string): string {
 		try {
 			const jsonObj = JSON.parse(jsonStr);
-			const enumValues = Object.entries(jsonObj)
-				.map(([key, value]) => `${INDENT}${key} = '${value}'`)
-				.join(',\n');
-			return `export enum ${enumName} {\n${enumValues}\n}`;
+
+			if (this.config.erasableSyntaxOnly) {
+				// 生成 const 对象形式
+				const enumValues = Object.entries(jsonObj)
+					.map(([key, value]) => `${INDENT}${key}: '${value}'`)
+					.join(',\n');
+				return `export const ${enumName} = {\n${enumValues}\n} as const;\n\nexport type ${this.getEnumTypeName(enumName)} = typeof ${enumName}[keyof typeof ${enumName}];`;
+			} else {
+				// 生成传统 enum 形式
+				const enumValues = Object.entries(jsonObj)
+					.map(([key, value]) => `${INDENT}${key} = '${value}'`)
+					.join(',\n');
+				return `export enum ${enumName} {\n${enumValues}\n}`;
+			}
 		} catch (error) {
 			console.error('JSON 解析失败:', error);
 			return '';
@@ -197,9 +265,10 @@ class Components {
 				const enumName = key.charAt(0).toUpperCase() + key.slice(1);
 				if (isValidJSON(value.example)) {
 					const enumContent = this.convertJsonToEnumString(value.example as string, enumName);
+					const typeName = this.getEnumTypeName(enumName);
 					return {
 						headerRef: '',
-						renderStr: `${INDENT}${key}${this.requiredFieldS.includes(key) ? '' : '?'}: ${enumName}${this.nullable(value.nullable)};`,
+						renderStr: `${INDENT}${key}${this.requiredFieldS.includes(key) ? '' : '?'}: ${typeName}${this.nullable(value.nullable)};`,
 						comment: enumContent,
 					};
 				} else {
@@ -231,7 +300,10 @@ class Components {
 				// 这里引用类型会携带 example
 				const { headerRefStr, typeName, dataType } = this.parseRef((schemaSource as ReferenceObject).$ref);
 				if (!headerRef.includes(headerRefStr)) headerRef.push(headerRefStr);
-				content.push(`${INDENT}${name}${this.requiredFieldS.includes(name) ? '' : '?'}: ${typeName};`);
+
+				// 如果是枚举类型，需要使用正确的类型名
+				const finalTypeName = dataType === 'enum' ? this.getEnumTypeName(typeName) : typeName;
+				content.push(`${INDENT}${name}${this.requiredFieldS.includes(name) ? '' : '?'}: ${finalTypeName};`);
 
 				const example = (schemaSource as SchemaObject).example;
 				if (dataType === 'enum' && example && isValidJSON(example)) {
@@ -297,7 +369,8 @@ class Components {
 							const enumName = name.charAt(0).toUpperCase() + name.slice(1);
 							// console.log(enumName, name);
 							if (schema.example && isValidJSON(schema.example)) {
-								const header = `import type { ${enumName} } from '${this.config.importEnumPath}';`;
+								const typeName = this.getEnumTypeName(enumName);
+								const header = `import type { ${typeName} } from '${this.config.importEnumPath}';`;
 								if (!headerRef.includes(header)) headerRef.push(header);
 								const fileName = this.typeNameToFileName(enumName);
 								// 检查了
@@ -306,11 +379,12 @@ class Components {
 									this.enumsMap.set(fileName, { fileName, content: enumContent });
 								}
 
-								content.push(`${INDENT}${name}${this.requiredFieldS.includes(name) ? '' : '?'}: ${enumName}${this.nullable(schema.nullable)};`);
+								content.push(`${INDENT}${name}${this.requiredFieldS.includes(name) ? '' : '?'}: ${typeName}${this.nullable(schema.nullable)};`);
 							} else {
 								const enumResult = this.parseEnum(schema as NonArraySchemaObject, enumName);
 								if (enumResult?.renderStr) {
-									const header = `import type { ${enumName} } from '${this.config.importEnumPath}';`;
+									const typeName = this.getEnumTypeName(enumName);
+									const header = `import type { ${typeName} } from '${this.config.importEnumPath}';`;
 									if (!headerRef.includes(header)) headerRef.push(header);
 									const fileName = this.typeNameToFileName(enumName);
 
@@ -319,7 +393,7 @@ class Components {
 										this.enumsMap.set(fileName, { fileName, content: enumResult.renderStr });
 									}
 
-									content.push(`${INDENT}${name}${this.requiredFieldS.includes(name) ? '' : '?'}: ${enumName}${this.nullable(schema.nullable)};`);
+									content.push(`${INDENT}${name}${this.requiredFieldS.includes(name) ? '' : '?'}: ${typeName}${this.nullable(schema.nullable)};`);
 								}
 							}
 						} else {
@@ -404,8 +478,10 @@ class Components {
 				const fileName = this.typeNameToFileName(key);
 				const content = await this.generateContent(schemaObject, key);
 				if (content) {
-					// 检查了
-					if (content.includes('export enum ') && !this.enumsMap.has(fileName)) {
+					// 检查是否为枚举类型（支持传统 enum 和 const 对象形式）
+					const isEnum = content.includes('export enum ') || (content.includes('export const ') && content.includes('as const'));
+
+					if (isEnum && !this.enumsMap.has(fileName)) {
 						this.enumsMap.set(fileName, { fileName, content });
 					} else {
 						this.schemasMap.set(key, { fileName, content });

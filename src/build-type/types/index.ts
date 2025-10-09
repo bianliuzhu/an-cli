@@ -159,6 +159,8 @@ export interface ConfigType {
 	excludeInterface?: IncludeOrExcludeInterface[];
 	/** 公共前缀 */
 	publicPrefix?: string;
+	/** 该选项与项目中 tsconfig.json 中 compilerOptions.erasableSyntaxOnly 选项一致 */
+	erasableSyntaxOnly: boolean;
 }
 
 // 修改配置类型定义，将必需属性标记出来

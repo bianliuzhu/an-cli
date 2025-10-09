@@ -104,6 +104,8 @@ export class PathParse {
 	private referenceCache = new Map<string, string>();
 
 	parameters: OpenAPIV3.ComponentsObject['parameters'] = {};
+	/** schemas 对象，用于判断类型是否为枚举 */
+	schemas: OpenAPIV3.ComponentsObject['schemas'] = {};
 
 	/** 字符串模板对象 */
 	private readonly templates = {
@@ -112,10 +114,16 @@ export class PathParse {
 		interfaceDefinition: (name: string) => `interface ${name}`,
 	};
 
-	constructor(pathsObject: OpenAPIV3.PathsObject, parameters: OpenAPIV3.ComponentsObject['parameters'], config: PathParseConfig) {
+	constructor(
+		pathsObject: OpenAPIV3.PathsObject,
+		parameters: OpenAPIV3.ComponentsObject['parameters'],
+		schemas: OpenAPIV3.ComponentsObject['schemas'],
+		config: PathParseConfig
+	) {
 		this.pathsObject = pathsObject;
 		// 合并配置，确保必需的属性来自传入的 config
 		this.parameters = parameters ?? {};
+		this.schemas = schemas ?? {};
 
 		this.config = {
 			...defaultConfig,
@@ -144,6 +152,20 @@ export class PathParse {
 	 */
 	private getIndentation(): string {
 		return this.config.formatting?.indentation || TIGHTEN;
+	}
+
+	/**
+	 * 根据配置获取枚举类型名
+	 * 如果启用了 erasableSyntaxOnly，在枚举名后添加 Type 后缀以区分类型和常量
+	 */
+	private getEnumTypeName(enumName: string): string {
+		if (!this.config.erasableSyntaxOnly) {
+			return enumName;
+		}
+
+		// erasableSyntaxOnly 模式下，添加 Type 后缀以区分类型名和常量名
+		// 例如：SCReferenceTypeEnum => SCReferenceTypeEnumType
+		return `${enumName}Type`;
 	}
 
 	/**
@@ -308,9 +330,21 @@ export class PathParse {
 			}
 
 			const fileName = this.typeNameToFileName(typeName);
+
+			// 改进的枚举检测逻辑：
+			// 1. 首先检查类型名称中是否包含 "enum"
+			// 2. 然后检查 schema 定义中是否有 enum 字段
 			const regEnum = /enum/gi;
-			const importStatement = regEnum.test(typeName)
-				? `import('${this.config.importEnumPath}/${fileName}').${typeName}`
+			const hasEnumInName = regEnum.test(typeName);
+			const schema = this.schemas?.[typeName];
+			const hasEnumField = schema && 'enum' in schema && Array.isArray(schema.enum);
+			const isEnum = hasEnumInName || hasEnumField;
+
+			// 如果是枚举类型，根据配置决定是否添加 Type 后缀
+			const finalTypeName = isEnum ? this.getEnumTypeName(typeName) : typeName;
+
+			const importStatement = isEnum
+				? `import('${this.config.importEnumPath}/${fileName}').${finalTypeName}`
 				: `import('../models/${fileName}').${typeName}`;
 
 			// 存入缓存
@@ -789,10 +823,11 @@ export class PathParse {
 		const pathNameLower = pathSegments
 			.map((part) => {
 				if (part.includes('{')) {
-					// 处理路径参数，移除花括号
-					return part.slice(1, -1);
+					// 处理路径参数，移除花括号，将中划线转换为下划线
+					return part.slice(1, -1).replace(/-/g, '_');
 				}
-				return part;
+				// 将中划线转换为下划线
+				return part.replace(/-/g, '_');
 			})
 			.join('_');
 
@@ -800,12 +835,19 @@ export class PathParse {
 		const pathNameUpper = pathSegments
 			.map((part) => {
 				if (part.includes('{')) {
-					// 处理路径参数，如 {petId} -> PetId
+					// 处理路径参数，如 {petId} -> PetId，{poster-path} -> Poster_Path
 					const paramName = part.slice(1, -1);
-					return paramName.charAt(0).toUpperCase() + paramName.slice(1);
+					return paramName
+						.split('-')
+						.map((word) => word.charAt(0).toUpperCase() + word.slice(1))
+						.join('_');
 				}
-				// 普通路径段首字母大写
-				return part.charAt(0).toUpperCase() + part.slice(1);
+				// 普通路径段，将中划线分隔的单词转换为下划线分隔的首字母大写形式
+				// 例如：poster-path -> Poster_Path
+				return part
+					.split('-')
+					.map((word) => word.charAt(0).toUpperCase() + word.slice(1))
+					.join('_');
 			})
 			.join('_');
 

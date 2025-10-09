@@ -87,7 +87,7 @@ $ pnpm add -g anl
 ### Método de Uso
 
 ```bash
-$ anl lint
+$ anl type
 ```
 
 ### Explicación Detallada del Archivo de Configuración
@@ -139,6 +139,7 @@ $ anl lint
 | includeInterface          | Array<{path: string, method: string}> | No        | Interfaces incluidas: el archivo de lista de interfaces especificado por `saveApiListFolderPath` solo incluirá las interfaces en la lista, es mutuamente excluyente con el campo `excludeInterface` |
 | excludeInterface          | Array<{path: string, method: string}> | No        | Interfaces excluidas: el texto de lista de interfaces especificado por `saveApiListFolderPath` no incluirá las interfaces en esta lista, es mutuamente excluyente con `includeInterface`            |
 | publicPrefix              | string                                | No        | Prefijo público en la ruta URL, por ejemplo: api/users, api/users/{id}, api es el prefijo público                                                                                                   |
+| erasableSyntaxOnly        | boolean                               | Sí        | Alineado con la opción `compilerOptions.erasableSyntaxOnly` de tsconfig.json. Cuando es `true`, genera objetos const en lugar de enum (solo sintaxis de tipo). Valor predeterminado: `false`        |
 
 #### Relación entre Elementos de Configuración y Archivos Generados
 
@@ -198,6 +199,49 @@ export const userDetailGet = (params: UserDetail_GET.Query) => GET<UserDetail_GE
 - Manejo automático de tipos anidados complejos
 - Soporte para tipos como arrays, objetos, enums, etc.
 - Generación automática de comentarios de interfaz
+
+#### Generación de Enumeraciones
+
+La herramienta admite dos modos de generación de enumeraciones, controlados mediante la configuración `erasableSyntaxOnly`:
+
+**Modo de enumeración tradicional** (`erasableSyntaxOnly: false`, valor predeterminado):
+
+```typescript
+export enum Status {
+	Success = 'Success',
+	Error = 'Error',
+	Pending = 'Pending',
+}
+```
+
+**Modo de objeto constante** (`erasableSyntaxOnly: true`):
+
+```typescript
+export const Status = {
+	Success: 'Success',
+	Error: 'Error',
+	Pending: 'Pending',
+} as const;
+
+export type StatusType = (typeof Status)[keyof typeof Status];
+```
+
+> **¿Por qué usar el modo de objeto constante?**
+> Cuando la opción `compilerOptions.erasableSyntaxOnly` de TypeScript está configurada en `true`, el código solo puede usar sintaxis de tipo borrable. Los `enum` tradicionales generan código en tiempo de ejecución, mientras que los objetos constantes son puramente de tipo y se eliminan completamente después de la compilación. Esto garantiza la compatibilidad con herramientas de construcción que requieren sintaxis solo de tipo.
+
+**Uso en tipos:**
+
+```typescript
+// Modo de enumeración tradicional
+interface User {
+	status: Status; // Usar directamente la enumeración como tipo
+}
+
+// Modo de objeto constante
+interface User {
+	status: StatusType; // Usar el tipo generado con sufijo 'Type'
+}
+```
 
 #### Carga de Archivos
 

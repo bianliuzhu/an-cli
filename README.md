@@ -139,6 +139,7 @@ $ anl type
 | includeInterface         | Array<{path: string, method: string}> | No       | Included interfaces: The interface list file specified by `saveApiListFolderPath` will only include interfaces in the list, mutually exclusive with `excludeInterface` field |
 | excludeInterface         | Array<{path: string, method: string}> | No       | Excluded interfaces: The interface list file specified by `saveApiListFolderPath` will not include interfaces in this list, mutually exclusive with `includeInterface`       |
 | publicPrefix             | string                                | No       | Common prefix on url path, e.g.: api/users, api/users/{id}, api is the common prefix                                                                                         |
+| erasableSyntaxOnly       | boolean                               | Yes      | Align with tsconfig.json `compilerOptions.erasableSyntaxOnly`. When `true`, generates const objects instead of enums (type-only syntax). Default: `false`                    |
 
 #### Configuration Items and Generated Files Correspondence
 
@@ -198,6 +199,49 @@ export const userDetailGet = (params: UserDetail_GET.Query) => GET<UserDetail_GE
 - Automatically handles complex nested types
 - Supports arrays, objects, enums, and other types
 - Automatically generates interface comments
+
+#### Enum Generation
+
+The tool supports two enum generation modes, controlled by the `erasableSyntaxOnly` configuration:
+
+**Traditional Enum Mode** (`erasableSyntaxOnly: false`, default):
+
+```typescript
+export enum Status {
+	Success = 'Success',
+	Error = 'Error',
+	Pending = 'Pending',
+}
+```
+
+**Const Object Mode** (`erasableSyntaxOnly: true`):
+
+```typescript
+export const Status = {
+	Success: 'Success',
+	Error: 'Error',
+	Pending: 'Pending',
+} as const;
+
+export type StatusType = (typeof Status)[keyof typeof Status];
+```
+
+> **Why use const object mode?**
+> When TypeScript's `compilerOptions.erasableSyntaxOnly` is set to `true`, the code can only use type-erasable syntax. Traditional `enum` generates runtime code, while const objects are type-only and get completely erased during compilation. This ensures compatibility with build tools that require type-only syntax.
+
+**Usage in types:**
+
+```typescript
+// Traditional enum mode
+interface User {
+	status: Status; // Use enum as type directly
+}
+
+// Const object mode
+interface User {
+	status: StatusType; // Use the generated type with 'Type' suffix
+}
+```
 
 #### File Upload
 
