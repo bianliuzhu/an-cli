@@ -119,27 +119,31 @@ $ anl type
 			"path": "/api/admin",
 			"method": "post"
 		}
-	]
+	],
+	"publicPrefix": "api",
+	"erasableSyntaxOnly": false,
+	"parameterSeparator": "_"
 }
 ```
 
 #### Configuration Item Descriptions
 
-| Configuration Item       | Type                                  | Required | Description                                                                                                                                                                  |
-| ------------------------ | ------------------------------------- | -------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| saveTypeFolderPath       | string                                | Yes      | Type definition file save path                                                                                                                                               |
-| saveApiListFolderPath    | string                                | Yes      | API request function file save path                                                                                                                                          |
-| saveEnumFolderPath       | string                                | Yes      | Enum data file save path                                                                                                                                                     |
-| importEnumPath           | string                                | Yes      | Enum import path (path referenced by enum files in apps/types/models/\*.ts)                                                                                                  |
-| swaggerJsonUrl           | string                                | Yes      | Swagger JSON documentation address                                                                                                                                           |
-| requestMethodsImportPath | string                                | Yes      | Request method import path                                                                                                                                                   |
-| dataLevel                | 'data' \| 'serve' \| 'axios'          | Yes      | Interface return data level                                                                                                                                                  |
-| formatting               | object                                | No       | Code formatting configuration                                                                                                                                                |
-| headers                  | object                                | No       | Request header configuration                                                                                                                                                 |
-| includeInterface         | Array<{path: string, method: string}> | No       | Included interfaces: The interface list file specified by `saveApiListFolderPath` will only include interfaces in the list, mutually exclusive with `excludeInterface` field |
-| excludeInterface         | Array<{path: string, method: string}> | No       | Excluded interfaces: The interface list file specified by `saveApiListFolderPath` will not include interfaces in this list, mutually exclusive with `includeInterface`       |
-| publicPrefix             | string                                | No       | Common prefix on url path, e.g.: api/users, api/users/{id}, api is the common prefix                                                                                         |
-| erasableSyntaxOnly       | boolean                               | Yes      | Align with tsconfig.json `compilerOptions.erasableSyntaxOnly`. When `true`, generates const objects instead of enums (type-only syntax). Default: `false`                    |
+| Configuration Item       | Type                                  | Required | Description                                                                                                                                                                                                |
+| ------------------------ | ------------------------------------- | -------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| saveTypeFolderPath       | string                                | Yes      | Type definition file save path                                                                                                                                                                             |
+| saveApiListFolderPath    | string                                | Yes      | API request function file save path                                                                                                                                                                        |
+| saveEnumFolderPath       | string                                | Yes      | Enum data file save path                                                                                                                                                                                   |
+| importEnumPath           | string                                | Yes      | Enum import path (path referenced by enum files in apps/types/models/\*.ts)                                                                                                                                |
+| swaggerJsonUrl           | string                                | Yes      | Swagger JSON documentation address                                                                                                                                                                         |
+| requestMethodsImportPath | string                                | Yes      | Request method import path                                                                                                                                                                                 |
+| dataLevel                | 'data' \| 'serve' \| 'axios'          | Yes      | Interface return data level                                                                                                                                                                                |
+| formatting               | object                                | No       | Code formatting configuration                                                                                                                                                                              |
+| headers                  | object                                | No       | Request header configuration                                                                                                                                                                               |
+| includeInterface         | Array<{path: string, method: string}> | No       | Included interfaces: The interface list file specified by `saveApiListFolderPath` will only include interfaces in the list, mutually exclusive with `excludeInterface` field                               |
+| excludeInterface         | Array<{path: string, method: string}> | No       | Excluded interfaces: The interface list file specified by `saveApiListFolderPath` will not include interfaces in this list, mutually exclusive with `includeInterface`                                     |
+| publicPrefix             | string                                | No       | Common prefix on url path, e.g.: api/users, api/users/{id}, api is the common prefix                                                                                                                       |
+| erasableSyntaxOnly       | boolean                               | Yes      | Align with tsconfig.json `compilerOptions.erasableSyntaxOnly`. When `true`, generates const objects instead of enums (type-only syntax). Default: `false`                                                  |
+| parameterSeparator       | string                                | No       | Separator used between path segments and parameters when generating API names and type names. For example, `/users/{userId}/posts` with separator `'_'` generates `users_userId_posts_GET`. Default: `'_'` |
 
 #### Configuration Items and Generated Files Correspondence
 
