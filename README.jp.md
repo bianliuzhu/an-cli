@@ -121,27 +121,31 @@ $ anl type
 			"path": "/api/admin",
 			"method": "post"
 		}
-	]
+	],
+	"publicPrefix": "api",
+	"erasableSyntaxOnly": false,
+	"parameterSeparator": "_"
 }
 ```
 
 #### 設定項目の説明
 
-| 設定項目                 | 型                                    | 必須   | 説明                                                                                                                                                                                                |
-| ------------------------ | ------------------------------------- | ------ | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| saveTypeFolderPath       | string                                | はい   | 型定義ファイルの保存パス                                                                                                                                                                            |
-| saveApiListFolderPath    | string                                | はい   | API リクエスト関数ファイルの保存パス                                                                                                                                                                |
-| saveEnumFolderPath       | string                                | はい   | 列挙データファイルの保存パス                                                                                                                                                                        |
-| importEnumPath           | string                                | はい   | 列挙型インポートパス（apps/types/models/\*.ts で enum ファイルを参照するパス）                                                                                                                      |
-| swaggerJsonUrl           | string                                | はい   | Swagger JSON ドキュメントのアドレス                                                                                                                                                                 |
-| requestMethodsImportPath | string                                | はい   | リクエストメソッドのインポートパス                                                                                                                                                                  |
-| dataLevel                | 'data' \| 'serve' \| 'axios'          | はい   | インターフェースレスポンスデータのレベル                                                                                                                                                            |
-| formatting               | object                                | いいえ | コードフォーマット設定                                                                                                                                                                              |
-| headers                  | object                                | いいえ | リクエストヘッダー設定                                                                                                                                                                              |
-| includeInterface         | Array<{path: string, method: string}> | いいえ | 含めるインターフェース：`saveApiListFolderPath` で指定されたインターフェースリストファイルには、このリストに含まれるインターフェースのみが含まれます。`excludeInterface` フィールドと相互排他的です |
-| excludeInterface         | Array<{path: string, method: string}> | いいえ | 除外するインターフェース：`saveApiListFolderPath` で指定されたインターフェースリストテキストには、このリストに含まれないインターフェースが含まれます。`includeInterface` と相互排他的です           |
-| publicPrefix             | string                                | いいえ | URL パス上の共通プレフィックス、例：api/users、api/users/{id}、api が共通プレフィックスです                                                                                                         |
-| erasableSyntaxOnly       | boolean                               | はい   | tsconfig.json の `compilerOptions.erasableSyntaxOnly` オプションと一致させます。`true` の場合、enum ではなく const オブジェクトを生成します（型のみの構文）。デフォルト値：`false`                  |
+| 設定項目                 | 型                                    | 必須   | 説明                                                                                                                                                                                                           |
+| ------------------------ | ------------------------------------- | ------ | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| saveTypeFolderPath       | string                                | はい   | 型定義ファイルの保存パス                                                                                                                                                                                       |
+| saveApiListFolderPath    | string                                | はい   | API リクエスト関数ファイルの保存パス                                                                                                                                                                           |
+| saveEnumFolderPath       | string                                | はい   | 列挙データファイルの保存パス                                                                                                                                                                                   |
+| importEnumPath           | string                                | はい   | 列挙型インポートパス（apps/types/models/\*.ts で enum ファイルを参照するパス）                                                                                                                                 |
+| swaggerJsonUrl           | string                                | はい   | Swagger JSON ドキュメントのアドレス                                                                                                                                                                            |
+| requestMethodsImportPath | string                                | はい   | リクエストメソッドのインポートパス                                                                                                                                                                             |
+| dataLevel                | 'data' \| 'serve' \| 'axios'          | はい   | インターフェースレスポンスデータのレベル                                                                                                                                                                       |
+| formatting               | object                                | いいえ | コードフォーマット設定                                                                                                                                                                                         |
+| headers                  | object                                | いいえ | リクエストヘッダー設定                                                                                                                                                                                         |
+| includeInterface         | Array<{path: string, method: string}> | いいえ | 含めるインターフェース：`saveApiListFolderPath` で指定されたインターフェースリストファイルには、このリストに含まれるインターフェースのみが含まれます。`excludeInterface` フィールドと相互排他的です            |
+| excludeInterface         | Array<{path: string, method: string}> | いいえ | 除外するインターフェース：`saveApiListFolderPath` で指定されたインターフェースリストテキストには、このリストに含まれないインターフェースが含まれます。`includeInterface` と相互排他的です                      |
+| publicPrefix             | string                                | いいえ | URL パス上の共通プレフィックス、例：api/users、api/users/{id}、api が共通プレフィックスです                                                                                                                    |
+| erasableSyntaxOnly       | boolean                               | はい   | tsconfig.json の `compilerOptions.erasableSyntaxOnly` オプションと一致させます。`true` の場合、enum ではなく const オブジェクトを生成します（型のみの構文）。デフォルト値：`false`                             |
+| parameterSeparator       | string                                | いいえ | API 名と型名を生成する際に、パスセグメントとパラメータの間に使用される区切り文字。例えば、`/users/{userId}/posts` に区切り文字 `'_'` を使用すると `users_userId_posts_GET` が生成されます。デフォルト値：`'_'` |
 
 #### 設定項目と生成ファイルの対応関係
 

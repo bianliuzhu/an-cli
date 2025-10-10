@@ -118,7 +118,7 @@ export class PathParse {
 		pathsObject: OpenAPIV3.PathsObject,
 		parameters: OpenAPIV3.ComponentsObject['parameters'],
 		schemas: OpenAPIV3.ComponentsObject['schemas'],
-		config: PathParseConfig
+		config: PathParseConfig,
 	) {
 		this.pathsObject = pathsObject;
 		// 合并配置，确保必需的属性来自传入的 config
@@ -780,6 +780,69 @@ export class PathParse {
 	}
 
 	/**
+	 * 清理路径段：移除开头的数字，处理特殊字符
+	 * @param segment 路径段
+	 * @returns 清理后的路径段
+	 */
+	private cleanSegment(segment: string): string {
+		// 移除开头的连续数字
+		let cleaned = segment.replace(/^[0-9]+/, '');
+
+		// 如果清理后为空（全是数字），使用 num 前缀 + 原数字
+		if (!cleaned) {
+			return 'num' + segment;
+		}
+
+		// 将特殊字符（除了字母、数字、下划线、中划线、点号）替换为空
+		// 保留 - _ . 因为后续会作为分隔符处理
+		cleaned = cleaned.replace(/[^a-zA-Z0-9_.-]/g, '');
+
+		return cleaned;
+	}
+
+	/**
+	 * 将路径段转换为驼峰命名
+	 * @param segment 路径段
+	 * @param isFirst 是否为第一个段（第一个段首字母小写）
+	 * @returns 转换后的驼峰命名
+	 */
+	private toCamelCase(segment: string, isFirst = false): string {
+		// 先清理路径段
+		const cleaned = this.cleanSegment(segment);
+
+		// 将中划线、下划线、点号分隔的单词转换为驼峰
+		const words = cleaned.split(/[-_.]+/).filter((word) => word.length > 0);
+
+		if (words.length === 0) return '';
+
+		return words
+			.map((word, index) => {
+				if (index === 0 && isFirst) {
+					return word.toLowerCase();
+				}
+				return word.charAt(0).toUpperCase() + word.slice(1).toLowerCase();
+			})
+			.join('');
+	}
+
+	/**
+	 * 将路径段转换为帕斯卡命名（首字母大写的驼峰）
+	 * @param segment 路径段
+	 * @returns 转换后的帕斯卡命名
+	 */
+	private toPascalCase(segment: string): string {
+		// 先清理路径段
+		const cleaned = this.cleanSegment(segment);
+
+		// 将中划线、下划线、点号分隔的单词转换为帕斯卡命名
+		const words = cleaned.split(/[-_.]+/).filter((word) => word.length > 0);
+
+		if (words.length === 0) return '';
+
+		return words.map((word) => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase()).join('');
+	}
+
+	/**
 	 * 名称转换
 	 * @param apiString API字符串
 	 * @returns 转换后的端点信息对象
@@ -819,37 +882,108 @@ export class PathParse {
 		// 分割路径段
 		const pathSegments = normalizedPath ? normalizedPath.split('/').filter((seg) => seg) : [];
 
-		// 生成路径名称（小写版本，用于 apiName）
-		const pathNameLower = pathSegments
-			.map((part) => {
-				if (part.includes('{')) {
-					// 处理路径参数，移除花括号，将中划线转换为下划线
-					return part.slice(1, -1).replace(/-/g, '_');
-				}
-				// 将中划线转换为下划线
-				return part.replace(/-/g, '_');
-			})
-			.join('_');
+		// 解析路径段，区分普通段和参数段
+		interface PathPart {
+			type: 'normal' | 'param';
+			original: string; // 原始值
+			normalized: string; // 规范化后的值（移除花括号）
+		}
 
-		// 生成路径名称（首字母大写版本，用于 typeName）
-		const pathNameUpper = pathSegments
-			.map((part) => {
-				if (part.includes('{')) {
-					// 处理路径参数，如 {petId} -> PetId，{poster-path} -> Poster_Path
-					const paramName = part.slice(1, -1);
-					return paramName
-						.split('-')
-						.map((word) => word.charAt(0).toUpperCase() + word.slice(1))
-						.join('_');
+		const parts: PathPart[] = pathSegments.map((seg) => {
+			if (seg.startsWith('{') && seg.endsWith('}')) {
+				const paramName = seg.slice(1, -1);
+				return {
+					type: 'param',
+					original: seg,
+					normalized: paramName,
+				};
+			}
+			return {
+				type: 'normal',
+				original: seg,
+				normalized: seg,
+			};
+		});
+
+		// 去重：如果普通段和紧随的参数段名称相似，则移除普通段
+		const deduplicatedParts: PathPart[] = [];
+		for (let i = 0; i < parts.length; i++) {
+			const current = parts[i];
+			const next = parts[i + 1];
+
+			// 如果当前是普通段，下一个是参数段
+			if (current.type === 'normal' && next && next.type === 'param') {
+				// 清理并标准化两个段的名称（移除数字、特殊字符、分隔符）
+				const currentNorm = this.cleanSegment(current.normalized).toLowerCase().replace(/[-_.]/g, '');
+				const nextNorm = this.cleanSegment(next.normalized).toLowerCase().replace(/[-_.]/g, '');
+
+				// 如果名称相同，跳过当前段（去重）
+				if (currentNorm === nextNorm) {
+					continue;
 				}
-				// 普通路径段，将中划线分隔的单词转换为下划线分隔的首字母大写形式
-				// 例如：poster-path -> Poster_Path
-				return part
-					.split('-')
-					.map((word) => word.charAt(0).toUpperCase() + word.slice(1))
-					.join('_');
-			})
-			.join('_');
+			}
+
+			deduplicatedParts.push(current);
+		}
+
+		// 参数分隔符（可配置）
+		const paramSeparator = this.config.parameterSeparator || '_';
+
+		// 生成 apiName（小写驼峰版本）
+		let apiName = '';
+		let camelBuffer: string[] = []; // 用于累积连续的普通段
+
+		const flushCamelBuffer = (isFirst: boolean) => {
+			if (camelBuffer.length > 0) {
+				const camelStr = camelBuffer.map((seg, idx) => this.toCamelCase(seg, isFirst && idx === 0)).join('');
+				apiName += (apiName && camelBuffer.length > 0 ? paramSeparator : '') + camelStr;
+				camelBuffer = [];
+			}
+		};
+
+		for (let i = 0; i < deduplicatedParts.length; i++) {
+			const part = deduplicatedParts[i];
+
+			if (part.type === 'normal') {
+				camelBuffer.push(part.normalized);
+			} else {
+				// 遇到参数，先处理累积的普通段
+				flushCamelBuffer(apiName === '');
+				// 添加参数（清理后保持原样，不转换大小写）
+				const cleanedParam = this.cleanSegment(part.normalized);
+				apiName += (apiName ? paramSeparator : '') + cleanedParam;
+			}
+		}
+		// 处理剩余的普通段
+		flushCamelBuffer(apiName === '');
+
+		// 生成 typeName（帕斯卡命名版本）
+		let typeName = '';
+		camelBuffer = [];
+
+		const flushCamelBufferPascal = () => {
+			if (camelBuffer.length > 0) {
+				const pascalStr = camelBuffer.map((seg) => this.toPascalCase(seg)).join('');
+				typeName += (typeName && camelBuffer.length > 0 ? paramSeparator : '') + pascalStr;
+				camelBuffer = [];
+			}
+		};
+
+		for (let i = 0; i < deduplicatedParts.length; i++) {
+			const part = deduplicatedParts[i];
+
+			if (part.type === 'normal') {
+				camelBuffer.push(part.normalized);
+			} else {
+				// 遇到参数，先处理累积的普通段
+				flushCamelBufferPascal();
+				// 添加参数（帕斯卡命名，会自动清理）
+				const pascalParam = this.toPascalCase(part.normalized);
+				typeName += (typeName ? paramSeparator : '') + pascalParam;
+			}
+		}
+		// 处理剩余的普通段
+		flushCamelBufferPascal();
 
 		// 生成文件名：使用原始路径（移除前缀后）
 		let fileName = '';
@@ -870,9 +1004,9 @@ export class PathParse {
 		finalPath = finalPath.replace(/\{(\w+)\}/g, (_, param) => `\${${param}}`);
 
 		const result = {
-			apiName: pathNameLower ? `${pathNameLower}_${method}` : method,
+			apiName: apiName ? `${apiName}_${method}` : method,
 			fileName: fileName,
-			typeName: pathNameUpper ? `${pathNameUpper}_${method}` : method,
+			typeName: typeName ? `${typeName}_${method}` : method,
 			path: finalPath,
 		};
 
@@ -931,7 +1065,7 @@ export class PathParse {
 
 					// api 请求
 					const apistr = this.apiRequestItemHandle(content);
-					apiListFileContent.push(apistr, '\n');
+					apiListFileContent.push(apistr, '');
 
 					const _path = `${saveTypeFolderPath}/connectors/${fileName}.d.ts`;
 					writeFileRecursive(_path, contentArray.join('\n'))

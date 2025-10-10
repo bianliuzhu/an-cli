@@ -119,27 +119,31 @@ $ anl type
 			"path": "/api/admin",
 			"method": "post"
 		}
-	]
+	],
+	"publicPrefix": "api",
+	"erasableSyntaxOnly": false,
+	"parameterSeparator": "_"
 }
 ```
 
 #### Descripción de Elementos de Configuración
 
-| Elemento de Configuración | Tipo                                  | Requerido | Descripción                                                                                                                                                                                         |
-| ------------------------- | ------------------------------------- | --------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| saveTypeFolderPath        | string                                | Sí        | Ruta de guardado de archivos de definición de tipos                                                                                                                                                 |
-| saveApiListFolderPath     | string                                | Sí        | Ruta de guardado de archivos de funciones de solicitud API                                                                                                                                          |
-| saveEnumFolderPath        | string                                | Sí        | Ruta de guardado de archivos de datos enum                                                                                                                                                          |
-| importEnumPath            | string                                | Sí        | Ruta de importación de enum (ruta de referencia de archivos enum en apps/types/models/\*.ts)                                                                                                        |
-| swaggerJsonUrl            | string                                | Sí        | Dirección del documento Swagger JSON                                                                                                                                                                |
-| requestMethodsImportPath  | string                                | Sí        | Ruta de importación de métodos de solicitud                                                                                                                                                         |
-| dataLevel                 | 'data' \| 'serve' \| 'axios'          | Sí        | Nivel de datos de retorno de interfaz                                                                                                                                                               |
-| formatting                | object                                | No        | Configuración de formateo de código                                                                                                                                                                 |
-| headers                   | object                                | No        | Configuración de encabezados de solicitud                                                                                                                                                           |
-| includeInterface          | Array<{path: string, method: string}> | No        | Interfaces incluidas: el archivo de lista de interfaces especificado por `saveApiListFolderPath` solo incluirá las interfaces en la lista, es mutuamente excluyente con el campo `excludeInterface` |
-| excludeInterface          | Array<{path: string, method: string}> | No        | Interfaces excluidas: el texto de lista de interfaces especificado por `saveApiListFolderPath` no incluirá las interfaces en esta lista, es mutuamente excluyente con `includeInterface`            |
-| publicPrefix              | string                                | No        | Prefijo público en la ruta URL, por ejemplo: api/users, api/users/{id}, api es el prefijo público                                                                                                   |
-| erasableSyntaxOnly        | boolean                               | Sí        | Alineado con la opción `compilerOptions.erasableSyntaxOnly` de tsconfig.json. Cuando es `true`, genera objetos const en lugar de enum (solo sintaxis de tipo). Valor predeterminado: `false`        |
+| Elemento de Configuración | Tipo                                  | Requerido | Descripción                                                                                                                                                                                                                    |
+| ------------------------- | ------------------------------------- | --------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| saveTypeFolderPath        | string                                | Sí        | Ruta de guardado de archivos de definición de tipos                                                                                                                                                                            |
+| saveApiListFolderPath     | string                                | Sí        | Ruta de guardado de archivos de funciones de solicitud API                                                                                                                                                                     |
+| saveEnumFolderPath        | string                                | Sí        | Ruta de guardado de archivos de datos enum                                                                                                                                                                                     |
+| importEnumPath            | string                                | Sí        | Ruta de importación de enum (ruta de referencia de archivos enum en apps/types/models/\*.ts)                                                                                                                                   |
+| swaggerJsonUrl            | string                                | Sí        | Dirección del documento Swagger JSON                                                                                                                                                                                           |
+| requestMethodsImportPath  | string                                | Sí        | Ruta de importación de métodos de solicitud                                                                                                                                                                                    |
+| dataLevel                 | 'data' \| 'serve' \| 'axios'          | Sí        | Nivel de datos de retorno de interfaz                                                                                                                                                                                          |
+| formatting                | object                                | No        | Configuración de formateo de código                                                                                                                                                                                            |
+| headers                   | object                                | No        | Configuración de encabezados de solicitud                                                                                                                                                                                      |
+| includeInterface          | Array<{path: string, method: string}> | No        | Interfaces incluidas: el archivo de lista de interfaces especificado por `saveApiListFolderPath` solo incluirá las interfaces en la lista, es mutuamente excluyente con el campo `excludeInterface`                            |
+| excludeInterface          | Array<{path: string, method: string}> | No        | Interfaces excluidas: el texto de lista de interfaces especificado por `saveApiListFolderPath` no incluirá las interfaces en esta lista, es mutuamente excluyente con `includeInterface`                                       |
+| publicPrefix              | string                                | No        | Prefijo público en la ruta URL, por ejemplo: api/users, api/users/{id}, api es el prefijo público                                                                                                                              |
+| erasableSyntaxOnly        | boolean                               | Sí        | Alineado con la opción `compilerOptions.erasableSyntaxOnly` de tsconfig.json. Cuando es `true`, genera objetos const en lugar de enum (solo sintaxis de tipo). Valor predeterminado: `false`                                   |
+| parameterSeparator        | string                                | No        | Separador utilizado entre segmentos de ruta y parámetros al generar nombres de API y nombres de tipo. Por ejemplo, `/users/{userId}/posts` con el separador `'_'` genera `users_userId_posts_GET`. Valor predeterminado: `'_'` |
 
 #### Relación entre Elementos de Configuración y Archivos Generados
 

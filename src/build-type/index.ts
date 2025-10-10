@@ -35,6 +35,7 @@ const configContent: ConfigType = {
 	includeInterface: [],
 	excludeInterface: [],
 	erasableSyntaxOnly: false,
+	parameterSeparator: '_',
 };
 
 export class Main {
