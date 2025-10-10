@@ -156,7 +156,6 @@ project/
 │   │   ├── models/          				# Todos los archivos de definición de tipos (sin incluir tipos enum) no controlado
 │   │   ├── connectors/      				# Definiciones de tipos API (archivos de definición de interfaz) no controlado
 │   └── api/                 		# Archivos de solicitud: especificado por el elemento de configuración saveApiListFolderPath
-│   │    ├── fetch.ts        				# Implementación de métodos de solicitud no controlado
 │   │    └── index.ts        				# Lista de funciones de solicitud API no controlado
 │   │    └── api-type.d.ts      		# Archivo de definición de tipos de solicitud no controlado
 │   │    └── config.ts       				# Solicitud, interceptor de respuesta, configuración de solicitud no controlado

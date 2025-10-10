@@ -158,7 +158,6 @@ project/
 │   │   ├── models/          				# Tous les fichiers de définition de types (excluant les types enum) non contrôlé
 │   │   ├── connectors/      				# Définitions de types API (fichiers de définition d'interface) non contrôlé
 │   └── api/                 		# Fichiers de requête : Spécifié par l'élément de configuration saveApiListFolderPath
-│   │    ├── fetch.ts        				# Implémentation des méthodes de requête non contrôlé
 │   │    └── index.ts        				# Liste des fonctions de requête API non contrôlé
 │   │    └── api-type.d.ts      		# Fichier de définition de types de requête non contrôlé
 │   │    └── config.ts       				# Configuration de requête, interception de requête/réponse non contrôlé

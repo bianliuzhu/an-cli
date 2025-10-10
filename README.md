@@ -156,7 +156,6 @@ project/
 │   │   ├── models/          				# All type definition files (excluding enum types) uncontrolled
 │   │   ├── connectors/      				# API type definitions (interface definition files) uncontrolled
 │   └── api/                 		# Request files: Specified by saveApiListFolderPath configuration item
-│   │    ├── fetch.ts        				# Request method implementation uncontrolled
 │   │    └── index.ts        				# API request function list uncontrolled
 │   │    └── api-type.d.ts      		# Request type definition file uncontrolled
 │   │    └── config.ts       				# Request, response interceptor, request configuration uncontrolled

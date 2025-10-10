@@ -158,7 +158,6 @@ project/
 │   │   ├── models/          				# 所有类型定义文件（不包含枚举类型） 不受控
 │   │   ├── connectors/      				# API 类型定义（接口定义文件）不受控
 │   └── api/                 		# 请求文件：由 saveApiListFolderPath 配置项指定
-│   │    ├── fetch.ts        				# 请求方法实现 不受控
 │   │    └── index.ts        				# API 请求函数列表 不受控
 │   │    └── api-type.d.ts      		# 请求类型定义文件 不受控
 │   │    └── config.ts       				# 请求、响应拦截、请求配置 不受控
