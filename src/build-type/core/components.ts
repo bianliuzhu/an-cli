@@ -301,6 +301,11 @@ class Components {
 				const { headerRefStr, typeName, dataType } = this.parseRef((schemaSource as ReferenceObject).$ref);
 				if (!headerRef.includes(headerRefStr)) headerRef.push(headerRefStr);
 
+				// 添加注释（如果存在 description）
+				const schema = schemaSource as SchemaObject;
+				const comment = this.fieldComment(schema as NonArraySchemaObject);
+				comment !== '' && content.push(comment);
+
 				// 如果是枚举类型，需要使用正确的类型名
 				const finalTypeName = dataType === 'enum' ? this.getEnumTypeName(typeName) : typeName;
 				content.push(`${INDENT}${name}${this.requiredFieldS.includes(name) ? '' : '?'}: ${finalTypeName};`);
@@ -323,6 +328,12 @@ class Components {
 					const { headerRefStr, typeName } = this.parseRef(V1.$ref);
 
 					if (!headerRef.includes(headerRefStr)) headerRef.push(headerRefStr);
+
+					// 添加注释（如果存在 description）
+					const schema = schemaSource as SchemaObject;
+					const comment = this.fieldComment(schema as NonArraySchemaObject);
+					comment !== '' && content.push(comment);
+
 					content.push(`${INDENT}${name}${this.requiredFieldS.includes(name) ? '' : '?'}: ${typeName}${this.nullable(schemaSource.nullable)};`);
 
 					continue;
