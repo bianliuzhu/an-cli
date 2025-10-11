@@ -44,23 +44,23 @@ const vueEslintConfig = {
 };
 
 export const eslintHandle = async (framework: Tframework) => {
-	spinner.start('start installation...');
-
 	const shell = framework === 'vue' ? VUE_ESLINT : REACT_ESLINT;
 	const eslintConfig = framework === 'vue' ? vueEslintConfig : reactEslintConfig;
 
 	const eslintInstll = new Promise((resolve, reject) => {
 		const child = exec(shell, (err) => {
-			if (err) spinner.error(err.message);
+			if (err) {
+				spinner.error(err.message);
+				reject(err);
+			}
 		});
 
 		child.stdout?.on('data', () => {
-			spinner.success('✨ eslint instll success!');
 			resolve({ success: true });
 		});
 
 		child.stderr?.on('data', () => {
-			spinner.error('eslint install fail!');
+			spinner.error('ESLint installation failed!');
 			reject({ success: false });
 		});
 	});
@@ -72,17 +72,16 @@ export const eslintHandle = async (framework: Tframework) => {
 
 			fs.writeFileSync(`${process.cwd()}/.eslintignore`, eslintignoreContent);
 			fs.writeFileSync(`${process.cwd()}/.eslintrc.js`, `module.exports = ${JSON.stringify(eslintConfig, null, 2)}`);
-			spinner.success('✨ .eslintrc file write success');
 			resolve({ success: !0 });
 		} catch (error) {
-			spinner.error('.eslintrc file write fail');
+			spinner.error('.eslintrc file creation failed!');
 			reject(error);
 		}
 	});
 
 	try {
-		await logger(eslintInstll, 'instll eslint', { estimate: 30000 });
-		await logger(copyEslintFile, 'write .eslintignore file');
+		await logger(eslintInstll, 'Install ESLint', { estimate: 30000 });
+		await logger(copyEslintFile, 'Create ESLint config files');
 	} catch (error) {
 		console.error('eslintHandle=====>', error);
 	}

@@ -21,23 +21,24 @@ const defaultSettings = {
 
 const vscodeHandle = async () => {
 	const setting_path = `${process.cwd()}/.vscode/settings.json`;
-	if (existsSync(setting_path)) {
-		const readData = readFileSync(setting_path, 'utf-8');
-		const parsedData = JSON.parse(readData);
-		parsedData['editor.formatOnSave'] = true;
-		parsedData['editor.defaultFormatter'] = 'esbenp.prettier-vscode';
-		const writeData = JSON.stringify(parsedData, null, '\t');
-		writeFileSync(setting_path, writeData);
-	} else {
-		const vscodePath = `${process.cwd()}/.vscode`;
-		try {
+	try {
+		if (existsSync(setting_path)) {
+			const readData = readFileSync(setting_path, 'utf-8');
+			const parsedData = JSON.parse(readData);
+			parsedData['editor.formatOnSave'] = true;
+			parsedData['editor.defaultFormatter'] = 'esbenp.prettier-vscode';
+			const writeData = JSON.stringify(parsedData, null, '\t');
+			writeFileSync(setting_path, writeData);
+			spinner.success('VSCode settings updated!');
+		} else {
+			const vscodePath = `${process.cwd()}/.vscode`;
 			mkdirSync(vscodePath);
 			writeFileSync(`${vscodePath}/settings.json`, JSON.stringify(defaultSettings, null, '\t'));
-			spinner.success('✨ .vscode/settings.json file write success');
-		} catch (error) {
-			spinner.error('.vscode/settings.json file write fail');
-			console.error(error);
+			spinner.success('VSCode settings file created!');
 		}
+	} catch (error) {
+		spinner.error('VSCode settings file creation failed!');
+		console.error(error);
 	}
 };
 

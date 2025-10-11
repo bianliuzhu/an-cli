@@ -17,7 +17,7 @@ program
 
 program
 	.command('lint')
-	.description('install eslint, prettier, commitlint')
+	.description('install linting tools (eslint, stylelint, prettier, commitlint, vscode)')
 	.action(() => lintHandle());
 
 program

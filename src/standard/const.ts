@@ -1,7 +1,7 @@
 export const REACT_ESLINT = `npm i eslint eslint-plugin-react@latest @typescript-eslint/eslint-plugin@latest @typescript-eslint/parser@latest -D`;
 export const VUE_ESLINT = `npm i eslint-plugin-vue@latest @typescript-eslint/eslint-plugin@latest @typescript-eslint/parser@latest eslint@latest -D`;
 export const StyleLint = (css = 'less') => {
-	return `npm i stylelint@latest stylelint-${css}@latest stylelint-config-standard@latest stylelint-prettier@latest stylelint-config-prettier@latest -D`;
+	return `npm i stylelint@^16.0.0 stylelint-${css}@latest stylelint-config-standard@latest stylelint-prettier@^5.0.0 -D`;
 };
 export const Prettier = `npm install --save-dev --save-exact prettier eslint-config-prettier`;
 /** 第一步 */
