@@ -334,16 +334,36 @@ Note : `includeInterface` et `excludeInterface` ne peuvent pas être utilisés s
 $ anl lint
 ```
 
+Après l'exécution de la commande, une interface de sélection multiple interactive apparaîtra où vous pourrez choisir les outils à installer :
+
+```
+? Select the linting tools to install (multi-select):
+❯◯ ESLint - JavaScript/TypeScript linter
+ ◯ Stylelint - CSS/SCSS/Less linter
+ ◯ Commitlint - Git commit message linter
+ ◯ Prettier - Code formatter
+ ◯ VSCode - Editor settings
+```
+
+Utilisez la **barre d'espace** pour sélectionner/désélectionner, **Entrée** pour confirmer.
+
 ### Détails de configuration
 
 #### 1. Configuration ESLint
 
 - Installation automatique des dépendances nécessaires
-- Support des frameworks React/Vue
+- Support des frameworks React/Vue (vous serez invité à choisir un framework si sélectionné)
 - Génération automatique de `.eslintrc.js` et `.eslintignore`
 - Support TypeScript intégré
 
-#### 2. Configuration Prettier
+#### 2. Configuration Stylelint
+
+- Installation automatique des dépendances liées à stylelint
+- Support des préprocesseurs Less/Sass (vous serez invité à choisir un préprocesseur si sélectionné)
+- Génération du fichier de configuration `.stylelintrc.js`
+- Support Prettier intégré
+
+#### 3. Configuration Prettier
 
 - Installation automatique des dépendances prettier associées
 - Génération du fichier de configuration `.prettierrc.js`
@@ -354,19 +374,31 @@ $ anl lint
   - Parenthèses des fonctions fléchées
   - Autres normes de style de code
 
-#### 3. Configuration CommitLint
+#### 4. Configuration CommitLint
 
 - Installation des dépendances commitlint associées
 - Configuration des hooks git husky
 - Génération de `commitlint.config.js`
 - Normalisation des messages git commit
 
-#### 4. Configuration VSCode
+#### 5. Configuration VSCode
 
 - Création de `.vscode/settings.json`
 - Configuration du formatage automatique de l'éditeur
 - Définition de l'outil de formatage par défaut
 - Support de la mise à jour des fichiers de configuration existants
+
+### Exemples d'utilisation
+
+1. **Installer uniquement ESLint et Prettier**
+   - Sélectionnez ESLint et Prettier
+   - Si ESLint est sélectionné, vous serez invité à choisir un framework (React/Vue)
+   - Après l'installation, votre projet aura `.eslintrc.js` et `.prettierrc.js`
+
+2. **Configuration complète**
+   - Sélectionnez toutes les options
+   - Complétez les sélections de framework et de préprocesseur
+   - Votre projet aura un système complet de normes de code configuré
 
 # Commande `anl git`
 

@@ -12,11 +12,13 @@ const logger = createLogger({
 export const prettierHanlde = async () => {
 	const execution = new Promise((resolve, reject) => {
 		const child = exec(Prettier, (err) => {
-			if (err) spinner.error(err.message);
+			if (err) {
+				spinner.error(err.message);
+				reject(err);
+			}
 		});
 
 		child.stdout?.on('data', function () {
-			spinner.success('✨ prettier instll success!');
 			resolve({ success: true });
 		});
 
@@ -47,17 +49,16 @@ export const prettierHanlde = async () => {
 
 			const targetPath = join(process.cwd(), '.prettierrc.js');
 			writeFileSync(targetPath, prettierConfig.join('\n'), 'utf8');
-			spinner.success('✨ .prettierrc write done!');
 			resolve({ success: true });
 		} catch (error) {
-			spinner.error('prettierrc write fail!');
+			spinner.error('.prettierrc file write failed!');
 			reject(error);
 		}
 	});
 
 	try {
-		await logger(execution, 'install prettier', { estimate: 10000 });
-		await logger(copyFile, 'write .prettierrc file');
+		await logger(execution, 'Install Prettier', { estimate: 10000 });
+		await logger(copyFile, 'Create .prettierrc file');
 	} catch (error) {
 		console.error('prettierHanlde======>', error);
 	}

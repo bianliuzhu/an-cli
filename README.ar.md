@@ -334,16 +334,36 @@ export const uploadFile = (params: UploadFile.Body) =>
 $ anl lint
 ```
 
+بعد تنفيذ الأمر، ستظهر واجهة اختيار متعدد تفاعلية، يمكنك اختيار الأدوات التي تحتاج إلى تثبيتها:
+
+```
+? Select the linting tools to install (multi-select):
+❯◯ ESLint - JavaScript/TypeScript linter
+ ◯ Stylelint - CSS/SCSS/Less linter
+ ◯ Commitlint - Git commit message linter
+ ◯ Prettier - Code formatter
+ ◯ VSCode - Editor settings
+```
+
+استخدم **مفتاح المسافة** للاختيار/إلغاء الاختيار، **مفتاح Enter** للتأكيد.
+
 ### تفاصيل التكوين
 
 #### 1. تكوين ESLint
 
 - تثبيت التبعيات المطلوبة تلقائيًا
-- يدعم إطارات React/Vue
+- يدعم إطارات React/Vue (سيُطلب منك اختيار إطار عمل إذا تم تحديده)
 - توليد `.eslintrc.js` و `.eslintignore` تلقائيًا
 - دمج دعم TypeScript
 
-#### 2. تكوين Prettier
+#### 2. تكوين Stylelint
+
+- تثبيت التبعيات المتعلقة بـ stylelint تلقائيًا
+- يدعم معالجات Less/Sass المسبقة (سيُطلب منك اختيار معالج مسبق إذا تم تحديده)
+- توليد ملف تكوين `.stylelintrc.js`
+- دمج دعم Prettier
+
+#### 3. تكوين Prettier
 
 - تثبيت التبعيات ذات الصلة بـ prettier تلقائيًا
 - توليد ملف تكوين `.prettierrc.js`
@@ -354,19 +374,31 @@ $ anl lint
   - أقواس دالة السهم
   - معايير نمط الكود الأخرى
 
-#### 3. تكوين CommitLint
+#### 4. تكوين CommitLint
 
 - تثبيت التبعيات ذات الصلة بـ commitlint
 - تكوين husky git hooks
 - توليد `commitlint.config.js`
 - توحيد رسالة git commit
 
-#### 4. تكوين VSCode
+#### 5. تكوين VSCode
 
 - إنشاء `.vscode/settings.json`
 - تكوين التنسيق التلقائي للمحرر
 - تعيين أداة التنسيق الافتراضية
 - يدعم تحديث ملفات التكوين الموجودة
+
+### أمثلة الاستخدام
+
+1. **تثبيت ESLint و Prettier فقط**
+   - اختر ESLint و Prettier
+   - إذا تم اختيار ESLint، سيُطلب منك اختيار إطار عمل (React/Vue)
+   - بعد التثبيت، سيحتوي مشروعك على `.eslintrc.js` و `.prettierrc.js`
+
+2. **التكوين الكامل**
+   - اختر جميع الخيارات
+   - أكمل اختيار إطار العمل والمعالج المسبق
+   - سيتم تكوين نظام كامل لمعايير الكود في مشروعك
 
 # أمر `anl git`
 

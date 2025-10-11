@@ -334,16 +334,36 @@ export const uploadFile = (params: UploadFile.Body) =>
 $ anl lint
 ```
 
+コマンドを実行すると、インタラクティブな複数選択インターフェースが表示され、インストールするツールを選択できます：
+
+```
+? Select the linting tools to install (multi-select):
+❯◯ ESLint - JavaScript/TypeScript linter
+ ◯ Stylelint - CSS/SCSS/Less linter
+ ◯ Commitlint - Git commit message linter
+ ◯ Prettier - Code formatter
+ ◯ VSCode - Editor settings
+```
+
+**スペースキー**で選択/選択解除、**Enter**で確認します。
+
 ### 設定の詳細
 
 #### 1. ESLint 設定
 
 - 必要な依存関係を自動インストール
-- React/Vue フレームワークをサポート
+- React/Vue フレームワークをサポート（選択時にフレームワークの選択を求められます）
 - `.eslintrc.js` と `.eslintignore` を自動生成
 - TypeScript サポートを統合
 
-#### 2. Prettier 設定
+#### 2. Stylelint 設定
+
+- stylelint 関連の依存関係を自動インストール
+- Less/Sass プリプロセッサをサポート（選択時にプリプロセッサの選択を求められます）
+- `.stylelintrc.js` 設定ファイルを生成
+- Prettier サポートを統合
+
+#### 3. Prettier 設定
 
 - prettier 関連の依存関係を自動インストール
 - `.prettierrc.js` 設定ファイルを生成
@@ -354,19 +374,31 @@ $ anl lint
   - アロー関数の括弧
   - その他のコードスタイル規約
 
-#### 3. CommitLint 設定
+#### 4. CommitLint 設定
 
 - commitlint 関連の依存関係をインストール
 - husky git hooks を設定
 - `commitlint.config.js` を生成
 - git commit メッセージを標準化
 
-#### 4. VSCode 設定
+#### 5. VSCode 設定
 
 - `.vscode/settings.json` を作成
 - エディタの自動フォーマットを設定
 - デフォルトのフォーマットツールを設定
 - 既存の設定ファイルの更新をサポート
+
+### 使用例
+
+1. **ESLint と Prettier のみをインストール**
+   - ESLint と Prettier を選択
+   - ESLint を選択した場合、フレームワーク（React/Vue）の選択を求められます
+   - インストール後、プロジェクトに `.eslintrc.js` と `.prettierrc.js` が作成されます
+
+2. **完全な設定**
+   - すべてのオプションを選択
+   - フレームワークとプリプロセッサの選択を完了
+   - プロジェクトに完全なコード規約システムが設定されます
 
 # `anl git` コマンド
 
