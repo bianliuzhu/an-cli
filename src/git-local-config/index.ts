@@ -40,7 +40,8 @@ const copyGitConfigFiles = async () => {
 		// log.success(`chmod +x .gitscripts/random-branch.sh`);
 		log.success(`random-branch.sh Raise power`);
 	} catch (e) {
-		log.error(`设置 .githooks/commit-msg 可执行权限失败: ${e instanceof Error ? e.message : e}`);
+		console.log(e);
+		log.error(`Set .githooks/commit-msg executable permission failed: ${e instanceof Error ? e.message : e}`);
 	}
 
 	// git config --local include.path ../.gitconfig
@@ -49,7 +50,8 @@ const copyGitConfigFiles = async () => {
 		// log.success(`git config --local include.path ../.gitconfig`);
 		log.success(`.gitconfig git set`);
 	} catch (e) {
-		log.error(`执行 git config --local include.path ../.gitconfig 失败，请手动执行该命令`);
+		console.log(e);
+		log.error(`Execute git config --local include.path ../.gitconfig failed, please execute the command manually`);
 	}
 };
 
@@ -73,7 +75,9 @@ const copyCommitSubjectFiles = async () => {
 		fs.chmodSync(path.join(targetHooksDir, 'commit-msg'), 0o755);
 		log.success(`commit-msg raise power done.`);
 	} catch (e) {
-		log.error(`设置 .githooks/commit-msg 可执行权限失败: ${e instanceof Error ? e.message : e}`);
+		console.log(e);
+		// 翻译成英文
+		log.error(`Set .githooks/commit-msg executable permission failed: ${e instanceof Error ? e.message : e}`);
 	}
 
 	// 设置 git hooks 路径到 .githooks
@@ -81,6 +85,7 @@ const copyCommitSubjectFiles = async () => {
 		execSync('git config core.hooksPath .githooks', { stdio: 'ignore' });
 		log.success(`git set .githooks done.`);
 	} catch (e) {
+		console.log(e);
 		log.error(`Execute [git config core.hooksPath .githooks] failed, please execute the command manually`);
 	}
 };
