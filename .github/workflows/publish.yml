@@ -6,7 +6,7 @@ on:
   workflow_dispatch:
 
 permissions:
-  contents: read
+  contents: write
   id-token: write
 
 jobs:
@@ -25,6 +25,40 @@ jobs:
       - name: Install dependencies
         run: npm ci
 
+      - name: Generate version number
+        id: version
+        run: |
+          # 获取当前日期 (YY.MM.DD)
+          DATE_VERSION=$(date +"%y.%-m.%-d")
+
+          # 获取包名
+          PACKAGE_NAME=$(node -p "require('./package.json').name")
+
+          # 检查该日期版本是否存在，并获取当天的所有版本
+          EXISTING_VERSIONS=$(npm view $PACKAGE_NAME versions --json 2>/dev/null || echo "[]")
+
+          # 查找当天已发布的版本，获取最大序号
+          MAX_PATCH=$(echo "$EXISTING_VERSIONS" | jq -r ".[]" | grep "^${DATE_VERSION}" | sed "s/${DATE_VERSION}//g" | sed 's/^\.//g' | sort -n | tail -1)
+
+          if [ -z "$MAX_PATCH" ]; then
+            # 当天第一次发布
+            NEW_VERSION="$DATE_VERSION"
+          else
+            # 当天已有发布，序号+1
+            if [ "$MAX_PATCH" = "" ] || [ "$MAX_PATCH" = "$DATE_VERSION" ]; then
+              NEW_VERSION="${DATE_VERSION}.1"
+            else
+              NEXT_PATCH=$((MAX_PATCH + 1))
+              NEW_VERSION="${DATE_VERSION}.${NEXT_PATCH}"
+            fi
+          fi
+
+          echo "Generated version: $NEW_VERSION"
+          echo "version=$NEW_VERSION" >> $GITHUB_OUTPUT
+
+          # 更新 package.json 中的版本号
+          npm version $NEW_VERSION --no-git-tag-version
+
       - name: Build
         run: npm run build
 
@@ -33,3 +67,12 @@ jobs:
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
           NPM_CONFIG_PROVENANCE: true
+
+      - name: Create Git Tag
+        run: |
+          git config --local user.email "github-actions[bot]@users.noreply.github.com"
+          git config --local user.name "github-actions[bot]"
+          git add package.json
+          git commit -m "chore: release version ${{ steps.version.outputs.version }}" || echo "No changes to commit"
+          git tag "v${{ steps.version.outputs.version }}"
+          git push origin "v${{ steps.version.outputs.version }}" || echo "Tag already exists"
