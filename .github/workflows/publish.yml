@@ -101,5 +101,5 @@ jobs:
           git config --local user.name "github-actions[bot]"
           git add package.json
           git commit -m "chore: release version ${{ steps.version.outputs.version }}" || echo "No changes to commit"
-          git tag "v${{ steps.version.outputs.version }}"
+          git tag "${{ steps.version.outputs.version }}"
           git push origin "v${{ steps.version.outputs.version }}" || echo "Tag already exists"
