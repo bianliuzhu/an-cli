@@ -3,6 +3,9 @@
 	"version": "25.10.13",
 	"description": "FE command line tool",
 	"main": "bin/an-cli.js",
+	"publishConfig": {
+		"registry": "https://registry.npmjs.org"
+	},
 	"scripts": {
 		"dev": "rollup --config rollup.config.ts --configPlugin @rollup/plugin-typescript -w",
 		"build": "rimraf lib && rollup --config rollup.config.ts --configPlugin @rollup/plugin-typescript",
