@@ -37,6 +37,10 @@ jobs:
       - name: Generate version number
         id: version
         run: |
+          echo "========== STARTING VERSION GENERATION =========="
+          echo "Current package.json version before update:"
+          cat package.json | grep '"version"'
+          
           # 使用 Node.js 生成日期版本号，避免 shell 兼容性问题
           node << 'SCRIPT'
           const fs = require('fs');
@@ -102,6 +106,10 @@ jobs:
           // 输出到 GitHub Actions
           fs.appendFileSync(process.env.GITHUB_OUTPUT, `version=${newVersion}\n`);
           SCRIPT
+          
+          echo "========== VERSION GENERATION COMPLETE =========="
+          echo "Updated package.json version:"
+          cat package.json | grep '"version"'
 
       - name: Build
         run: npm run build
