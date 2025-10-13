@@ -37,20 +37,37 @@ jobs:
           # 检查该日期版本是否存在，并获取当天的所有版本
           EXISTING_VERSIONS=$(npm view $PACKAGE_NAME versions --json 2>/dev/null || echo "[]")
 
-          # 查找当天已发布的版本，获取最大序号
-          MAX_PATCH=$(echo "$EXISTING_VERSIONS" | jq -r ".[]" | grep "^${DATE_VERSION}" | sed "s/${DATE_VERSION}//g" | sed 's/^\.//g' | sort -n | tail -1)
+          echo "Existing versions: $EXISTING_VERSIONS"
 
-          if [ -z "$MAX_PATCH" ]; then
+          # 查找当天已发布的所有版本
+          TODAY_VERSIONS=$(echo "$EXISTING_VERSIONS" | jq -r ".[]" | grep "^${DATE_VERSION}" || echo "")
+
+          echo "Today's versions: $TODAY_VERSIONS"
+
+          if [ -z "$TODAY_VERSIONS" ]; then
             # 当天第一次发布
             NEW_VERSION="$DATE_VERSION"
           else
-            # 当天已有发布，序号+1
-            if [ "$MAX_PATCH" = "" ] || [ "$MAX_PATCH" = "$DATE_VERSION" ]; then
-              NEW_VERSION="${DATE_VERSION}.1"
-            else
-              NEXT_PATCH=$((MAX_PATCH + 1))
-              NEW_VERSION="${DATE_VERSION}.${NEXT_PATCH}"
+            # 当天已有发布，找出最大序号
+            MAX_PATCH=0
+            
+            # 检查是否存在基础版本（如 25.10.13）
+            if echo "$TODAY_VERSIONS" | grep -q "^${DATE_VERSION}$"; then
+              MAX_PATCH=0
             fi
+            
+            # 查找所有带序号的版本（如 25.10.13.1, 25.10.13.2）
+            for version in $TODAY_VERSIONS; do
+              if [[ $version =~ ^${DATE_VERSION}\.([0-9]+)$ ]]; then
+                PATCH_NUM="${BASH_REMATCH[1]}"
+                if [ "$PATCH_NUM" -gt "$MAX_PATCH" ]; then
+                  MAX_PATCH=$PATCH_NUM
+                fi
+              fi
+            done
+            
+            NEXT_PATCH=$((MAX_PATCH + 1))
+            NEW_VERSION="${DATE_VERSION}.${NEXT_PATCH}"
           fi
 
           echo "Generated version: $NEW_VERSION"
@@ -101,5 +118,5 @@ jobs:
           git config --local user.name "github-actions[bot]"
           git add package.json
           git commit -m "chore: release version ${{ steps.version.outputs.version }}" || echo "No changes to commit"
-          git tag "${{ steps.version.outputs.version }}"
+          git tag "v${{ steps.version.outputs.version }}"
           git push origin "v${{ steps.version.outputs.version }}" || echo "Tag already exists"
