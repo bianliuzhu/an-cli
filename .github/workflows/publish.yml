@@ -56,8 +56,10 @@ jobs:
           echo "Generated version: $NEW_VERSION"
           echo "version=$NEW_VERSION" >> $GITHUB_OUTPUT
 
-          # 更新 package.json 中的版本号
-          npm version $NEW_VERSION --no-git-tag-version
+          # 使用 node 直接更新 package.json 中的版本号
+          node -e "const fs = require('fs'); const pkg = require('./package.json'); pkg.version = '$NEW_VERSION'; fs.writeFileSync('package.json', JSON.stringify(pkg, null, '\t') + '\n');"
+
+          echo "Updated package.json to version $NEW_VERSION"
 
       - name: Build
         run: npm run build
