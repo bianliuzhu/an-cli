@@ -8,6 +8,7 @@ on:
 permissions:
   contents: write
   id-token: write
+  packages: write
 
 jobs:
   publish:
@@ -28,8 +29,11 @@ jobs:
       - name: Generate version number
         id: version
         run: |
-          # 获取当前日期 (YY.MM.DD)
-          DATE_VERSION=$(date +"%y.%-m.%-d")
+          # 获取当前日期 (YY.MM.DD) - 去除月份和日期的前导零
+          YEAR=$(date +"%y")
+          MONTH=$(date +"%m" | sed 's/^0//')
+          DAY=$(date +"%d" | sed 's/^0//')
+          DATE_VERSION="${YEAR}.${MONTH}.${DAY}"
 
           # 获取包名
           PACKAGE_NAME=$(node -p "require('./package.json').name")
