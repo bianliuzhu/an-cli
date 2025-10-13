@@ -40,7 +40,7 @@ jobs:
           echo "========== STARTING VERSION GENERATION =========="
           echo "Current package.json version before update:"
           cat package.json | grep '"version"'
-          
+
           # 使用 Node.js 生成日期版本号，避免 shell 兼容性问题
           node << 'SCRIPT'
           const fs = require('fs');
@@ -106,13 +106,29 @@ jobs:
           // 输出到 GitHub Actions
           fs.appendFileSync(process.env.GITHUB_OUTPUT, `version=${newVersion}\n`);
           SCRIPT
-          
+
           echo "========== VERSION GENERATION COMPLETE =========="
           echo "Updated package.json version:"
           cat package.json | grep '"version"'
 
       - name: Build
         run: npm run build
+
+      - name: Verify version after build
+        run: |
+          echo "========== VERIFYING VERSION AFTER BUILD =========="
+          echo "Root package.json version:"
+          cat package.json | grep '"version"'
+          
+          # 确保版本号正确（再次强制更新）
+          NEW_VERSION="${{ steps.version.outputs.version }}"
+          echo "Expected version: $NEW_VERSION"
+          
+          # 再次更新以确保万无一失
+          node -e "const fs = require('fs'); const pkg = require('./package.json'); pkg.version = '$NEW_VERSION'; fs.writeFileSync('package.json', JSON.stringify(pkg, null, '\t') + '\n');"
+          
+          echo "After re-update:"
+          cat package.json | grep '"version"'
 
       - name: Publish to npm
         run: npm publish --provenance --access public
