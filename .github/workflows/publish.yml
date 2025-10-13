@@ -46,12 +46,12 @@ jobs:
           const fs = require('fs');
           const { execSync } = require('child_process');
 
-          // 获取当前日期 (YY.M.D 格式，去除前导零)
+          // 获取当前日期 (YY.MMDD 格式，符合 semver 规范)
           const now = new Date();
           const year = now.getFullYear().toString().slice(-2);
-          const month = (now.getMonth() + 1).toString();
-          const day = now.getDate().toString();
-          const dateVersion = `${year}.${month}.${day}`;
+          const month = (now.getMonth() + 1).toString().padStart(2, '0');
+          const day = now.getDate().toString().padStart(2, '0');
+          const dateVersion = `${year}.${month}${day}`;
 
           console.log(`Date version: ${dateVersion}`);
 
@@ -77,20 +77,16 @@ jobs:
 
           let newVersion;
           if (todayVersions.length === 0) {
-            // 今天第一次发布
-            newVersion = dateVersion;
+            // 今天第一次发布，patch 版本从 0 开始
+            newVersion = `${dateVersion}.0`;
           } else {
-            // 找出最大的补丁号
-            let maxPatch = 0;
+            // 找出今天最大的 patch 号
+            let maxPatch = -1;
             
             todayVersions.forEach(v => {
-              if (v === dateVersion) {
-                maxPatch = Math.max(maxPatch, 0);
-              } else {
-                const match = v.match(new RegExp(`^${dateVersion.replace(/\./g, '\\.')}\\.(\\d+)$`));
-                if (match) {
-                  maxPatch = Math.max(maxPatch, parseInt(match[1]));
-                }
+              const match = v.match(new RegExp(`^${dateVersion.replace(/\./g, '\\.')}\\.(\\d+)$`));
+              if (match) {
+                maxPatch = Math.max(maxPatch, parseInt(match[1]));
               }
             });
             
@@ -119,14 +115,14 @@ jobs:
           echo "========== VERIFYING VERSION AFTER BUILD =========="
           echo "Root package.json version:"
           cat package.json | grep '"version"'
-          
+
           # 确保版本号正确（再次强制更新）
           NEW_VERSION="${{ steps.version.outputs.version }}"
           echo "Expected version: $NEW_VERSION"
-          
+
           # 再次更新以确保万无一失
           node -e "const fs = require('fs'); const pkg = require('./package.json'); pkg.version = '$NEW_VERSION'; fs.writeFileSync('package.json', JSON.stringify(pkg, null, '\t') + '\n');"
-          
+
           echo "After re-update:"
           cat package.json | grep '"version"'
 
