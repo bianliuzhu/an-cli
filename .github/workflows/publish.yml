@@ -70,6 +70,31 @@ jobs:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
           NPM_CONFIG_PROVENANCE: true
 
+      - name: Setup Node.js for GitHub Packages
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18'
+          registry-url: 'https://npm.pkg.github.com'
+          scope: '@bianliuzhu'
+
+      - name: Update package name for GitHub Packages
+        run: |
+          # 备份原始 package.json
+          cp package.json package.json.backup
+
+          # 为 GitHub Packages 添加作用域到包名
+          node -e "const fs = require('fs'); const pkg = require('./package.json'); pkg.name = '@bianliuzhu/anl'; pkg.publishConfig = { registry: 'https://npm.pkg.github.com' }; fs.writeFileSync('package.json', JSON.stringify(pkg, null, '\t') + '\n');"
+
+      - name: Publish to GitHub Packages
+        run: npm publish
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Restore original package.json
+        run: |
+          # 恢复原始 package.json
+          mv package.json.backup package.json
+
       - name: Create Git Tag
         run: |
           git config --local user.email "github-actions[bot]@users.noreply.github.com"
