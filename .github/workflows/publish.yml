@@ -29,58 +29,71 @@ jobs:
       - name: Generate version number
         id: version
         run: |
-          # 获取当前日期 (YY.MM.DD) - 去除月份和日期的前导零
-          YEAR=$(date +"%y")
-          MONTH=$(date +"%m" | sed 's/^0//')
-          DAY=$(date +"%d" | sed 's/^0//')
-          DATE_VERSION="${YEAR}.${MONTH}.${DAY}"
+          # 使用 Node.js 生成日期版本号，避免 shell 兼容性问题
+          node << 'SCRIPT'
+          const fs = require('fs');
+          const { execSync } = require('child_process');
 
-          # 获取包名
-          PACKAGE_NAME=$(node -p "require('./package.json').name")
+          // 获取当前日期 (YY.M.D 格式，去除前导零)
+          const now = new Date();
+          const year = now.getFullYear().toString().slice(-2);
+          const month = (now.getMonth() + 1).toString();
+          const day = now.getDate().toString();
+          const dateVersion = `${year}.${month}.${day}`;
 
-          # 检查该日期版本是否存在，并获取当天的所有版本
-          EXISTING_VERSIONS=$(npm view $PACKAGE_NAME versions --json 2>/dev/null || echo "[]")
+          console.log(`Date version: ${dateVersion}`);
 
-          echo "Existing versions: $EXISTING_VERSIONS"
+          // 获取包名
+          const pkg = require('./package.json');
+          const packageName = pkg.name;
 
-          # 查找当天已发布的所有版本
-          TODAY_VERSIONS=$(echo "$EXISTING_VERSIONS" | jq -r ".[]" | grep "^${DATE_VERSION}" || echo "")
+          // 获取已发布的所有版本
+          let existingVersions = [];
+          try {
+            const versionsJson = execSync(`npm view ${packageName} versions --json`, { encoding: 'utf-8' });
+            existingVersions = JSON.parse(versionsJson);
+          } catch (e) {
+            console.log('Package not found or no versions published yet');
+            existingVersions = [];
+          }
 
-          echo "Today's versions: $TODAY_VERSIONS"
+          console.log('Existing versions:', existingVersions);
 
-          if [ -z "$TODAY_VERSIONS" ]; then
-            # 当天第一次发布
-            NEW_VERSION="$DATE_VERSION"
-          else
-            # 当天已有发布，找出最大序号
-            MAX_PATCH=0
+          // 查找今天发布的版本
+          const todayVersions = existingVersions.filter(v => v.startsWith(dateVersion));
+          console.log('Today\'s versions:', todayVersions);
+
+          let newVersion;
+          if (todayVersions.length === 0) {
+            // 今天第一次发布
+            newVersion = dateVersion;
+          } else {
+            // 找出最大的补丁号
+            let maxPatch = 0;
             
-            # 检查是否存在基础版本（如 25.10.13）
-            if echo "$TODAY_VERSIONS" | grep -q "^${DATE_VERSION}$"; then
-              MAX_PATCH=0
-            fi
+            todayVersions.forEach(v => {
+              if (v === dateVersion) {
+                maxPatch = Math.max(maxPatch, 0);
+              } else {
+                const match = v.match(new RegExp(`^${dateVersion.replace(/\./g, '\\.')}\\.(\\d+)$`));
+                if (match) {
+                  maxPatch = Math.max(maxPatch, parseInt(match[1]));
+                }
+              }
+            });
             
-            # 查找所有带序号的版本（如 25.10.13.1, 25.10.13.2）
-            for version in $TODAY_VERSIONS; do
-              if [[ $version =~ ^${DATE_VERSION}\.([0-9]+)$ ]]; then
-                PATCH_NUM="${BASH_REMATCH[1]}"
-                if [ "$PATCH_NUM" -gt "$MAX_PATCH" ]; then
-                  MAX_PATCH=$PATCH_NUM
-                fi
-              fi
-            done
-            
-            NEXT_PATCH=$((MAX_PATCH + 1))
-            NEW_VERSION="${DATE_VERSION}.${NEXT_PATCH}"
-          fi
+            newVersion = `${dateVersion}.${maxPatch + 1}`;
+          }
 
-          echo "Generated version: $NEW_VERSION"
-          echo "version=$NEW_VERSION" >> $GITHUB_OUTPUT
+          console.log(`New version: ${newVersion}`);
 
-          # 使用 node 直接更新 package.json 中的版本号
-          node -e "const fs = require('fs'); const pkg = require('./package.json'); pkg.version = '$NEW_VERSION'; fs.writeFileSync('package.json', JSON.stringify(pkg, null, '\t') + '\n');"
+          // 更新 package.json
+          pkg.version = newVersion;
+          fs.writeFileSync('package.json', JSON.stringify(pkg, null, '\t') + '\n');
 
-          echo "Updated package.json to version $NEW_VERSION"
+          // 输出到 GitHub Actions
+          fs.appendFileSync(process.env.GITHUB_OUTPUT, `version=${newVersion}\n`);
+          SCRIPT
 
       - name: Build
         run: npm run build
