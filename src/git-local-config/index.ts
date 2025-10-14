@@ -119,4 +119,8 @@ export const gitHandle = (options: GitFeatureOption[] = []) => {
 	if (options.includes('customGitCommand')) {
 		copyCustomGitCommandFiles();
 	}
+
+	console.log('\n');
+	log.warning(`please run [git nb] command to create a new branch.`);
+	console.log('\n');
 };
