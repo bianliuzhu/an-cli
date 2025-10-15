@@ -87,8 +87,8 @@ run_commitlint() {
     node_modules/.bin/commitlint --edit "$msg_file" 2>/dev/null && return 0
   fi
   
-  echo "警告：无法找到可用的 commitlint 执行方式"
-  return 1
+  echo "警告：无法找到可用的 commitlint 执行方式，已跳过校验"
+  return 0
 }
 
 # 执行 commitlint 检查
