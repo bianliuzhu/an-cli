@@ -325,7 +325,8 @@ class Components {
 				const V1 = schemaSource['allOf']?.[0] as ReferenceObject;
 				if (V1?.$ref) {
 					// 这里枚举值不会走
-					const { headerRefStr, typeName } = this.parseRef(V1.$ref);
+					const { headerRefStr, typeName, dataType } = this.parseRef(V1.$ref);
+					const finalTypeName = dataType === 'enum' ? this.getEnumTypeName(typeName) : typeName;
 
 					if (!headerRef.includes(headerRefStr)) headerRef.push(headerRefStr);
 
@@ -334,7 +335,7 @@ class Components {
 					const comment = this.fieldComment(schema as NonArraySchemaObject);
 					comment !== '' && content.push(comment);
 
-					content.push(`${INDENT}${name}${this.requiredFieldS.includes(name) ? '' : '?'}: ${typeName}${this.nullable(schemaSource.nullable)};`);
+					content.push(`${INDENT}${name}${this.requiredFieldS.includes(name) ? '' : '?'}: ${finalTypeName}${this.nullable(schemaSource.nullable)};`);
 
 					continue;
 				}

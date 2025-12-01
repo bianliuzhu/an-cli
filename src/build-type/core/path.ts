@@ -41,8 +41,6 @@ const defaultConfig: Partial<PathParseConfig> = {
 		['boolean', 'boolean'],
 		['binary', 'File'],
 		['number', 'number'],
-		['object', 'Record<string, unknown>'],
-		['array', 'Array<unknown>'],
 		['null', 'null'],
 		['undefined', 'undefined'],
 		['date', 'Date'],
@@ -191,6 +189,20 @@ export class PathParse {
 	}
 
 	/**
+	 * 将 schemaParse 的结果转换为字符串
+	 * @param result schemaParse 的返回值
+	 */
+	private stringifySchemaResult(result: string | string[]): string {
+		if (Array.isArray(result)) {
+			const ln = this.config.formatting?.lineEnding ?? '\n';
+			const indent = this.getIndentation();
+			const body = result.join(ln);
+			return `{${ln}${body}${ln}${indent}}`;
+		}
+		return result;
+	}
+
+	/**
 	 * 处理复杂类型的解析
 	 * @param schema Schema 对象
 	 * @returns 解析后的类型字符串
@@ -198,15 +210,15 @@ export class PathParse {
 	private handleComplexType(schema: SchemaObject): string {
 		try {
 			if (schema.oneOf) {
-				return schema.oneOf.map((type) => this.schemaParse(type)).join(' | ');
+				return schema.oneOf.map((type) => this.stringifySchemaResult(this.schemaParse(type))).join(' | ');
 			}
 
 			if (schema.allOf) {
-				return schema.allOf.map((type) => this.schemaParse(type)).join(' & ');
+				return schema.allOf.map((type) => this.stringifySchemaResult(this.schemaParse(type))).join(' & ');
 			}
 
 			if (schema.anyOf) {
-				return schema.anyOf.map((type) => this.schemaParse(type)).join(' | ');
+				return schema.anyOf.map((type) => this.stringifySchemaResult(this.schemaParse(type))).join(' | ');
 			}
 
 			// 处理 enum
@@ -419,7 +431,7 @@ export class PathParse {
 			}
 
 			// 处理对象类型
-			if (type === 'object') {
+			if (type === 'object' || typeof schemaObj === 'object') {
 				if (schemaObj.properties) {
 					const props = this.propertiesParse(schemaObj.properties);
 					return props.length ? props : ['unknown'];
