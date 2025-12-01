@@ -412,6 +412,8 @@ class Components {
 									content.push(`${INDENT}${name}${this.requiredFieldS.includes(name) ? '' : '?'}: ${typeName}${this.nullable(schema.nullable)};`);
 								}
 							}
+						} else if (schema.format && schema.format === 'binary') {
+							content.push(`${INDENT}${name}${this.requiredFieldS.includes(name) ? '' : '?'}: File${this.nullable(schema.nullable)};`);
 						} else {
 							content.push(this.parseString(schema as NonArraySchemaObject, name)?.renderStr ?? '');
 						}
