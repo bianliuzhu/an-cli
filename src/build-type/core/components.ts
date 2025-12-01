@@ -139,7 +139,11 @@ class Components {
 		}
 
 		const itemType = (items as OpenAPIV3.SchemaObject)?.type;
-		const finalType = itemType === 'integer' ? 'number' : itemType;
+
+		let finalType = itemType === 'integer' ? 'number' : itemType;
+
+		if (itemType === 'object') finalType = 'Record<string, unknown>' as 'string';
+
 		return {
 			headerRef: '',
 			renderStr: `${INDENT}${name}${this.requiredFieldS.includes(name) ? '' : '?'}: Array<${finalType}>${this.nullable(nullable)};`,
