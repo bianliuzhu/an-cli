@@ -34,11 +34,21 @@ enum HttpMethods {
 
 // 修改默认配置，添加必需的属性
 const defaultConfig: Partial<PathParseConfig> = {
+	// 'array' | 'string' | 'number' | 'boolean' | 'integer' | 'null'
 	typeMapping: new Map([
 		['integer', 'number'],
 		['string', 'string'],
 		['boolean', 'boolean'],
 		['binary', 'File'],
+		['number', 'number'],
+		['object', 'Record<string, unknown>'],
+		['array', 'Array<unknown>'],
+		['null', 'null'],
+		['undefined', 'undefined'],
+		['date', 'Date'],
+		['time', 'Date'],
+		['datetime', 'Date'],
+		['timestamp', 'Date'],
 	]),
 	errorHandling: {
 		throwOnError: false,
