@@ -106,6 +106,9 @@ class Components {
 				const value = this.parseArray(nonArraySchema.additionalProperties as ArraySchemaObject, key) ?? this.defaultReturn;
 				headerRef = value?.headerRef ?? '';
 				renderStr = value?.renderStr ?? '';
+			}
+			if (typeof nonArraySchema.additionalProperties === 'boolean') {
+				renderStr = `${INDENT}${key}${this.requiredFieldS.includes(key) ? '' : '?'}: Record<string, unknown>${this.nullable(nonArraySchema.nullable)};`;
 			} else {
 				renderStr = `${INDENT}${key}${this.requiredFieldS.includes(key) ? '' : '?'}: ${obj.type}${this.nullable(obj.nullable)};`;
 			}
