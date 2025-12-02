@@ -51,6 +51,7 @@ export class Main {
 
 			if (isDev) {
 				response = (await import('../../data/openapi.json')).default as unknown as OpenAPIV3.Document;
+				// response = (await import('../../data/df.json')).default as unknown as OpenAPIV3.Document;
 			} else {
 				response = (await getSwaggerJson(config)) as OpenAPIV3.Document;
 			}
