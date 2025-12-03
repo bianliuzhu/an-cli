@@ -121,8 +121,12 @@ $ anl type
 		}
 	],
 	"publicPrefix": "api",
-	"erasableSyntaxOnly": false,
-	"parameterSeparator": "_"
+	"parameterSeparator": "_",
+	"enmuConfig": {
+		"erasableSyntaxOnly": false,
+		"varnames": "enum-varnames",
+		"comment": "enum-descriptions"
+	}
 }
 ```
 
@@ -142,8 +146,10 @@ $ anl type
 | includeInterface         | Array<{path: string, method: string}> | No       | Included interfaces: The interface list file specified by `saveApiListFolderPath` will only include interfaces in the list, mutually exclusive with `excludeInterface` field                               |
 | excludeInterface         | Array<{path: string, method: string}> | No       | Excluded interfaces: The interface list file specified by `saveApiListFolderPath` will not include interfaces in this list, mutually exclusive with `includeInterface`                                     |
 | publicPrefix             | string                                | No       | Common prefix on url path, e.g.: api/users, api/users/{id}, api is the common prefix                                                                                                                       |
-| erasableSyntaxOnly       | boolean                               | Yes      | Align with tsconfig.json `compilerOptions.erasableSyntaxOnly`. When `true`, generates const objects instead of enums (type-only syntax). Default: `false`                                                  |
+| enmuConfig.erasableSyntaxOnly | boolean                          | Yes      | Align with tsconfig.json `compilerOptions.erasableSyntaxOnly`. When `true`, generates const objects instead of enums (type-only syntax). Default: `false`                                                  |
 | parameterSeparator       | string                                | No       | Separator used between path segments and parameters when generating API names and type names. For example, `/users/{userId}/posts` with separator `'_'` generates `users_userId_posts_GET`. Default: `'_'` |
+| enmuConfig.varnames      | string                                | No       | Schema field name that stores custom enum member identifiers. Default: `enum-varnames`.                                                                             |
+| enmuConfig.comment       | string                                | No       | Schema field name that stores enum member descriptions (used for inline comments). Default: `enum-descriptions`.                                                    |
 
 #### Configuration Items and Generated Files Correspondence
 
@@ -205,9 +211,9 @@ export const userDetailGet = (params: UserDetail_GET.Query) => GET<UserDetail_GE
 
 #### Enum Generation
 
-The tool supports two enum generation modes, controlled by the `erasableSyntaxOnly` configuration:
+The tool supports two enum generation modes, controlled by the `enmuConfig.erasableSyntaxOnly` configuration:
 
-**Traditional Enum Mode** (`erasableSyntaxOnly: false`, default):
+**Traditional Enum Mode** (`enmuConfig.erasableSyntaxOnly: false`, default):
 
 ```typescript
 export enum Status {
@@ -217,7 +223,7 @@ export enum Status {
 }
 ```
 
-**Const Object Mode** (`erasableSyntaxOnly: true`):
+**Const Object Mode** (`enmuConfig.erasableSyntaxOnly: true`):
 
 ```typescript
 export const Status = {

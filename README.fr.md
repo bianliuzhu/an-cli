@@ -123,29 +123,35 @@ $ anl type
 		}
 	],
 	"publicPrefix": "api",
-	"erasableSyntaxOnly": false,
-	"parameterSeparator": "_"
+	"parameterSeparator": "_",
+	"enmuConfig": {
+		"erasableSyntaxOnly": false,
+		"varnames": "enum-varnames",
+		"comment": "enum-descriptions"
+	}
 }
 ```
 
 #### Explication des éléments de configuration
 
-| Élément de configuration | Type                                  | Obligatoire | Description                                                                                                                                                                                                                                          |
-| ------------------------ | ------------------------------------- | ----------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| saveTypeFolderPath       | string                                | Oui         | Chemin de sauvegarde des fichiers de définition de types                                                                                                                                                                                             |
-| saveApiListFolderPath    | string                                | Oui         | Chemin de sauvegarde des fichiers de fonctions de requête API                                                                                                                                                                                        |
-| saveEnumFolderPath       | string                                | Oui         | Chemin de sauvegarde des fichiers de données enum                                                                                                                                                                                                    |
-| importEnumPath           | string                                | Oui         | Chemin d'import enum (chemin des fichiers enum référencés dans apps/types/models/\*.ts)                                                                                                                                                              |
-| swaggerJsonUrl           | string                                | Oui         | Adresse du document Swagger JSON                                                                                                                                                                                                                     |
-| requestMethodsImportPath | string                                | Oui         | Chemin d'import des méthodes de requête                                                                                                                                                                                                              |
-| dataLevel                | 'data' \| 'serve' \| 'axios'          | Oui         | Niveau de données retournées par l'interface                                                                                                                                                                                                         |
-| formatting               | object                                | Non         | Configuration du formatage du code                                                                                                                                                                                                                   |
-| headers                  | object                                | Non         | Configuration des en-têtes de requête                                                                                                                                                                                                                |
-| includeInterface         | Array<{path: string, method: string}> | Non         | Interfaces à inclure : Le fichier de liste d'interfaces spécifié par `saveApiListFolderPath` ne contiendra que les interfaces de la liste, mutuellement exclusif avec `excludeInterface`                                                             |
-| excludeInterface         | Array<{path: string, method: string}> | Non         | Interfaces à exclure : Le fichier de liste d'interfaces spécifié par `saveApiListFolderPath` ne contiendra pas les interfaces de cette liste, mutuellement exclusif avec `includeInterface`                                                          |
-| publicPrefix             | string                                | Non         | Préfixe commun sur le chemin URL, par exemple : api/users, api/users/{id}, api est le préfixe commun                                                                                                                                                 |
-| erasableSyntaxOnly       | boolean                               | Oui         | Doit être cohérent avec l'option `compilerOptions.erasableSyntaxOnly` de tsconfig.json. Si `true`, génère un objet const au lieu d'un enum (syntaxe de type uniquement). Valeur par défaut : `false`                                                 |
-| parameterSeparator       | string                                | Non         | Séparateur utilisé entre les segments de chemin et les paramètres lors de la génération des noms d'API et des noms de type. Par exemple, `/users/{userId}/posts` avec le séparateur `'_'` génère `users_userId_posts_GET`. Valeur par défaut : `'_'` |
+| Élément de configuration        | Type                                  | Obligatoire | Description                                                                                                                                                                                                                                          |
+| ------------------------------ | ------------------------------------- | ----------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| saveTypeFolderPath             | string                                | Oui         | Chemin de sauvegarde des fichiers de définition de types                                                                                                                                                                                             |
+| saveApiListFolderPath          | string                                | Oui         | Chemin de sauvegarde des fichiers de fonctions de requête API                                                                                                                                                                                        |
+| saveEnumFolderPath             | string                                | Oui         | Chemin de sauvegarde des fichiers de données enum                                                                                                                                                                                                    |
+| importEnumPath                 | string                                | Oui         | Chemin d'import enum (chemin des fichiers enum référencés dans apps/types/models/\*.ts)                                                                                                                                                              |
+| swaggerJsonUrl                 | string                                | Oui         | Adresse du document Swagger JSON                                                                                                                                                                                                                     |
+| requestMethodsImportPath       | string                                | Oui         | Chemin d'import des méthodes de requête                                                                                                                                                                                                              |
+| dataLevel                      | 'data' \| 'serve' \| 'axios'          | Oui         | Niveau de données retournées par l'interface                                                                                                                                                                                                         |
+| formatting                     | object                                | Non         | Configuration du formatage du code                                                                                                                                                                                                                   |
+| headers                        | object                                | Non         | Configuration des en-têtes de requête                                                                                                                                                                                                                |
+| includeInterface               | Array<{path: string, method: string}> | Non         | Interfaces à inclure : Le fichier de liste d'interfaces spécifié par `saveApiListFolderPath` ne contiendra que les interfaces de la liste, mutuellement exclusif avec `excludeInterface`                                                             |
+| excludeInterface               | Array<{path: string, method: string}> | Non         | Interfaces à exclure : Le fichier de liste d'interfaces spécifié par `saveApiListFolderPath` ne contiendra pas les interfaces de cette liste, mutuellement exclusif avec `includeInterface`                                                          |
+| publicPrefix                   | string                                | Non         | Préfixe commun sur le chemin URL, par exemple : api/users, api/users/{id}, api est le préfixe commun                                                                                                                                                 |
+| enmuConfig.erasableSyntaxOnly  | boolean                               | Oui         | Doit être cohérent avec l'option `compilerOptions.erasableSyntaxOnly` de tsconfig.json. Si `true`, génère un objet const au lieu d'un enum (syntaxe de type uniquement). Valeur par défaut : `false`                                                 |
+| parameterSeparator             | string                                | Non         | Séparateur utilisé entre les segments de chemin et les paramètres lors de la génération des noms d'API et des noms de type. Par exemple, `/users/{userId}/posts` avec le séparateur `'_'` génère `users_userId_posts_GET`. Valeur par défaut : `'_'` |
+| enmuConfig.varnames            | string                                | Non         | Nom du champ dans le schéma Swagger contenant les noms personnalisés des membres d'enum. Valeur par défaut : `enum-varnames`.                                                                                                                        |
+| enmuConfig.comment             | string                                | Non         | Nom du champ dans le schéma Swagger contenant les descriptions des membres d'enum (utilisé pour générer des commentaires). Valeur par défaut : `enum-descriptions`.                                                                                  |
 
 #### Relation entre les éléments de configuration et les fichiers générés
 
@@ -207,9 +213,9 @@ export const userDetailGet = (params: UserDetail_GET.Query) => GET<UserDetail_GE
 
 #### Génération d'enum
 
-L'outil prend en charge deux modes de génération d'enum, contrôlés par la configuration `erasableSyntaxOnly` :
+L'outil prend en charge deux modes de génération d'enum, contrôlés par la configuration `enmuConfig.erasableSyntaxOnly` :
 
-**Mode enum traditionnel** (`erasableSyntaxOnly: false`, valeur par défaut) :
+**Mode enum traditionnel** (`enmuConfig.erasableSyntaxOnly: false`, valeur par défaut) :
 
 ```typescript
 export enum Status {
@@ -219,7 +225,7 @@ export enum Status {
 }
 ```
 
-**Mode objet constant** (`erasableSyntaxOnly: true`) :
+**Mode objet constant** (`enmuConfig.erasableSyntaxOnly: true`) :
 
 ```typescript
 export const Status = {
