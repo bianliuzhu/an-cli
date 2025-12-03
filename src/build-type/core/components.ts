@@ -31,6 +31,29 @@ class Components {
 		this.config = config;
 	}
 
+	private handleEnum(value: NonArraySchemaObject, key: string): TReturnType | null {
+		const enumName = key.charAt(0).toUpperCase() + key.slice(1);
+		if (isValidJSON(value.example)) {
+			const enumContent = this.convertJsonToEnumString(value.example as string, enumName);
+			const typeName = this.getEnumTypeName(enumName);
+			return {
+				headerRef: '',
+				renderStr: `${INDENT}${key}${this.requiredFieldS.includes(key) ? '' : '?'}: ${typeName}${this.nullable(value.nullable)};`,
+				comment: enumContent,
+			};
+		}
+
+		const fileName = this.typeNameToFileName(enumName);
+		const enumResult = this.parseEnum(value, enumName);
+		// 检查了
+		if (enumResult && !this.enumsMap.has(fileName)) {
+			this.enumsMap.set(fileName, { fileName, content: enumResult.renderStr });
+			return { headerRef: '', renderStr: '' };
+		}
+
+		return null;
+	}
+
 	nullable(v?: boolean) {
 		return `${v ? ' | null' : ''}`;
 	}
@@ -163,9 +186,10 @@ class Components {
 	parseEnum(value: NonArraySchemaObject, enumName: string): TReturnType {
 		if (!Array.isArray(value.enum)) return null;
 
+		const Situation = ['integer', 'number'];
 		if (this.config.erasableSyntaxOnly) {
 			// 生成 const 对象形式
-			if (value.type === 'integer') {
+			if (value.type && Situation.includes(value.type)) {
 				const enumValues = value.enum.map((item: number) => `${INDENT}NUMBER_${item}: ${item},`);
 				return {
 					headerRef: '',
@@ -202,7 +226,7 @@ class Components {
 			}
 		} else {
 			// 生成传统 enum 形式
-			if (value.type === 'integer') {
+			if (value.type && Situation.includes(value.type)) {
 				const enumValues = value.enum.map((item: number) => `${INDENT}NUMBER_${item} = ${item},`);
 				return {
 					headerRef: '',
@@ -239,8 +263,18 @@ class Components {
 		}
 	}
 
-	parseNumber(value: NonArraySchemaObject, key: string): string {
-		return value.type === 'number' ? `${INDENT}${key}${this.requiredFieldS.includes(key) ? '' : '?'}: number${this.nullable(value.nullable)};` : '';
+	parseNumber(value: NonArraySchemaObject, key: string): TReturnType | null {
+		if (value.type !== 'number') return null;
+
+		if (value.enum) {
+			const enumResult = this.handleEnum(value, key);
+			if (enumResult) return enumResult;
+		}
+
+		return {
+			headerRef: '',
+			renderStr: `${INDENT}${key}${this.requiredFieldS.includes(key) ? '' : '?'}: number${this.nullable(value.nullable)};`,
+		};
 	}
 
 	convertJsonToEnumString(jsonStr: string, enumName: string): string {
@@ -267,33 +301,17 @@ class Components {
 	}
 
 	parseString(value: NonArraySchemaObject, key: string): TReturnType {
-		if (value.type === 'string') {
-			if (value.enum) {
-				const enumName = key.charAt(0).toUpperCase() + key.slice(1);
-				if (isValidJSON(value.example)) {
-					const enumContent = this.convertJsonToEnumString(value.example as string, enumName);
-					const typeName = this.getEnumTypeName(enumName);
-					return {
-						headerRef: '',
-						renderStr: `${INDENT}${key}${this.requiredFieldS.includes(key) ? '' : '?'}: ${typeName}${this.nullable(value.nullable)};`,
-						comment: enumContent,
-					};
-				} else {
-					const fileName = this.typeNameToFileName(enumName);
-					const enumResult = this.parseEnum(value, enumName);
-					// 检查了
-					if (enumResult && !this.enumsMap.has(fileName)) {
-						this.enumsMap.set(fileName, { fileName, content: enumResult.renderStr });
-						return { headerRef: '', renderStr: '' };
-					}
-				}
-			}
-			return {
-				headerRef: '',
-				renderStr: `${INDENT}${key}${this.requiredFieldS.includes(key) ? '' : '?'}: string${this.nullable(value.nullable)};`,
-			};
+		if (value.type !== 'string') return null;
+
+		if (value.enum) {
+			const enumResult = this.handleEnum(value, key);
+			if (enumResult) return enumResult;
 		}
-		return null;
+
+		return {
+			headerRef: '',
+			renderStr: `${INDENT}${key}${this.requiredFieldS.includes(key) ? '' : '?'}: string${this.nullable(value.nullable)};`,
+		};
 	}
 
 	parseProperties(properties: OpenAPIV3.BaseSchemaObject['properties'], interfaceKey: string): TReturnType {
@@ -377,7 +395,11 @@ class Components {
 
 				case 'number':
 					{
-						content.push(this.parseNumber(schema as NonArraySchemaObject, name));
+						const numberResult = this.parseNumber(schema as NonArraySchemaObject, name);
+						if (numberResult) {
+							if (numberResult.headerRef && !headerRef.includes(numberResult.headerRef)) headerRef.push(numberResult.headerRef);
+							content.push(numberResult.renderStr);
+						}
 					}
 					break;
 
@@ -461,8 +483,10 @@ class Components {
 				return this.parseBoolean(schemaObject, key);
 			case 'integer':
 				return this.parseInteger(schemaObject, key);
-			case 'number':
-				return this.parseNumber(schemaObject, key);
+			case 'number': {
+				const result = this.parseNumber(schemaObject, key);
+				return result?.renderStr ?? '';
+			}
 			case 'object': {
 				const result = this.parseProperties(schemaObject.properties, key);
 				return result?.renderStr ?? '';
