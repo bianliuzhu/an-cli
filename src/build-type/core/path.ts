@@ -167,13 +167,13 @@ export class PathParse {
 	 * 如果启用了 erasableSyntaxOnly，在枚举名后添加 Type 后缀以区分类型和常量
 	 */
 	private getEnumTypeName(enumName: string): string {
-		if (!this.config.erasableSyntaxOnly) {
-			return enumName;
+		if (this.config.enmuConfig.erasableSyntaxOnly) {
+			// erasableSyntaxOnly 模式下，添加 Type 后缀以区分类型名和常量名
+			// 例如：SCReferenceTypeEnum => SCReferenceTypeEnumType
+			return `${enumName}Type`;
 		}
 
-		// erasableSyntaxOnly 模式下，添加 Type 后缀以区分类型名和常量名
-		// 例如：SCReferenceTypeEnum => SCReferenceTypeEnumType
-		return `${enumName}Type`;
+		return enumName;
 	}
 
 	/**

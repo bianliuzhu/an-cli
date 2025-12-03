@@ -18,6 +18,11 @@ type TReturnType = {
 
 type TrenderType = { fileName: string; content: string };
 
+type EnumMetadata = {
+	customNames?: string[];
+	descriptionMap?: Record<string, string>;
+};
+
 class Components {
 	config: ConfigType;
 	schemas: ComponentsSchemas = {};
@@ -63,11 +68,11 @@ class Components {
 	 * 如果启用了 erasableSyntaxOnly，在枚举名后添加 Type 后缀以区分类型和常量
 	 */
 	getEnumTypeName(enumName: string): string {
-		if (!this.config.erasableSyntaxOnly) {
+		if (!this.config.enmuConfig.erasableSyntaxOnly) {
 			return enumName;
 		}
 
-		// erasableSyntaxOnly 模式下，添加 Type 后缀以区分类型名和常量名
+		// .enmuConfig.erasableSyntaxOnly 模式下，添加 Type 后缀以区分类型名和常量名
 		// 例如：ActivityCorrectionPartStatusEnum => ActivityCorrectionPartStatusEnumType
 		return `${enumName}Type`;
 	}
@@ -183,75 +188,106 @@ class Components {
 			: '';
 	}
 
+	private extractEnumMetadata(value: NonArraySchemaObject): EnumMetadata {
+		const metadata: EnumMetadata = {};
+		const { enmuConfig } = this.config;
+		const schemaValue = value as Record<string, unknown>;
+
+		if (enmuConfig?.varnames) {
+			const rawNames = schemaValue[enmuConfig.varnames];
+			if (Array.isArray(rawNames)) {
+				metadata.customNames = rawNames.map((item) => `${item}`);
+			}
+		}
+
+		if (enmuConfig?.comment) {
+			const rawComments = schemaValue[enmuConfig.comment];
+			if (rawComments && typeof rawComments === 'object' && !Array.isArray(rawComments)) {
+				const descriptionMap: Record<string, string> = {};
+				Object.entries(rawComments as Record<string, unknown>).forEach(([key, desc]) => {
+					if (typeof desc === 'string') {
+						descriptionMap[key] = desc;
+					}
+				});
+
+				if (Object.keys(descriptionMap).length) {
+					metadata.descriptionMap = descriptionMap;
+				}
+			}
+		}
+
+		return metadata;
+	}
+
+	private resolveEnumMemberName(
+		enumValue: string | number,
+		index: number,
+		options: { customNames?: string[]; isNumericEnum: boolean; treatStringAsNumeric: boolean },
+	): string {
+		const { customNames, isNumericEnum, treatStringAsNumeric } = options;
+		const customName = customNames?.[index];
+
+		if (typeof customName === 'string' && customName.trim()) {
+			return customName;
+		}
+
+		if (isNumericEnum || (typeof enumValue === 'string' && treatStringAsNumeric)) {
+			return `NUMBER_${enumValue}`;
+		}
+
+		if (typeof enumValue === 'string' && enumValue) {
+			return enumValue.toUpperCase();
+		}
+
+		return `ENUM_${index}`;
+	}
+
 	parseEnum(value: NonArraySchemaObject, enumName: string): TReturnType {
 		if (!Array.isArray(value.enum)) return null;
 
 		const Situation = ['integer', 'number'];
-		if (this.config.erasableSyntaxOnly) {
-			// 生成 const 对象形式
-			if (value.type && Situation.includes(value.type)) {
-				const enumValues = value.enum.map((item: number) => `${INDENT}NUMBER_${item}: ${item},`);
-				return {
-					headerRef: '',
-					renderStr: [
-						`export const ${enumName} = {`,
-						...enumValues,
-						`} as const;`,
-						'',
-						`export type ${this.getEnumTypeName(enumName)} = typeof ${enumName}[keyof typeof ${enumName}];`,
-					].join('\n'),
-				};
+		const isNumericEnum = Boolean(value.type && Situation.includes(value.type));
+		const enumValues = value.enum as Array<string | number>;
+		const treatStringAsNumeric = value.type === 'string' && enumValues.every((item) => typeof item === 'string' && !isNaN(Number(item)));
+		const { customNames, descriptionMap } = this.extractEnumMetadata(value);
+		const useConstObject = this.config.enmuConfig.erasableSyntaxOnly;
+
+		const enumEntries = enumValues.map((item, index) => {
+			const memberName = this.resolveEnumMemberName(item, index, {
+				customNames,
+				isNumericEnum,
+				treatStringAsNumeric,
+			});
+			const literalValue = isNumericEnum ? `${item}` : `'${String(item)}'`;
+			const assignment = useConstObject ? `${memberName}: ${literalValue},` : `${memberName} = ${literalValue},`;
+			const description = descriptionMap?.[String(item)];
+
+			if (description) {
+				return [`${INDENT}/** ${description} */`, `${INDENT}${assignment}`].join('\n');
 			}
 
-			if (value.type === 'string') {
-				const isAllNumeric = value.enum.every((item: string) => !isNaN(Number(item)));
+			return `${INDENT}${assignment}`;
+		});
 
-				const enumValues = value.enum.map((item: string) => {
-					if (isAllNumeric) {
-						return `${INDENT}NUMBER_${item}: '${item}',`;
-					}
-					return `${INDENT}${item.toUpperCase()}: '${item}',`;
-				});
+		if (!enumEntries.length) return null;
 
-				return {
-					headerRef: '',
-					renderStr: [
-						`export const ${enumName} = {`,
-						...enumValues,
-						`} as const;`,
-						'',
-						`export type ${this.getEnumTypeName(enumName)} = typeof ${enumName}[keyof typeof ${enumName}];`,
-					].join('\n'),
-				};
-			}
-		} else {
-			// 生成传统 enum 形式
-			if (value.type && Situation.includes(value.type)) {
-				const enumValues = value.enum.map((item: number) => `${INDENT}NUMBER_${item} = ${item},`);
-				return {
-					headerRef: '',
-					renderStr: [`export enum ${enumName} {`, ...enumValues, `}`].join('\n'),
-				};
-			}
-
-			if (value.type === 'string') {
-				const isAllNumeric = value.enum.every((item: string) => !isNaN(Number(item)));
-
-				const enumValues = value.enum.map((item: string) => {
-					if (isAllNumeric) {
-						return `${INDENT}NUMBER_${item} = '${item}',`;
-					}
-					return `${INDENT}${item.toUpperCase()} = '${item}',`;
-				});
-
-				return {
-					headerRef: '',
-					renderStr: [`export enum ${enumName} {`, ...enumValues, `}`].join('\n'),
-				};
-			}
+		if (useConstObject) {
+			return {
+				headerRef: '',
+				renderStr: [
+					`export const ${enumName} = {`,
+					...enumEntries,
+					`} as const;`,
+					'',
+					`export type ${this.getEnumTypeName(enumName)} = typeof ${enumName}[keyof typeof ${enumName}];`,
+				].join('\n'),
+			};
 		}
 
-		return null;
+		return {
+			headerRef: '',
+			renderStr: [`export enum ${enumName} {`, ...enumEntries, `}`].join('\n'),
+		};
 	}
 
 	parseInteger(value: NonArraySchemaObject, key: string): string {
@@ -281,7 +317,7 @@ class Components {
 		try {
 			const jsonObj = JSON.parse(jsonStr);
 
-			if (this.config.erasableSyntaxOnly) {
+			if (this.config.enmuConfig.erasableSyntaxOnly) {
 				// 生成 const 对象形式
 				const enumValues = Object.entries(jsonObj)
 					.map(([key, value]) => `${INDENT}${key}: '${value}'`)

@@ -123,29 +123,35 @@ $ anl type
 		}
 	],
 	"publicPrefix": "api",
-	"erasableSyntaxOnly": false,
-	"parameterSeparator": "_"
+	"parameterSeparator": "_",
+	"enmuConfig": {
+		"erasableSyntaxOnly": false,
+		"varnames": "enum-varnames",
+		"comment": "enum-descriptions"
+	}
 }
 ```
 
 #### 配置项说明
 
-| 配置项                   | 类型                                  | 必填 | 说明                                                                                                                                                   |
-| ------------------------ | ------------------------------------- | ---- | ------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| saveTypeFolderPath       | string                                | 是   | 类型定义文件保存路径                                                                                                                                   |
-| saveApiListFolderPath    | string                                | 是   | API 请求函数文件保存路径                                                                                                                               |
-| saveEnumFolderPath       | string                                | 是   | 枚举数据文件保存路径                                                                                                                                   |
-| importEnumPath           | string                                | 是   | 枚举导入路径(apps/types/models/\*.ts 中 enum 文件的引用的路径)                                                                                         |
-| swaggerJsonUrl           | string                                | 是   | Swagger JSON 文档地址                                                                                                                                  |
-| requestMethodsImportPath | string                                | 是   | 请求方法导入路径                                                                                                                                       |
-| dataLevel                | 'data' \| 'serve' \| 'axios'          | 是   | 接口返回数据层级                                                                                                                                       |
-| formatting               | object                                | 否   | 代码格式化配置                                                                                                                                         |
-| headers                  | object                                | 否   | 请求头配置                                                                                                                                             |
-| includeInterface         | Array<{path: string, method: string}> | 否   | 包含的接口：`saveApiListFolderPath`指定的接口列表文件，只会包含列表中的接口，与 `excludeInterface` 字段互斥                                            |
-| excludeInterface         | Array<{path: string, method: string}> | 否   | 排除的接口: `saveApiListFolderPath` 指定的接口列表文本，不存在该列表中的接口，与 `includeInterface` 互斥                                               |
-| publicPrefix             | string                                | 否   | url path 上的公共前缀，例如：api/users、api/users/{id} ,api 就是公共前缀                                                                               |
-| erasableSyntaxOnly       | boolean                               | 是   | 与 tsconfig.json 的 `compilerOptions.erasableSyntaxOnly` 选项保持一致。为 `true` 时，生成 const 对象而非 enum（仅类型语法）。默认值：`false`           |
-| parameterSeparator       | string                                | 否   | 生成 API 名称和类型名称时，路径段和参数之间使用的分隔符。例如，`/users/{userId}/posts` 使用分隔符 `'_'` 会生成 `users_userId_posts_GET`。默认值：`'_'` |
+| 配置项                        | 类型                                  | 必填 | 说明                                                                                                                                                   |
+| ----------------------------- | ------------------------------------- | ---- | ------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| saveTypeFolderPath            | string                                | 是   | 类型定义文件保存路径                                                                                                                                   |
+| saveApiListFolderPath         | string                                | 是   | API 请求函数文件保存路径                                                                                                                               |
+| saveEnumFolderPath            | string                                | 是   | 枚举数据文件保存路径                                                                                                                                   |
+| importEnumPath                | string                                | 是   | 枚举导入路径(apps/types/models/\*.ts 中 enum 文件的引用的路径)                                                                                         |
+| swaggerJsonUrl                | string                                | 是   | Swagger JSON 文档地址                                                                                                                                  |
+| requestMethodsImportPath      | string                                | 是   | 请求方法导入路径                                                                                                                                       |
+| dataLevel                     | 'data' \| 'serve' \| 'axios'          | 是   | 接口返回数据层级                                                                                                                                       |
+| formatting                    | object                                | 否   | 代码格式化配置                                                                                                                                         |
+| headers                       | object                                | 否   | 请求头配置                                                                                                                                             |
+| includeInterface              | Array<{path: string, method: string}> | 否   | 包含的接口：`saveApiListFolderPath`指定的接口列表文件，只会包含列表中的接口，与 `excludeInterface` 字段互斥                                            |
+| excludeInterface              | Array<{path: string, method: string}> | 否   | 排除的接口: `saveApiListFolderPath` 指定的接口列表文本，不存在该列表中的接口，与 `includeInterface` 互斥                                               |
+| publicPrefix                  | string                                | 否   | url path 上的公共前缀，例如：api/users、api/users/{id} ,api 就是公共前缀                                                                               |
+| enmuConfig.erasableSyntaxOnly | boolean                               | 是   | 与 tsconfig.json 的 `compilerOptions.erasableSyntaxOnly` 选项保持一致。为 `true` 时，生成 const 对象而非 enum（仅类型语法）。默认值：`false`           |
+| parameterSeparator            | string                                | 否   | 生成 API 名称和类型名称时，路径段和参数之间使用的分隔符。例如，`/users/{userId}/posts` 使用分隔符 `'_'` 会生成 `users_userId_posts_GET`。默认值：`'_'` |
+| enmuConfig.varnames           | string                                | 否   | Swagger schema 中自定义枚举成员名所在的字段名。默认值：`enum-varnames`。                                                                               |
+| enmuConfig.comment            | string                                | 否   | Swagger schema 中自定义枚举描述所在的字段名（用于生成注释）。默认值：`enum-descriptions`。                                                             |
 
 #### 配置项与生成的文件对应关系
 
@@ -207,9 +213,9 @@ export const userDetailGet = (params: UserDetail_GET.Query) => GET<UserDetail_GE
 
 #### 枚举生成
 
-工具支持两种枚举生成模式，通过 `erasableSyntaxOnly` 配置控制：
+工具支持两种枚举生成模式，通过 `enmuConfig.erasableSyntaxOnly` 配置控制：
 
-**传统枚举模式** (`erasableSyntaxOnly: false`，默认值):
+**传统枚举模式** (`enmuConfig.erasableSyntaxOnly: false`，默认值):
 
 ```typescript
 export enum Status {
@@ -219,7 +225,7 @@ export enum Status {
 }
 ```
 
-**常量对象模式** (`erasableSyntaxOnly: true`):
+**常量对象模式** (`enmuConfig.erasableSyntaxOnly: true`):
 
 ```typescript
 export const Status = {

@@ -123,29 +123,35 @@ $ anl type
 		}
 	],
 	"publicPrefix": "api",
-	"erasableSyntaxOnly": false,
-	"parameterSeparator": "_"
+	"parameterSeparator": "_",
+	"enmuConfig": {
+		"erasableSyntaxOnly": false,
+		"varnames": "enum-varnames",
+		"comment": "enum-descriptions"
+	}
 }
 ```
 
 #### Описание элементов конфигурации
 
-| Элемент конфигурации     | Тип                                   | Обязательный | Описание                                                                                                                                                                                                      |
-| ------------------------ | ------------------------------------- | ------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| saveTypeFolderPath       | string                                | Да           | Путь сохранения файлов определений типов                                                                                                                                                                      |
-| saveApiListFolderPath    | string                                | Да           | Путь сохранения файлов функций API-запросов                                                                                                                                                                   |
-| saveEnumFolderPath       | string                                | Да           | Путь сохранения файлов данных enum                                                                                                                                                                            |
-| importEnumPath           | string                                | Да           | Путь импорта enum (путь ссылки на файлы enum в apps/types/models/\*.ts)                                                                                                                                       |
-| swaggerJsonUrl           | string                                | Да           | Адрес документа Swagger JSON                                                                                                                                                                                  |
-| requestMethodsImportPath | string                                | Да           | Путь импорта методов запросов                                                                                                                                                                                 |
-| dataLevel                | 'data' \| 'serve' \| 'axios'          | Да           | Уровень данных возврата интерфейса                                                                                                                                                                            |
-| formatting               | object                                | Нет          | Конфигурация форматирования кода                                                                                                                                                                              |
-| headers                  | object                                | Нет          | Конфигурация заголовков запроса                                                                                                                                                                               |
-| includeInterface         | Array<{path: string, method: string}> | Нет          | Включаемые интерфейсы: файл списка интерфейсов, указанный `saveApiListFolderPath`, будет включать только интерфейсы из списка, взаимоисключающий с полем `excludeInterface`                                   |
-| excludeInterface         | Array<{path: string, method: string}> | Нет          | Исключаемые интерфейсы: файл списка интерфейсов, указанный `saveApiListFolderPath`, не будет содержать интерфейсы из этого списка, взаимоисключающий с `includeInterface`                                     |
-| publicPrefix             | string                                | Нет          | Общий префикс на url path, например: api/users、api/users/{id} ,api является общим префиксом                                                                                                                  |
-| erasableSyntaxOnly       | boolean                               | Да           | Соответствует опции `compilerOptions.erasableSyntaxOnly` в tsconfig.json. При значении `true` генерируется const объект вместо enum (только типовый синтаксис). Значение по умолчанию: `false`                |
-| parameterSeparator       | string                                | Нет          | Разделитель между сегментами пути и параметрами при генерации имен API и имен типов. Например, `/users/{userId}/posts` с разделителем `'_'` генерирует `users_userId_posts_GET`. Значение по умолчанию: `'_'` |
+| Элемент конфигурации            | Тип                                   | Обязательный | Описание                                                                                                                                                                                                      |
+| ------------------------------ | ------------------------------------- | ------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| saveTypeFolderPath             | string                                | Да           | Путь сохранения файлов определений типов                                                                                                                                                                      |
+| saveApiListFolderPath          | string                                | Да           | Путь сохранения файлов функций API-запросов                                                                                                                                                                   |
+| saveEnumFolderPath             | string                                | Да           | Путь сохранения файлов данных enum                                                                                                                                                                            |
+| importEnumPath                 | string                                | Да           | Путь импорта enum (путь ссылки на файлы enum в apps/types/models/\*.ts)                                                                                                                                       |
+| swaggerJsonUrl                 | string                                | Да           | Адрес документа Swagger JSON                                                                                                                                                                                  |
+| requestMethodsImportPath       | string                                | Да           | Путь импорта методов запросов                                                                                                                                                                                 |
+| dataLevel                      | 'data' \| 'serve' \| 'axios'          | Да           | Уровень данных возврата интерфейса                                                                                                                                                                            |
+| formatting                     | object                                | Нет          | Конфигурация форматирования кода                                                                                                                                                                              |
+| headers                        | object                                | Нет          | Конфигурация заголовков запроса                                                                                                                                                                               |
+| includeInterface               | Array<{path: string, method: string}> | Нет          | Включаемые интерфейсы: файл списка интерфейсов, указанный `saveApiListFolderPath`, будет включать только интерфейсы из списка, взаимоисключающий с полем `excludeInterface`                                   |
+| excludeInterface               | Array<{path: string, method: string}> | Нет          | Исключаемые интерфейсы: файл списка интерфейсов, указанный `saveApiListFolderPath`, не будет содержать интерфейсы из этого списка, взаимоисключающий с `includeInterface`                                     |
+| publicPrefix                   | string                                | Нет          | Общий префикс на url path, например: api/users、api/users/{id} ,api является общим префиксом                                                                                                                  |
+| enmuConfig.erasableSyntaxOnly  | boolean                               | Да           | Соответствует опции `compilerOptions.erasableSyntaxOnly` в tsconfig.json. При значении `true` генерируется const объект вместо enum (только типовый синтаксис). Значение по умолчанию: `false`                |
+| parameterSeparator             | string                                | Нет          | Разделитель между сегментами пути и параметрами при генерации имен API и имен типов. Например, `/users/{userId}/posts` с разделителем `'_'` генерирует `users_userId_posts_GET`. Значение по умолчанию: `'_'` |
+| enmuConfig.varnames            | string                                | Нет          | Имя поля в схеме Swagger, в котором находятся пользовательские имена элементов enum. Значение по умолчанию: `enum-varnames`.                                                                                  |
+| enmuConfig.comment             | string                                | Нет          | Имя поля в схеме Swagger, содержащее описания элементов enum (используется для генерации комментариев). Значение по умолчанию: `enum-descriptions`.                                                            |
 
 #### Соответствие элементов конфигурации и генерируемых файлов
 
@@ -207,9 +213,9 @@ export const userDetailGet = (params: UserDetail_GET.Query) => GET<UserDetail_GE
 
 #### Генерация enum
 
-Инструмент поддерживает два режима генерации enum, контролируемые через конфигурацию `erasableSyntaxOnly`:
+Инструмент поддерживает два режима генерации enum, контролируемые через конфигурацию `enmuConfig.erasableSyntaxOnly`:
 
-**Традиционный режим enum** (`erasableSyntaxOnly: false`, значение по умолчанию):
+**Традиционный режим enum** (`enmuConfig.erasableSyntaxOnly: false`, значение по умолчанию):
 
 ```typescript
 export enum Status {
@@ -219,7 +225,7 @@ export enum Status {
 }
 ```
 
-**Режим константного объекта** (`erasableSyntaxOnly: true`):
+**Режим константного объекта** (`enmuConfig.erasableSyntaxOnly: true`):
 
 ```typescript
 export const Status = {

@@ -123,29 +123,35 @@ $ anl type
 		}
 	],
 	"publicPrefix": "api",
-	"erasableSyntaxOnly": false,
-	"parameterSeparator": "_"
+	"parameterSeparator": "_",
+	"enmuConfig": {
+		"erasableSyntaxOnly": false,
+		"varnames": "enum-varnames",
+		"comment": "enum-descriptions"
+	}
 }
 ```
 
 #### شرح عناصر التكوين
 
-| عنصر التكوين             | النوع                                 | مطلوب | الوصف                                                                                                                                                                                            |
-| ------------------------ | ------------------------------------- | ----- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| saveTypeFolderPath       | string                                | نعم   | مسار حفظ ملفات تعريف الأنواع                                                                                                                                                                     |
-| saveApiListFolderPath    | string                                | نعم   | مسار حفظ ملفات دوال طلبات API                                                                                                                                                                    |
-| saveEnumFolderPath       | string                                | نعم   | مسار حفظ ملفات بيانات التعداد                                                                                                                                                                    |
-| importEnumPath           | string                                | نعم   | مسار استيراد التعداد (مسار ملف enum المُشار إليه في apps/types/models/\*.ts)                                                                                                                     |
-| swaggerJsonUrl           | string                                | نعم   | عنوان مستند Swagger JSON                                                                                                                                                                         |
-| requestMethodsImportPath | string                                | نعم   | مسار استيراد طرق الطلب                                                                                                                                                                           |
-| dataLevel                | 'data' \| 'serve' \| 'axios'          | نعم   | مستوى بيانات استجابة الواجهة                                                                                                                                                                     |
-| formatting               | object                                | لا    | تكوين تنسيق الكود                                                                                                                                                                                |
-| headers                  | object                                | لا    | تكوين رأس الطلب                                                                                                                                                                                  |
-| includeInterface         | Array<{path: string, method: string}> | لا    | الواجهات المضمنة: ملف قائمة الواجهات المحدد بـ `saveApiListFolderPath` سيتضمن فقط الواجهات في القائمة، متعارض مع حقل `excludeInterface`                                                          |
-| excludeInterface         | Array<{path: string, method: string}> | لا    | الواجهات المستبعدة: نص قائمة الواجهات المحدد بـ `saveApiListFolderPath` لن يتضمن الواجهات في هذه القائمة، متعارض مع `includeInterface`                                                           |
-| publicPrefix             | string                                | لا    | البادئة العامة على مسار url، على سبيل المثال: api/users، api/users/{id}، api هي البادئة العامة                                                                                                   |
-| erasableSyntaxOnly       | boolean                               | نعم   | يتوافق مع خيار `compilerOptions.erasableSyntaxOnly` في tsconfig.json. عندما يكون `true`، يتم إنشاء كائن const بدلاً من enum (صيغة النوع فقط). القيمة الافتراضية: `false`                         |
-| parameterSeparator       | string                                | لا    | الفاصل المستخدم بين أجزاء المسار والمعاملات عند إنشاء أسماء API وأسماء الأنواع. على سبيل المثال، `/users/{userId}/posts` مع الفاصل `'_'` ينشئ `users_userId_posts_GET`. القيمة الافتراضية: `'_'` |
+| عنصر التكوين                    | النوع                                 | مطلوب | الوصف                                                                                                                                                                                            |
+| ------------------------------- | ------------------------------------- | ----- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| saveTypeFolderPath              | string                                | نعم   | مسار حفظ ملفات تعريف الأنواع                                                                                                                                                                     |
+| saveApiListFolderPath           | string                                | نعم   | مسار حفظ ملفات دوال طلبات API                                                                                                                                                                    |
+| saveEnumFolderPath              | string                                | نعم   | مسار حفظ ملفات بيانات التعداد                                                                                                                                                                    |
+| importEnumPath                  | string                                | نعم   | مسار استيراد التعداد (مسار ملف enum المُشار إليه في apps/types/models/\*.ts)                                                                                                                     |
+| swaggerJsonUrl                  | string                                | نعم   | عنوان مستند Swagger JSON                                                                                                                                                                         |
+| requestMethodsImportPath        | string                                | نعم   | مسار استيراد طرق الطلب                                                                                                                                                                           |
+| dataLevel                       | 'data' \| 'serve' \| 'axios'          | نعم   | مستوى بيانات استجابة الواجهة                                                                                                                                                                     |
+| formatting                      | object                                | لا    | تكوين تنسيق الكود                                                                                                                                                                                |
+| headers                         | object                                | لا    | تكوين رأس الطلب                                                                                                                                                                                  |
+| includeInterface                | Array<{path: string, method: string}> | لا    | الواجهات المضمنة: ملف قائمة الواجهات المحدد بـ `saveApiListFolderPath` سيتضمن فقط الواجهات في القائمة، متعارض مع حقل `excludeInterface`                                                          |
+| excludeInterface                | Array<{path: string, method: string}> | لا    | الواجهات المستبعدة: نص قائمة الواجهات المحدد بـ `saveApiListFolderPath` لن يتضمن الواجهات في هذه القائمة، متعارض مع `includeInterface`                                                           |
+| publicPrefix                    | string                                | لا    | البادئة العامة على مسار url، على سبيل المثال: api/users، api/users/{id}، api هي البادئة العامة                                                                                                   |
+| enmuConfig.erasableSyntaxOnly   | boolean                               | نعم   | يتوافق مع خيار `compilerOptions.erasableSyntaxOnly` في tsconfig.json. عندما يكون `true`، يتم إنشاء كائن const بدلاً من enum (صيغة النوع فقط). القيمة الافتراضية: `false`                         |
+| parameterSeparator              | string                                | لا    | الفاصل المستخدم بين أجزاء المسار والمعاملات عند إنشاء أسماء API وأسماء الأنواع. على سبيل المثال، `/users/{userId}/posts` مع الفاصل `'_'` ينشئ `users_userId_posts_GET`. القيمة الافتراضية: `'_'` |
+| enmuConfig.varnames             | string                                | لا    | اسم الحقل في مخطط Swagger الذي يحتوي على أسماء عناصر التعداد المخصصة. القيمة الافتراضية: `enum-varnames`.                                                                                      |
+| enmuConfig.comment              | string                                | لا    | اسم الحقل في مخطط Swagger الذي يحتوي على أوصاف عناصر التعداد (يُستخدم لإنشاء التعليقات). القيمة الافتراضية: `enum-descriptions`.                                                                |
 
 #### العلاقة بين عناصر التكوين والملفات المولدة
 
@@ -207,9 +213,9 @@ export const userDetailGet = (params: UserDetail_GET.Query) => GET<UserDetail_GE
 
 #### توليد التعداد
 
-تدعم الأداة وضعين لتوليد التعداد، يتم التحكم فيهما من خلال تكوين `erasableSyntaxOnly`:
+تدعم الأداة وضعين لتوليد التعداد، يتم التحكم فيهما من خلال تكوين `enmuConfig.erasableSyntaxOnly`:
 
-**وضع التعداد التقليدي** (`erasableSyntaxOnly: false`، القيمة الافتراضية):
+**وضع التعداد التقليدي** (`enmuConfig.erasableSyntaxOnly: false`، القيمة الافتراضية):
 
 ```typescript
 export enum Status {
@@ -219,7 +225,7 @@ export enum Status {
 }
 ```
 
-**وضع الكائن الثابت** (`erasableSyntaxOnly: true`):
+**وضع الكائن الثابت** (`enmuConfig.erasableSyntaxOnly: true`):
 
 ```typescript
 export const Status = {

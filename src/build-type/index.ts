@@ -34,8 +34,13 @@ const configContent: ConfigType = {
 	},
 	includeInterface: [],
 	excludeInterface: [],
-	erasableSyntaxOnly: false,
+
 	parameterSeparator: '_',
+	enmuConfig: {
+		erasableSyntaxOnly: false,
+		varnames: 'enum-varnames',
+		comment: 'enum-descriptions',
+	},
 };
 
 export class Main {
