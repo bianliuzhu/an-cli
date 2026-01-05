@@ -21,6 +21,8 @@
   - 🎨 Supports code formatting
   - ⚡️ Supports file upload
   - 🛠 Configurable code generation options
+  - 🌐 Supports multiple Swagger server configurations
+  - 🔧 Supports HTTP methods like OPTIONS, HEAD, SEARCH
 
 - `anl lint`
   - 🔍 One-click configuration for various lint tools
@@ -94,13 +96,20 @@ $ anl type
 
 #### Configuration File Example
 
+**Single Swagger Server Configuration:**
+
 ```json
 {
 	"saveTypeFolderPath": "apps/types",
 	"saveApiListFolderPath": "apps/api/",
 	"saveEnumFolderPath": "apps/enums",
 	"importEnumPath": "../../enums",
-	"swaggerJsonUrl": "https://generator3.swagger.io/openapi.json",
+	"swaggerServers": {
+		"url": "https://generator3.swagger.io/openapi2.json",
+		"apiListFileName": "index.ts",
+		"publicPrefix": "api",
+		"headers": {}
+	},
 	"requestMethodsImportPath": "./fetch",
 	"dataLevel": "serve",
 	"formatting": {
@@ -120,7 +129,6 @@ $ anl type
 			"method": "post"
 		}
 	],
-	"publicPrefix": "api",
 	"parameterSeparator": "_",
 	"enmuConfig": {
 		"erasableSyntaxOnly": false,
@@ -130,26 +138,68 @@ $ anl type
 }
 ```
 
+**Multiple Swagger Servers Configuration:**
+
+```json
+{
+	"saveTypeFolderPath": "apps/types",
+	"saveApiListFolderPath": "apps/api/",
+	"saveEnumFolderPath": "apps/enums",
+	"importEnumPath": "../../enums",
+	"requestMethodsImportPath": "./fetch",
+	"dataLevel": "serve",
+	"formatting": {
+		"indentation": "\t",
+		"lineEnding": "\n"
+	},
+	"parameterSeparator": "_",
+	"enmuConfig": {
+		"erasableSyntaxOnly": false,
+		"varnames": "enum-varnames",
+		"comment": "enum-descriptions"
+	},
+	"swaggerServers": [
+		{
+			"url": "https://generator3.swagger.io/openapi1.json",
+			"apiListFileName": "op.ts",
+			"headers": {}
+		},
+		{
+			"url": "https://generator3.swagger.io/openapi2.json",
+			"apiListFileName": "index.ts",
+			"publicPrefix": "/api",
+			"headers": {}
+		}
+	]
+}
+```
+
 #### Configuration Item Descriptions
 
-| Configuration Item       | Type                                  | Required | Description                                                                                                                                                                                                |
-| ------------------------ | ------------------------------------- | -------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| saveTypeFolderPath       | string                                | Yes      | Type definition file save path                                                                                                                                                                             |
-| saveApiListFolderPath    | string                                | Yes      | API request function file save path                                                                                                                                                                        |
-| saveEnumFolderPath       | string                                | Yes      | Enum data file save path                                                                                                                                                                                   |
-| importEnumPath           | string                                | Yes      | Enum import path (path referenced by enum files in apps/types/models/\*.ts)                                                                                                                                |
-| swaggerJsonUrl           | string                                | Yes      | Swagger JSON documentation address                                                                                                                                                                         |
-| requestMethodsImportPath | string                                | Yes      | Request method import path                                                                                                                                                                                 |
-| dataLevel                | 'data' \| 'serve' \| 'axios'          | Yes      | Interface return data level                                                                                                                                                                                |
-| formatting               | object                                | No       | Code formatting configuration                                                                                                                                                                              |
-| headers                  | object                                | No       | Request header configuration                                                                                                                                                                               |
-| includeInterface         | Array<{path: string, method: string}> | No       | Included interfaces: The interface list file specified by `saveApiListFolderPath` will only include interfaces in the list, mutually exclusive with `excludeInterface` field                               |
-| excludeInterface         | Array<{path: string, method: string}> | No       | Excluded interfaces: The interface list file specified by `saveApiListFolderPath` will not include interfaces in this list, mutually exclusive with `includeInterface`                                     |
-| publicPrefix             | string                                | No       | Common prefix on url path, e.g.: api/users, api/users/{id}, api is the common prefix                                                                                                                       |
-| enmuConfig.erasableSyntaxOnly | boolean                          | Yes      | Align with tsconfig.json `compilerOptions.erasableSyntaxOnly`. When `true`, generates const objects instead of enums (type-only syntax). Default: `false`                                                  |
-| parameterSeparator       | string                                | No       | Separator used between path segments and parameters when generating API names and type names. For example, `/users/{userId}/posts` with separator `'_'` generates `users_userId_posts_GET`. Default: `'_'` |
-| enmuConfig.varnames      | string                                | No       | Schema field name that stores custom enum member identifiers. Default: `enum-varnames`.                                                                             |
-| enmuConfig.comment       | string                                | No       | Schema field name that stores enum member descriptions (used for inline comments). Default: `enum-descriptions`.                                                    |
+| Configuration Item                           | Type                                  | Required | Description                                                         |
+| -------------------------------------------- | ------------------------------------- | -------- | ------------------------------------------------------------------- |
+| saveTypeFolderPath                           | string                                | Yes      | Type definition file save path                                       |
+| saveApiListFolderPath                        | string                                | Yes      | API request function file save path                                  |
+| saveEnumFolderPath                           | string                                | Yes      | Enum data file save path                                             |
+| importEnumPath                               | string                                | Yes      | Enum import path (path referenced by enum files in apps/types/models/\*.ts) |
+| swaggerJsonUrl                               | string                                | No       | Swagger JSON documentation address (migrated to `swaggerServers`, retained for backward compatibility) **This field will be removed in future versions** |
+| swaggerServers                               | object \| Array<object>               | No       | Swagger server configuration. Single server can be an object, multiple servers use an array. Each server can configure `url`, `publicPrefix`, `apiListFileName`, `headers`<br />See single and multiple Swagger server configuration examples above |
+| swaggerServers[].url                         | string                                | Yes      | Swagger JSON documentation address                                   |
+| swaggerServers[].publicPrefix                | string                                | No       | Common prefix on url path, e.g.: api/users, api/users/{id}, api is the common prefix |
+| swaggerServers[].apiListFileName             | string                                | No       | API list file name, defaults to `index.ts`. When using multiple servers, each server's file name must be unique |
+| swaggerServers[].headers                     | object                                | No       | Request header configuration                                         |
+| requestMethodsImportPath                     | string                                | Yes      | Request method import path                                            |
+| dataLevel                                    | 'data' \| 'serve' \| 'axios'          | Yes      | Interface return data level                                          |
+| formatting                                   | object                                | No       | Code formatting configuration                                        |
+| headers                                      | object                                | No       | Request header configuration (migrated to `swaggerServers`, retained for backward compatibility) |
+| includeInterface                             | Array<{path: string, method: string}> | No       | Included interfaces: The interface list file specified by `saveApiListFolderPath` will only include interfaces in the list, mutually exclusive with `excludeInterface` field |
+| excludeInterface                             | Array<{path: string, method: string}> | No       | Excluded interfaces: The interface list file specified by `saveApiListFolderPath` will not include interfaces in this list, mutually exclusive with `includeInterface` |
+| publicPrefix                                 | string                                | No       | Common prefix on url path (migrated to `swaggerServers`, retained for backward compatibility) |
+| apiListFileName                              | string                                | No       | API list file name, defaults to `index.ts` (migrated to `swaggerServers`, retained for backward compatibility) |
+| enmuConfig.erasableSyntaxOnly               | boolean                               | Yes      | Align with tsconfig.json `compilerOptions.erasableSyntaxOnly`. When `true`, generates const objects instead of enums (type-only syntax). Default: `false` |
+| parameterSeparator                           | string                                | No       | Separator used between path segments and parameters when generating API names and type names. For example, `/users/{userId}/posts` with separator `'_'` generates `users_userId_posts_GET`. Default: `'_'` |
+| enmuConfig.varnames                          | string                                | No       | Schema field name that stores custom enum member identifiers. Default: `enum-varnames`. |
+| enmuConfig.comment                           | string                                | No       | Schema field name that stores enum member descriptions (used for inline comments). Default: `enum-descriptions`. |
 
 #### Configuration Items and Generated Files Correspondence
 
@@ -162,7 +212,8 @@ project/
 │   │   ├── models/          				# All type definition files (excluding enum types) uncontrolled
 │   │   ├── connectors/      				# API type definitions (interface definition files) uncontrolled
 │   └── api/                 		# Request files: Specified by saveApiListFolderPath configuration item
-│   │    └── index.ts        				# API request function list uncontrolled
+│   │    └── index.ts        				# API request function list (single server or first server) uncontrolled
+│   │    └── op.ts           				# Other servers' API list files when using multiple servers uncontrolled
 │   │    └── api-type.d.ts      		# Request type definition file uncontrolled
 │   │    └── config.ts       				# Request, response interceptor, request configuration uncontrolled
 │   │    └── error-message.ts   		# System-level error messages uncontrolled
@@ -306,12 +357,73 @@ Example configuration: This configuration is in `an.config.json`
 
 Note: `includeInterface` and `excludeInterface` cannot be used simultaneously. If both are configured, `includeInterface` will be prioritized.
 
+#### Multiple Swagger Servers Support
+
+The tool supports configuring multiple Swagger servers, each server can be configured independently:
+
+- **Single server**: `swaggerServers` can be directly filled with an object
+- **Multiple servers**: `swaggerServers` uses an array format, each server must configure a unique `apiListFileName`
+
+**How it works:**
+
+- The first server's APIs will be generated to the specified `apiListFileName` (defaults to `index.ts`)
+- Subsequent servers' APIs will be appended to their respective `apiListFileName` files
+- Type definitions and enums will be merged into a unified folder to avoid duplication
+
+**Configuration example:**
+
+```json
+{
+	"swaggerServers": [
+		{
+			"url": "http://api1.example.com/swagger.json",
+			"apiListFileName": "api1.ts",
+			"publicPrefix": "/api/v1",
+			"headers": {
+				"Authorization": "Bearer token1"
+			}
+		},
+		{
+			"url": "http://api2.example.com/swagger.json",
+			"apiListFileName": "api2.ts",
+			"publicPrefix": "/api/v2",
+			"headers": {
+				"Authorization": "Bearer token2"
+			}
+		}
+	]
+}
+```
+
+**Migration notes:**
+
+- Old configuration (`swaggerJsonUrl`, `publicPrefix`, `headers`) is still compatible
+- The tool will automatically detect old configuration and suggest migration methods
+- It's recommended to migrate to the new `swaggerServers` configuration for better flexibility
+
+#### HTTP Method Support
+
+The tool supports the following HTTP methods:
+
+- `GET` - Get resources
+- `POST` - Create resources
+- `PUT` - Update resources (full replacement)
+- `PATCH` - Update resources (partial update)
+- `DELETE` - Delete resources
+- `OPTIONS` - Preflight requests
+- `HEAD` - Get response headers
+- `SEARCH` - Search requests
+
+All methods support type-safe parameter and response type definitions.
+
 ### Notes
 
 1. Ensure the Swagger JSON documentation address is accessible
 2. Paths in the configuration file need to be relative to the project root directory
 3. Generated files will overwrite existing files with the same name
 4. It's recommended to add generated files to version control
+5. When using multiple Swagger servers, ensure each server's `apiListFileName` is unique to avoid file overwriting
+6. When configuring multiple servers, type definitions and enums will be merged. If different servers have types with the same name, conflicts may occur
 
 ### Common Issues
 

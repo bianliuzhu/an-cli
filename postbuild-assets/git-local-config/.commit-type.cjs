@@ -1,7 +1,6 @@
 
 const types = {
   features: {
-    // 将中文翻译成英文
     description: 'A new feature',
     title: 'Features',
     emoji: '💡',

@@ -14,6 +14,10 @@ type TReturnType = Promise<OpenAPI.Document & DocumentCommom>;
 
 /** 获取 Swagger JSON 数据 */
 export async function getSwaggerJson(config: ConfigType): TReturnType {
+	if (!config.swaggerJsonUrl) {
+		return Promise.reject(new Error('swaggerJsonUrl 未配置，请检查 swaggerServers.url'));
+	}
+
 	if (/^https?:\/\//.test(config.swaggerJsonUrl)) {
 		return requestJson(config);
 	} else {
@@ -28,7 +32,7 @@ export async function getSwaggerJson(config: ConfigType): TReturnType {
 }
 
 /** 发起请求 */
-export function requestJson({ swaggerJsonUrl: url, headers = {} }: ConfigType): TReturnType {
+export function requestJson({ swaggerJsonUrl: url = '', headers = {} }: ConfigType): TReturnType {
 	return new Promise((resolve, reject) => {
 		let TM: ReturnType<typeof setTimeout> | undefined = undefined;
 		const request = /^https/.test(url) ? https.request : http.request;
