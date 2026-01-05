@@ -1125,8 +1125,11 @@ export class PathParse {
 
 			apiListFileContent.unshift(`import { ${methodList.join(', ')} } from '${this.config.requestMethodsImportPath || './api'}';`, '\n');
 
-			await clearDir(this.config.saveApiListFolderPath + '/index.ts');
-			await writeFileRecursive(this.config.saveApiListFolderPath + '/index.ts', apiListFileContent.join('\n'));
+			const apiListFileName = this.config.apiListFileName || 'index.ts';
+			const apiListFilePath = `${this.config.saveApiListFolderPath}/${apiListFileName}`;
+
+			await clearDir(apiListFilePath);
+			await writeFileRecursive(apiListFilePath, apiListFileContent.join('\n'));
 
 			this.Map = new Map();
 

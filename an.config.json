@@ -19,5 +19,18 @@
 		"erasableSyntaxOnly": false,
 		"varnames": "enum-varnames",
 		"comment": "enum-descriptions"
-	}
+	},
+	"swaggerServers": [
+		{
+			"url": "http://172.24.171.108:8080/v3/api-docs",
+			"apiListFileName": "op.ts",
+			"headers": {}
+		},
+		{
+			"url": "https://llmops-bff.dev.dotfortune.com/api-docs/json",
+			"apiListFileName": "index.ts",
+			"publicPrefix": "/api",
+			"headers": {}
+		}
+	]
 }

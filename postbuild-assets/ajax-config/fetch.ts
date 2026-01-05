@@ -125,4 +125,77 @@ function PATCH<R = unknown>(url: string, { query, body, ...rest }: IRequestFnPar
 			}
 		});
 }
-export { DELETE, GET, PATCH, POST, PUT };
+function OPTIONS<R = unknown>(url: string, params: IRequestFnParams, datalevel?: 'serve'): RServe<R>;
+function OPTIONS<R = unknown>(url: string, params: IRequestFnParams, datalevel?: 'data'): Promise<R>;
+function OPTIONS<R = unknown>(url: string, params: IRequestFnParams, datalevel?: 'axios'): RAxios<R>;
+function OPTIONS<R = unknown>(url: string, { query, body, ...rest }: IRequestFnParams, datalevel: TDatalevel = 'serve') {
+	return axios
+		.request<any, AxiosResponse<ResponseModel<R>>>({
+			...rest,
+			url,
+			params: query,
+			data: body,
+			method: 'options',
+		})
+		.then((res) => {
+			messageTip(res);
+			switch (datalevel) {
+				case 'data':
+					return res.data.data;
+				case 'serve':
+					return res.data;
+				case 'axios':
+					return res;
+			}
+		});
+}
+
+function HEAD<R = unknown>(url: string, params: IRequestFnParams, datalevel?: 'serve'): RServe<R>;
+function HEAD<R = unknown>(url: string, params: IRequestFnParams, datalevel?: 'data'): Promise<R>;
+function HEAD<R = unknown>(url: string, params: IRequestFnParams, datalevel?: 'axios'): RAxios<R>;
+function HEAD<R = unknown>(url: string, { query, body, ...rest }: IRequestFnParams, datalevel: TDatalevel = 'serve') {
+	return axios
+		.request<any, AxiosResponse<ResponseModel<R>>>({
+			...rest,
+			url,
+			params: query,
+			data: body,
+			method: 'head',
+		})
+		.then((res) => {
+			messageTip(res);
+			switch (datalevel) {
+				case 'data':
+					return res.data.data;
+				case 'serve':
+					return res.data;
+				case 'axios':
+					return res;
+			}
+		});
+}
+function SEARCH<R = unknown>(url: string, params: IRequestFnParams, datalevel?: 'serve'): RServe<R>;
+function SEARCH<R = unknown>(url: string, params: IRequestFnParams, datalevel?: 'data'): Promise<R>;
+function SEARCH<R = unknown>(url: string, params: IRequestFnParams, datalevel?: 'axios'): RAxios<R>;
+function SEARCH<R = unknown>(url: string, { query, body, ...rest }: IRequestFnParams, datalevel: TDatalevel = 'serve') {
+	return axios
+		.request<any, AxiosResponse<ResponseModel<R>>>({
+			...rest,
+			url,
+			params: query,
+			data: body,
+			method: 'search',
+		})
+		.then((res) => {
+			messageTip(res);
+			switch (datalevel) {
+				case 'data':
+					return res.data.data;
+				case 'serve':
+					return res.data;
+				case 'axios':
+					return res;
+			}
+		});
+}
+export { DELETE, GET, PATCH, POST, PUT, OPTIONS, HEAD, SEARCH };

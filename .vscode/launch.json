@@ -22,6 +22,27 @@
 			"console": "integratedTerminal",
 			"internalConsoleOptions": "neverOpen",
 			"env": {
+				"NODE_ENV": "debug"
+			}
+		},
+		{
+			"name": "dev",
+			"type": "node",
+			"request": "launch",
+			"args": [
+				"${workspaceRoot}/src/build-type/index.ts"
+			],
+			"runtimeArgs": [
+				"--nolazy",
+				"-r",
+				"ts-node/register"
+			],
+			"sourceMaps": true,
+			"cwd": "${workspaceRoot}",
+			"protocol": "inspector",
+			"console": "integratedTerminal",
+			"internalConsoleOptions": "neverOpen",
+			"env": {
 				"NODE_ENV": "development"
 			}
 		}

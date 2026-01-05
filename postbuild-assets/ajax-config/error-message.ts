@@ -22,12 +22,6 @@ const rewriteCodeMessage = ({ code = 10000, msg = '网络错误，稍后重试�
 			return { code, msg: '系统错误，稍后重试！' };
 		case 4001:
 			return { code, msg: '登录超时，请重新登录！' };
-		case 4011:
-			return { code, msg: '背景名称已存在，请重新修改' };
-		case 4016:
-			return { code, msg: '画布信息保存失败，请稍后重试' };
-		case 4021:
-			return { code, msg: '无可推荐人物形象，请自行生成' };
 		default:
 			return { code, msg };
 	}

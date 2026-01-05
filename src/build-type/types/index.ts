@@ -129,13 +129,33 @@ export interface IncludeOrExcludeInterface {
 	method: string;
 }
 
+export interface IConfigSwaggerServer {
+	/** swagger json 的 url */
+	url: string;
+	/** 公共前缀 */
+	publicPrefix?: string;
+	/** api list 的文件名称 */
+	apiListFileName?: string;
+	/** 追加请求头 */
+	headers?: Record<string, string>;
+}
+
 export interface ConfigType {
 	/** 存放生成的类型文件的文件夹路径 */
 	saveTypeFolderPath: string;
 	/** 存放生成的 api 文件的文件夹路径 */
 	saveApiListFolderPath: string;
-	/** swagger json 的 url */
-	swaggerJsonUrl: string;
+	/**
+	 * 兼容旧配置的 swagger json 地址（已迁移到 swaggerServers 中）
+	 */
+	swaggerJsonUrl?: string;
+
+	/** swagger 服务器列表 */
+	swaggerServers: Required<IConfigSwaggerServer>[] | IConfigSwaggerServer;
+
+	/** api list 生成文件名，单个 swaggerServer 可省略，默认 index.ts */
+	apiListFileName?: string;
+
 	/** 请求方法导入路径 */
 	requestMethodsImportPath: string;
 	/** 追加请求头 */
@@ -159,7 +179,6 @@ export interface ConfigType {
 	excludeInterface?: IncludeOrExcludeInterface[];
 	/** 公共前缀 */
 	publicPrefix?: string;
-
 	/** 参数分隔符 */
 	parameterSeparator: '$' | '_';
 	/** enum 配置 */

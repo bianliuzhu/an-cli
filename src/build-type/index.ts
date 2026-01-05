@@ -4,7 +4,7 @@ import { clearDir, writeFileRecursive } from '../utils';
 import Components from './core/components';
 import { getSwaggerJson } from './core/get-data';
 import PathParse from './core/path';
-import { ComponentsSchemas, ConfigType, PathsObject } from './types';
+import { ComponentsSchemas, ConfigType, IConfigSwaggerServer, PathsObject } from './types';
 import { exec } from 'shelljs';
 import { log } from '../utils';
 import chalk from 'chalk';
@@ -16,17 +16,22 @@ interface ExecResult {
 	stdout: string;
 	stderr: string;
 }
-const isDev = process.env.NODE_ENV === 'development';
+const isDebug = process.env.NODE_ENV === 'debug';
 
 const configContent: ConfigType = {
-	saveTypeFolderPath: isDev ? 'apps/types' : 'src/api/types',
-	saveApiListFolderPath: isDev ? 'apps/types' : 'src/api',
-	saveEnumFolderPath: isDev ? 'apps/types/enums' : 'src/enums',
+	saveTypeFolderPath: isDebug ? 'apps/types' : 'src/api/types',
+	saveApiListFolderPath: isDebug ? 'apps/types' : 'src/api',
+	saveEnumFolderPath: isDebug ? 'apps/types/enums' : 'src/enums',
 	importEnumPath: '../../../enums',
 	requestMethodsImportPath: './fetch',
-	publicPrefix: '/api',
 	dataLevel: 'serve',
 	swaggerJsonUrl: 'https://generator3.swagger.io/openapi.json',
+	swaggerServers: {
+		url: 'https://generator3.swagger.io/openapi.json',
+		apiListFileName: 'index.ts',
+		headers: {},
+	},
+	apiListFileName: 'index.ts',
 	headers: {},
 	formatting: {
 		indentation: '\t',
@@ -43,6 +48,8 @@ const configContent: ConfigType = {
 	},
 };
 
+type NormalizedSwaggerServer = Required<IConfigSwaggerServer>;
+
 export class Main {
 	private schemas: ComponentsSchemas = {};
 	private paths: PathsObject = {};
@@ -50,11 +57,11 @@ export class Main {
 	/**
 	 * 处理 Swagger 数据
 	 */
-	private async handle(config: ConfigType) {
+	private async handle(config: ConfigType, appendMode: boolean) {
 		try {
 			let response: OpenAPIV3.Document;
 
-			if (isDev) {
+			if (isDebug) {
 				response = (await import('../../data/openapi.json')).default as unknown as OpenAPIV3.Document;
 				// response = (await import('../../data/df.json')).default as unknown as OpenAPIV3.Document;
 			} else {
@@ -68,7 +75,7 @@ export class Main {
 			this.schemas = response.components?.schemas || {};
 			this.paths = response.paths || {};
 
-			const components = new Components(this.schemas, config);
+			const components = new Components(this.schemas, config, { appendMode });
 			const paths = new PathParse(this.paths, response.components?.parameters, this.schemas, config);
 
 			await components.handle();
@@ -121,7 +128,9 @@ export class Main {
 	private async copyAjaxConfigFiles(saveApiListFolderPath: string) {
 		try {
 			const filesToCopy = ['config.ts', 'error-message.ts', 'fetch.ts', 'api-type.d.ts'];
-			const sourceDir = isDev ? path.join(__dirname, '..', '..', 'postbuild-assets', 'ajax-config') : path.join(__dirname, '..', '..', 'ajax-config');
+			const sourceDir = isDebug
+				? path.join(__dirname, '..', '..', 'postbuild-assets', 'ajax-config')
+				: path.join(__dirname, '..', '..', 'ajax-config');
 			const destDir = saveApiListFolderPath;
 
 			for (const file of filesToCopy) {
@@ -148,6 +157,130 @@ export class Main {
 	}
 
 	/**
+	 * 检测系统语言
+	 */
+	private getSystemLocale(): string {
+		try {
+			// 优先使用 Intl API 检测语言
+			const locale = Intl.DateTimeFormat().resolvedOptions().locale;
+			return locale.toLowerCase();
+		} catch {
+			// 回退到环境变量
+			const lang = process.env.LANG || process.env.LC_ALL || process.env.LC_MESSAGES || '';
+			return lang.toLowerCase();
+		}
+	}
+
+	/**
+	 * 当检测到旧版配置时，在控制台提示迁移方式
+	 */
+	private showLegacyConfigHint(config: ConfigType) {
+		const exampleServer = {
+			url: config.swaggerJsonUrl || 'https://your.swagger.json',
+			publicPrefix: config.publicPrefix || '',
+			apiListFileName: config.apiListFileName || 'index.ts',
+			headers: config.headers || {},
+		};
+
+		const locale = this.getSystemLocale();
+		const isChinese = locale.startsWith('zh') || locale.includes('chinese');
+
+		if (isChinese) {
+			console.log('\n检测到旧版配置，请更新 an.config.json：');
+			console.log('1) 将 swaggerJsonUrl / publicPrefix / headers 移到 swaggerServers 字段。');
+			console.log('2) 单个服务可直接填写对象，多个服务请使用数组，并确保 apiListFileName 唯一。');
+			console.log('示例：');
+			console.log(JSON.stringify({ swaggerServers: exampleServer }, null, 2));
+			console.log('');
+		} else {
+			console.log('\nLegacy configuration detected, please update an.config.json:');
+			console.log('1) Move swaggerJsonUrl / publicPrefix / headers to swaggerServers field.');
+			console.log('2) Single service can be an object directly, multiple services should use an array, and ensure apiListFileName is unique.');
+			console.log('Example:');
+			console.log(JSON.stringify({ swaggerServers: exampleServer }, null, 2));
+			console.log('');
+		}
+	}
+
+	/**
+	 * 规范化 swaggerServers，兼容旧配置并校验必填字段
+	 */
+	private normalizeSwaggerServers(config: ConfigType, hasUserDefinedServers: boolean): NormalizedSwaggerServer[] {
+		let legacyDetected = false;
+		let serversInput = hasUserDefinedServers ? config.swaggerServers : undefined;
+
+		if (!serversInput) {
+			legacyDetected = true;
+			serversInput = {
+				url: config.swaggerJsonUrl || '',
+				publicPrefix: config.publicPrefix || '',
+				apiListFileName: config.apiListFileName || 'index.ts',
+				headers: config.headers || {},
+			};
+		}
+
+		const fillDefaults = (server: IConfigSwaggerServer, index: number): NormalizedSwaggerServer => {
+			const url = server.url || config.swaggerJsonUrl;
+			if (!url) {
+				throw new Error(`swaggerServers[${index}] 缺少 url，请补充后重试。`);
+			}
+
+			const publicPrefix = server.publicPrefix ?? config.publicPrefix ?? '';
+
+			if (!server.url && config.swaggerJsonUrl) {
+				legacyDetected = true;
+			}
+
+			const apiListFileNameRaw = server.apiListFileName || config.apiListFileName || 'index.ts';
+			const apiListFileName = apiListFileNameRaw.trim() || 'index.ts';
+			const headers = server.headers || config.headers || {};
+
+			return {
+				url,
+				publicPrefix,
+				apiListFileName,
+				headers,
+			};
+		};
+
+		const normalized = Array.isArray(serversInput) ? serversInput.map((item, index) => fillDefaults(item, index)) : [fillDefaults(serversInput, 0)];
+
+		if (normalized.length === 0) {
+			throw new Error('swaggerServers 不能为空，请至少配置一个 swagger 服务。');
+		}
+
+		if (normalized.length > 1) {
+			const nameSet = new Set<string>();
+			normalized.forEach((server) => {
+				if (nameSet.has(server.apiListFileName)) {
+					throw new Error(`swaggerServers 中 apiListFileName 重复：${server.apiListFileName}，请为每个服务设置唯一文件名。`);
+				}
+				nameSet.add(server.apiListFileName);
+			});
+		}
+
+		if (legacyDetected) {
+			this.showLegacyConfigHint(config);
+		}
+
+		return normalized;
+	}
+
+	/**
+	 * 将 swaggerServer 数据合并到配置中，便于后续处理
+	 */
+	private buildServerConfig(baseConfig: ConfigType, server: NormalizedSwaggerServer): ConfigType {
+		return {
+			...baseConfig,
+			swaggerJsonUrl: server.url,
+			publicPrefix: server.publicPrefix ?? baseConfig.publicPrefix,
+			headers: server.headers,
+			apiListFileName: server.apiListFileName,
+			swaggerServers: server,
+		};
+	}
+
+	/**
 	 * 获取配置文件
 	 */
 	private async getConfig(configFilePath: string): Promise<ConfigType> {
@@ -168,25 +301,32 @@ export class Main {
 		const configFilePath = process.cwd() + '/an.config.json';
 
 		try {
-			const config = await this.getConfig(configFilePath);
+			const userConfig = await this.getConfig(configFilePath);
+			const mergedConfig = { ...configContent, ...userConfig };
+			const hasUserSwaggerServers = Object.prototype.hasOwnProperty.call(userConfig, 'swaggerServers');
+			const servers = this.normalizeSwaggerServers(mergedConfig, hasUserSwaggerServers);
 
 			if (!isConfigFile) return;
 
 			// 创建目标目录（如果不存在）
-			await fs.promises.mkdir(config.saveApiListFolderPath, { recursive: true });
+			await fs.promises.mkdir(mergedConfig.saveApiListFolderPath, { recursive: true });
 
 			// 复制 ajax 配置文件
-			await this.copyAjaxConfigFiles(config.saveApiListFolderPath);
+			await this.copyAjaxConfigFiles(mergedConfig.saveApiListFolderPath);
 
 			// 清理文件夹
-			await clearDir(config.saveTypeFolderPath);
-			await clearDir(config.saveEnumFolderPath);
+			await clearDir(mergedConfig.saveTypeFolderPath);
+			await clearDir(mergedConfig.saveEnumFolderPath);
 
-			// 解析 swagger 数据及生成文件
-			await this.handle(config);
+			// 逐个 swagger 服务生成
+			for (let i = 0; i < servers.length; i++) {
+				const serverConfig = this.buildServerConfig(mergedConfig, servers[i]);
+				const appendMode = i > 0;
+				await this.handle(serverConfig, appendMode);
+			}
 
 			// 对生成文件进行格式化
-			await this.formatGeneratedFiles(config);
+			await this.formatGeneratedFiles(mergedConfig);
 
 			log.success('Successfully, all done, see you next time!');
 			console.log('\n');

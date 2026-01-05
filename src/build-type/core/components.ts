@@ -1,3 +1,4 @@
+import fs from 'fs';
 import { OpenAPIV3 } from 'openapi-types';
 import { isValidJSON, log, writeFileRecursive } from '../../utils';
 import { ComponentsSchemas, ConfigType } from '../types';
@@ -30,10 +31,12 @@ class Components {
 	schemasMap: Map<string, TrenderType> = new Map();
 	defaultReturn = { headerRef: '', renderStr: '', comment: '', typeName: '' };
 	requiredFieldS: string[] = [];
+	appendMode: boolean;
 
-	constructor(schemas: ComponentsSchemas, config: ConfigType) {
+	constructor(schemas: ComponentsSchemas, config: ConfigType, options?: { appendMode?: boolean }) {
 		this.schemas = schemas;
 		this.config = config;
+		this.appendMode = options?.appendMode ?? false;
 	}
 
 	private handleEnum(value: NonArraySchemaObject, key: string): TReturnType | null {
@@ -576,39 +579,39 @@ class Components {
 	}
 
 	private async writeEnums(): Promise<void> {
-		const Plist = [];
+		const tasks = [];
 		const exportFileContent: string[] = [];
 		for (const [, value] of this.enumsMap) {
-			const P = async ({ fileName, content }: TrenderType) => {
+			const task = async ({ fileName, content }: TrenderType) => {
 				exportFileContent.push(`export * from './${fileName}';`);
 				const _path = `${this.config.saveEnumFolderPath}/${fileName}.ts`;
 				await writeFileRecursive(_path, content);
 				log.info(`${_path.padEnd(80)} - Write done!`);
 			};
-			Plist.push(P(value));
+			tasks.push(task(value));
 		}
-		await Promise.all(Plist);
-		await writeFileRecursive(`${this.config.saveEnumFolderPath}/index.ts`, exportFileContent.join('\n'));
+		await Promise.all(tasks);
+		await this.writeIndexFile(`${this.config.saveEnumFolderPath}/index.ts`, exportFileContent);
 		log.success('Enums write done!');
 	}
 
 	private async writeFile(): Promise<void> {
-		const Plist = [];
+		const tasks = [];
 		const exportFileContent: string[] = [];
 		const saveTypeFolderPath = `${this.config.saveTypeFolderPath}/models/`;
 
 		for (const [, value] of this.schemasMap) {
-			const P = async ({ fileName, content }: TrenderType) => {
+			const task = async ({ fileName, content }: TrenderType) => {
 				exportFileContent.push(`export * from './${fileName}';`);
 				const _path = `${saveTypeFolderPath}${fileName}.ts`;
 				await writeFileRecursive(_path, content);
 				log.info(`${_path.padEnd(80)} - Write done!`);
 			};
-			Plist.push(P(value));
+			tasks.push(task(value));
 		}
 
-		await Promise.all(Plist);
-		await writeFileRecursive(`${saveTypeFolderPath}index.ts`, exportFileContent.join('\n'));
+		await Promise.all(tasks);
+		await this.writeIndexFile(`${saveTypeFolderPath}index.ts`, exportFileContent);
 		log.success('Component parse & write done!');
 	}
 
@@ -616,6 +619,26 @@ class Components {
 		await this.parseData();
 		await this.writeFile();
 		await this.writeEnums();
+	}
+
+	private async writeIndexFile(indexPath: string, newExports: string[]): Promise<void> {
+		const exportLines = newExports.filter(Boolean);
+		if (!exportLines.length) return;
+
+		let existingLines: string[] = [];
+		if (this.appendMode) {
+			try {
+				const current = await fs.promises.readFile(indexPath, 'utf8');
+				existingLines = current.split('\n').filter((line) => line.trim() !== '');
+			} catch {
+				existingLines = [];
+			}
+		}
+
+		const existingSet = new Set(existingLines);
+		const merged = [...existingLines, ...exportLines.filter((line) => !existingSet.has(line))];
+		const content = merged.join('\n');
+		await writeFileRecursive(indexPath, content);
 	}
 }
 
