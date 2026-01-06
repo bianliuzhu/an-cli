@@ -46,14 +46,17 @@ jobs:
           const fs = require('fs');
           const { execSync } = require('child_process');
 
-          // 获取当前日期 (YY.M.D 格式，无前导零)
+          // 获取当前日期 (YY.MDD 格式：年.月日.序号)
+          // 月份不补0，日期补0到两位，组成中间段
+          // 示例：1月6日 → 106, 12月25日 → 1225
           const now = new Date();
           const year = now.getFullYear().toString().slice(-2);
           const month = (now.getMonth() + 1).toString(); // 不填充前导零
-          const day = now.getDate().toString(); // 不填充前导零
-          const datePrefix = `${year}.${month}.${day}`;
+          const day = now.getDate().toString().padStart(2, '0'); // 日期填充两位数
+          const middleSegment = month + day; // 例如：106, 1225
+          const datePrefix = `${year}.${middleSegment}`;
 
-          console.log(`Date prefix: ${datePrefix}`);
+          console.log(`Date prefix: ${datePrefix} (year: ${year}, month: ${month}, day: ${day})`);
 
           // 获取包名
           const pkg = require('./package.json');
@@ -71,15 +74,15 @@ jobs:
 
           console.log('Existing versions:', existingVersions);
 
-          // 查找今天发布的版本（格式：YY.M.D.number）
+          // 查找今天发布的版本（格式：YY.MDD.number）
           const todayVersions = existingVersions.filter(v => {
-            // 匹配格式：YY.M.D.number
-            const match = v.match(/^(\d+)\.(\d+)\.(\d+)\.(\d+)$/);
+            // 匹配格式：YY.MDD.number（三段式）
+            const match = v.match(/^(\d+)\.(\d+)\.(\d+)$/);
             if (!match) return false;
             
-            const [, vYear, vMonth, vDay, vNumber] = match;
+            const [, vYear, vMiddle, vPatch] = match;
             
-            return vYear === year && vMonth === month && vDay === day;
+            return vYear === year && vMiddle === middleSegment;
           });
 
           console.log('Today\'s versions:', todayVersions);
@@ -93,9 +96,9 @@ jobs:
             let maxNumber = -1;
             
             todayVersions.forEach(v => {
-              const match = v.match(/^(\d+)\.(\d+)\.(\d+)\.(\d+)$/);
+              const match = v.match(/^(\d+)\.(\d+)\.(\d+)$/);
               if (match) {
-                const number = parseInt(match[4]);
+                const number = parseInt(match[3]);
                 maxNumber = Math.max(maxNumber, number);
               }
             });
