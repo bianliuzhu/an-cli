@@ -46,14 +46,14 @@ jobs:
           const fs = require('fs');
           const { execSync } = require('child_process');
 
-          // 获取当前日期 (YY.MMDD 格式，符合 semver 规范)
+          // 获取当前日期 (YY.M.D 格式，无前导零)
           const now = new Date();
           const year = now.getFullYear().toString().slice(-2);
-          const month = (now.getMonth() + 1).toString().padStart(2, '0');
-          const day = now.getDate().toString().padStart(2, '0');
-          const dateVersion = `${year}.${month}${day}`;
+          const month = (now.getMonth() + 1).toString(); // 不填充前导零
+          const day = now.getDate().toString(); // 不填充前导零
+          const datePrefix = `${year}.${month}.${day}`;
 
-          console.log(`Date version: ${dateVersion}`);
+          console.log(`Date prefix: ${datePrefix}`);
 
           // 获取包名
           const pkg = require('./package.json');
@@ -71,26 +71,36 @@ jobs:
 
           console.log('Existing versions:', existingVersions);
 
-          // 查找今天发布的版本
-          const todayVersions = existingVersions.filter(v => v.startsWith(dateVersion));
+          // 查找今天发布的版本（格式：YY.M.D.number）
+          const todayVersions = existingVersions.filter(v => {
+            // 匹配格式：YY.M.D.number
+            const match = v.match(/^(\d+)\.(\d+)\.(\d+)\.(\d+)$/);
+            if (!match) return false;
+            
+            const [, vYear, vMonth, vDay, vNumber] = match;
+            
+            return vYear === year && vMonth === month && vDay === day;
+          });
+
           console.log('Today\'s versions:', todayVersions);
 
           let newVersion;
           if (todayVersions.length === 0) {
-            // 今天第一次发布，patch 版本从 0 开始
-            newVersion = `${dateVersion}.0`;
+            // 今天第一次发布，序号从 0 开始
+            newVersion = `${datePrefix}.0`;
           } else {
-            // 找出今天最大的 patch 号
-            let maxPatch = -1;
+            // 找出今天最大的序号
+            let maxNumber = -1;
             
             todayVersions.forEach(v => {
-              const match = v.match(new RegExp(`^${dateVersion.replace(/\./g, '\\.')}\\.(\\d+)$`));
+              const match = v.match(/^(\d+)\.(\d+)\.(\d+)\.(\d+)$/);
               if (match) {
-                maxPatch = Math.max(maxPatch, parseInt(match[1]));
+                const number = parseInt(match[4]);
+                maxNumber = Math.max(maxNumber, number);
               }
             });
             
-            newVersion = `${dateVersion}.${maxPatch + 1}`;
+            newVersion = `${datePrefix}.${maxNumber + 1}`;
           }
 
           console.log(`New version: ${newVersion}`);
