@@ -3,18 +3,12 @@
 	"saveApiListFolderPath": "apps/api/",
 	"saveEnumFolderPath": "apps/enums",
 	"importEnumPath": "../../enums",
-	"swaggerJsonUrl": "http://localhost:3000/api-json",
 	"requestMethodsImportPath": "./fetch",
-	"dataLevel": "serve",
 	"formatting": {
 		"indentation": "\t",
 		"lineEnding": "\n"
 	},
 	"headers": {},
-	"includeInterface": [],
-	"excludeInterface": [],
-	"publicPrefix": "api",
-	"parameterSeparator": "_",
 	"enmuConfig": {
 		"erasableSyntaxOnly": false,
 		"varnames": "enum-varnames",
@@ -24,13 +18,70 @@
 		{
 			"url": "http://172.24.171.108:8080/v3/api-docs",
 			"apiListFileName": "op.ts",
-			"headers": {}
+			"headers": {},
+			"includeInterface": [],
+			"excludeInterface": [],
+			"dataLevel": "serve",
+			"parameterSeparator": "_"
 		},
 		{
-			"url": "https://llmops-bff.dev.dotfortune.com/api-docs/json",
+			"url": "http://127.0.0.1:7001/api-docs/json",
 			"apiListFileName": "index.ts",
 			"publicPrefix": "/api",
-			"headers": {}
+			"headers": {},
+			"includeInterface": [
+				{
+					"path": "/api/portal/main",
+					"method": "post"
+				},
+				{
+					"path": "/api/portal/main",
+					"method": "get"
+				},
+				{
+					"path": "/api/portal/common",
+					"method": "post"
+				},
+				{
+					"path": "/api/portal/common",
+					"method": "get"
+				},
+				{
+					"path": "/api/portal/experts/{expertId}",
+					"method": "post"
+				},
+				{
+					"path": "/api/portal/experts/{expertId}",
+					"method": "get"
+				},
+				{
+					"path": "/api/portal/configs",
+					"method": "get"
+				},
+				{
+					"path": "/api/user/login",
+					"method": "post"
+				},
+				{
+					"path": "/api/file/upload",
+					"method": "post"
+				},
+				{
+					"path": "/api/file/upload/image",
+					"method": "post"
+				},
+				{
+					"path": "/api/file/upload/video",
+					"method": "post"
+				},
+				{
+					"path": "/api/file/oss/credentials",
+					"method": "get"
+				}
+			],
+			"excludeInterface": [],
+			"dataLevel": "serve",
+			"parameterSeparator": "_"
 		}
 	]
 }
