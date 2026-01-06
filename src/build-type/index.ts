@@ -24,23 +24,19 @@ const configContent: ConfigType = {
 	saveEnumFolderPath: isDebug ? 'apps/types/enums' : 'src/enums',
 	importEnumPath: '../../../enums',
 	requestMethodsImportPath: './fetch',
-	dataLevel: 'serve',
-	swaggerJsonUrl: 'https://generator3.swagger.io/openapi.json',
-	swaggerServers: {
-		url: 'https://generator3.swagger.io/openapi.json',
-		apiListFileName: 'index.ts',
-		headers: {},
-	},
-	apiListFileName: 'index.ts',
-	headers: {},
 	formatting: {
 		indentation: '\t',
 		lineEnding: '\n',
 	},
-	includeInterface: [],
-	excludeInterface: [],
-
-	parameterSeparator: '_',
+	swaggerServers: {
+		url: 'https://generator3.swagger.io/openapi.json',
+		apiListFileName: 'index.ts',
+		headers: {},
+		dataLevel: 'serve',
+		parameterSeparator: '_',
+		includeInterface: [],
+		excludeInterface: [],
+	},
 	enmuConfig: {
 		erasableSyntaxOnly: false,
 		varnames: 'enum-varnames',
@@ -234,12 +230,20 @@ export class Main {
 			const apiListFileNameRaw = server.apiListFileName || config.apiListFileName || 'index.ts';
 			const apiListFileName = apiListFileNameRaw.trim() || 'index.ts';
 			const headers = server.headers || config.headers || {};
+			const dataLevel = server.dataLevel || config.dataLevel || 'serve';
+			const parameterSeparator = server.parameterSeparator || config.parameterSeparator || '_';
+			const includeInterface = server.includeInterface || config.includeInterface || [];
+			const excludeInterface = server.excludeInterface || config.excludeInterface || [];
 
 			return {
 				url,
 				publicPrefix,
 				apiListFileName,
 				headers,
+				dataLevel,
+				parameterSeparator,
+				includeInterface,
+				excludeInterface,
 			};
 		};
 
@@ -276,6 +280,10 @@ export class Main {
 			publicPrefix: server.publicPrefix ?? baseConfig.publicPrefix,
 			headers: server.headers,
 			apiListFileName: server.apiListFileName,
+			dataLevel: server.dataLevel,
+			parameterSeparator: server.parameterSeparator,
+			includeInterface: server.includeInterface,
+			excludeInterface: server.excludeInterface,
 			swaggerServers: server,
 		};
 	}
@@ -337,7 +345,7 @@ export class Main {
 	}
 }
 
-if (process.env.NODE_ENV === 'development') {
+if (isDebug) {
 	const int = new Main();
 	int.initialize();
 }

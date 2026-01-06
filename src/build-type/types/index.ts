@@ -134,10 +134,18 @@ export interface IConfigSwaggerServer {
 	url: string;
 	/** 公共前缀 */
 	publicPrefix?: string;
+	/** 生成接口默认返回数据层级（服务级配置） */
+	dataLevel?: TDatalevel;
+	/** 参数分隔符（服务级配置） */
+	parameterSeparator?: '$' | '_';
 	/** api list 的文件名称 */
 	apiListFileName?: string;
 	/** 追加请求头 */
 	headers?: Record<string, string>;
+	/** 包含的接口（服务级配置） */
+	includeInterface?: IncludeOrExcludeInterface[];
+	/** 排除的接口（服务级配置） */
+	excludeInterface?: IncludeOrExcludeInterface[];
 }
 
 export interface ConfigType {
@@ -151,7 +159,7 @@ export interface ConfigType {
 	swaggerJsonUrl?: string;
 
 	/** swagger 服务器列表 */
-	swaggerServers: Required<IConfigSwaggerServer>[] | IConfigSwaggerServer;
+	swaggerServers: IConfigSwaggerServer[] | IConfigSwaggerServer;
 
 	/** api list 生成文件名，单个 swaggerServer 可省略，默认 index.ts */
 	apiListFileName?: string;
@@ -160,6 +168,16 @@ export interface ConfigType {
 	requestMethodsImportPath: string;
 	/** 追加请求头 */
 	headers?: Record<string, string>;
+	/** 公共前缀（仅为兼容旧配置，最终以服务级配置为准） */
+	publicPrefix?: string;
+	/** 生成接口默认返回数据层级（服务级配置注入） */
+	dataLevel?: TDatalevel;
+	/** 参数分隔符（服务级配置注入） */
+	parameterSeparator?: '$' | '_';
+	/** 包含的接口（服务级配置注入） */
+	includeInterface?: IncludeOrExcludeInterface[];
+	/** 排除的接口（服务级配置注入） */
+	excludeInterface?: IncludeOrExcludeInterface[];
 	/** 格式化 */
 	formatting?: {
 		/** 缩进 */
@@ -167,20 +185,12 @@ export interface ConfigType {
 		/** 换行符（行结束符） */
 		lineEnding: string;
 	};
-	/** 生成接口默认返回数据层级 */
-	dataLevel: TDatalevel;
+
 	/** 枚举数据保存路径 */
 	saveEnumFolderPath: string;
 	/** enum 导入路径 */
 	importEnumPath: string;
-	/** 包含的接口 */
-	includeInterface?: IncludeOrExcludeInterface[];
-	/** 排除的接口 */
-	excludeInterface?: IncludeOrExcludeInterface[];
-	/** 公共前缀 */
-	publicPrefix?: string;
-	/** 参数分隔符 */
-	parameterSeparator: '$' | '_';
+
 	/** enum 配置 */
 	enmuConfig: {
 		/** 该选项与项目中 tsconfig.json 中 compilerOptions.erasableSyntaxOnly 选项一致 */

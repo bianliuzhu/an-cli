@@ -688,6 +688,7 @@ export class PathParse {
 	apiRequestItemHandle(content: ContentBody) {
 		const { payload, requestPath, _response, method, typeName, apiName, contentType } = content;
 		const { _path, _query, body } = payload;
+		const dataLevel = this.config.dataLevel || 'serve';
 
 		const pathParamsHandle = () => {
 			const arr = [];
@@ -744,7 +745,7 @@ export class PathParse {
 			'(',
 			'`' + requestPath + '`,',
 			objParamsHandle(),
-			`'${this.config.dataLevel}'`,
+			`'${dataLevel}'`,
 			');',
 		];
 		const apidetails = contentList.join('');
