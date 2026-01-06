@@ -22,7 +22,11 @@ export async function getSwaggerJson(config: ConfigType): TReturnType {
 		return requestJson(config);
 	} else {
 		try {
-			const res = requireModule(path.join('', config.swaggerJsonUrl));
+			// 本地文件：将相对路径转换为以项目根目录为基准的绝对路径
+			// 这样 an.config.json 中可以写 "./data/op.json" 这类相对路径
+			const absolutePath = path.isAbsolute(config.swaggerJsonUrl) ? config.swaggerJsonUrl : path.resolve(process.cwd(), config.swaggerJsonUrl);
+
+			const res = requireModule(absolutePath);
 			return Promise.resolve(res);
 		} catch (err) {
 			console.error(err, true);
