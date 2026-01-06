@@ -55,14 +55,10 @@ export class Main {
 	 */
 	private async handle(config: ConfigType, appendMode: boolean) {
 		try {
-			let response: OpenAPIV3.Document;
-
-			if (isDebug) {
-				response = (await import('../../data/openapi.json')).default as unknown as OpenAPIV3.Document;
-				// response = (await import('../../data/df.json')).default as unknown as OpenAPIV3.Document;
-			} else {
-				response = (await getSwaggerJson(config)) as OpenAPIV3.Document;
-			}
+			// 无论是否为调试模式，都优先按配置从 swaggerServers.url 获取数据
+			// 若需要本地调试示例数据，可以在 an.config.json 中将 swaggerServers.url
+			// 配置为本地文件路径（例如 ./data/openapi.json.js），getSwaggerJson 会自动处理。
+			const response = (await getSwaggerJson(config)) as OpenAPIV3.Document;
 
 			if (!response) {
 				throw new Error('无法获取 Swagger 数据');

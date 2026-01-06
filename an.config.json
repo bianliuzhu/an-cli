@@ -16,10 +16,15 @@
 	},
 	"swaggerServers": [
 		{
-			"url": "http://172.24.171.108:8080/v3/api-docs",
+			"url": "http://172.24.160.153:8080/v3/api-docs",
 			"apiListFileName": "op.ts",
 			"headers": {},
-			"includeInterface": [],
+			"includeInterface": [
+				{
+					"path": "/op/trade/order/queryPage",
+					"method": "post"
+				}
+			],
 			"excludeInterface": [],
 			"dataLevel": "serve",
 			"parameterSeparator": "_"
