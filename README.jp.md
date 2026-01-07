@@ -106,7 +106,7 @@ $ anl type
 	"saveApiListFolderPath": "apps/api/",
 	"saveEnumFolderPath": "apps/enums",
 	"importEnumPath": "../../enums",
-	"swaggerServers": {
+	"swaggerConfig": {
 		"url": "https://generator3.swagger.io/openapi2.json",
 		"apiListFileName": "index.ts",
 		"publicPrefix": "api",
@@ -160,7 +160,7 @@ $ anl type
 		"varnames": "enum-varnames",
 		"comment": "enum-descriptions"
 	},
-	"swaggerServers": [
+	"swaggerConfig": [
 		{
 			"url": "https://generator3.swagger.io/openapi1.json",
 			"apiListFileName": "op.ts",
@@ -178,39 +178,39 @@ $ anl type
 
 #### 設定項目の説明
 
-| 設定項目                           | 型                                    | 必須   | 説明                                                                                                                                                                                                           |
-| -------------------------------- | ------------------------------------- | ------ | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| saveTypeFolderPath               | string                                | はい   | 型定義ファイルの保存パス                                                                                                                                                                                       |
-| saveApiListFolderPath            | string                                | はい   | API リクエスト関数ファイルの保存パス                                                                                                                                                                           |
-| saveEnumFolderPath               | string                                | はい   | 列挙データファイルの保存パス                                                                                                                                                                                   |
-| importEnumPath                   | string                                | はい   | 列挙型インポートパス（apps/types/models/\*.ts で enum ファイルを参照するパス）                                                                                                                                 |
-| swaggerJsonUrl                   | string                                | いいえ | Swagger JSON ドキュメントのアドレス（`swaggerServers` に移行済み、旧版設定との互換性のため保持）**今後のバージョンでこのフィールドは削除されます**                                                             |
-| swaggerServers                   | object \| Array<object>               | いいえ | Swagger サーバー設定。単一サーバーの場合は直接オブジェクトを記入、複数サーバーの場合は配列を使用。各サーバーで `url`、`publicPrefix`、`pathPrefix`、`apiListFileName`、`headers`、`dataLevel`、`parameterSeparator`、`includeInterface`、`excludeInterface` を設定可能<br />このフィールドは単一 Swagger サーバー設定と複数の Swagger サーバー設定の例に対応します。上にスクロールして確認してください |
-| swaggerServers[].url             | string                                | はい   | Swagger JSON ドキュメントのアドレス                                                                                                                                                                            |
-| swaggerServers[].publicPrefix    | string                                | いいえ | URL パス上の共通プレフィックス、例：api/users、api/users/{id}、api が共通プレフィックスです                                                                                                                    |
-| swaggerServers[].apiListFileName | string                                | いいえ | API リストファイル名、デフォルトは `index.ts`。複数サーバー使用時、各サーバーのファイル名は一意である必要があります                                                                                               |
-| swaggerServers[].headers         | object                                | いいえ | このサーバーのリクエストヘッダー設定                                                                                                                                                                           |
-| swaggerServers[].pathPrefix      | string                                | いいえ | リクエストパスのプレフィックス（モジュール名として理解できます）、各 API リクエストパスの前に自動的に追加されます。<br />例：`pathPrefix: "/forward"` の場合<br />`/publicPrefix/pathPrefix/user` は `/api/forward/user` になります |
-| swaggerServers[].dataLevel       | 'data' \| 'serve' \| 'axios'          | いいえ | このサーバーのインターフェースレスポンスデータのレベル。設定されていない場合、グローバル `dataLevel` 設定を使用します                                                                                            |
-| swaggerServers[].parameterSeparator | '$' \| '\_'                        | いいえ | このサーバーの API 名と型名を生成する際に使用される区切り文字。設定されていない場合、グローバル `parameterSeparator` 設定を使用します                                                                            |
-| swaggerServers[].includeInterface | Array<{path: string, method: string}> | いいえ | このサーバーに含めるインターフェースのリスト。設定されていない場合、グローバル `includeInterface` 設定を使用します                                                                                              |
-| swaggerServers[].excludeInterface | Array<{path: string, method: string}> | いいえ | このサーバーから除外するインターフェースのリスト。設定されていない場合、グローバル `excludeInterface` 設定を使用します                                                                                          |
-| requestMethodsImportPath         | string                                | はい   | リクエストメソッドのインポートパス                                                                                                                                                                             |
-| dataLevel                        | 'data' \| 'serve' \| 'axios'          | いいえ | グローバルインターフェースレスポンスデータのレベル設定、デフォルト：`'serve'`。各サーバーで個別に上書き可能                                                                                                     |
-| formatting                      | object                                | いいえ | コードフォーマット設定                                                                                                                                                                                         |
-| formatting.indentation           | string                                | いいえ | コードインデント文字、例：`"\t"` または `"  "` (2スペース)                                                                                                                                                      |
-| formatting.lineEnding            | string                                | いいえ | 改行、例：`"\n"` (LF) または `"\r\n"` (CRLF)                                                                                                                                                                   |
-| headers                          | object                                | いいえ | リクエストヘッダー設定（`swaggerServers` に移行済み、旧版設定との互換性のため保持）                                                                                                                             |
-| includeInterface                 | Array<{path: string, method: string}> | いいえ | グローバルに含めるインターフェース：`saveApiListFolderPath` で指定されたインターフェースリストファイルには、このリストに含まれるインターフェースのみが含まれます。`excludeInterface` フィールドと相互排他的です。各サーバーで個別に上書き可能 |
-| excludeInterface                 | Array<{path: string, method: string}> | いいえ | グローバルに除外するインターフェース：`saveApiListFolderPath` で指定されたインターフェースリストテキストには、このリストに含まれないインターフェースが含まれます。`includeInterface` と相互排他的です。各サーバーで個別に上書き可能 |
-| publicPrefix                     | string                                | いいえ | グローバル URL パス上の共通プレフィックス（`swaggerServers` に移行済み、旧版設定との互換性のため保持）                                                                                                          |
-| pathPrefix                       | string                                | いいえ | グローバルリクエストパスのプレフィックス（各サーバーで個別に上書き可能）                                                                                                                                        |
-| apiListFileName                  | string                                | いいえ | グローバル API リストファイル名、デフォルトは `index.ts`（`swaggerServers` に移行済み、旧版設定との互換性のため保持）                                                                                            |
-| enmuConfig                       | object                                | はい   | 列挙型設定オブジェクト                                                                                                                                                                                          |
-| enmuConfig.erasableSyntaxOnly    | boolean                               | はい   | tsconfig.json の `compilerOptions.erasableSyntaxOnly` オプションと一致させます。`true` の場合、enum ではなく const オブジェクトを生成します（型のみの構文）。デフォルト値：`false`                             |
-| enmuConfig.varnames              | string                                | いいえ | Swagger schema フィールド名でカスタム列挙メンバー名用。デフォルト値：`enum-varnames`。                                                                                                                          |
-| enmuConfig.comment               | string                                | いいえ | Swagger schema フィールド名で列挙メンバーの説明用（コメント生成に使用）。デフォルト値：`enum-descriptions`。                                                                                                    |
-| parameterSeparator               | '$' \| '\_'                           | いいえ | グローバル API 名と型名を生成する際に、パスセグメントとパラメータの間に使用される区切り文字。例えば、`/users/{userId}/posts` に区切り文字 `'_'` を使用すると `users_userId_posts_GET` が生成されます。デフォルト値：`'_'`。各サーバーで個別に上書き可能 |
+| 設定項目                           | 型                                    | 必須   | 説明                                                                                                                                                                                                                                                                                                                                                                                                     |
+| ---------------------------------- | ------------------------------------- | ------ | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| saveTypeFolderPath                 | string                                | はい   | 型定義ファイルの保存パス                                                                                                                                                                                                                                                                                                                                                                                 |
+| saveApiListFolderPath              | string                                | はい   | API リクエスト関数ファイルの保存パス                                                                                                                                                                                                                                                                                                                                                                     |
+| saveEnumFolderPath                 | string                                | はい   | 列挙データファイルの保存パス                                                                                                                                                                                                                                                                                                                                                                             |
+| importEnumPath                     | string                                | はい   | 列挙型インポートパス（apps/types/models/\*.ts で enum ファイルを参照するパス）                                                                                                                                                                                                                                                                                                                           |
+| swaggerJsonUrl                     | string                                | いいえ | Swagger JSON ドキュメントのアドレス（`swaggerConfig` に移行済み、旧版設定との互換性のため保持）**今後のバージョンでこのフィールドは削除されます**                                                                                                                                                                                                                                                        |
+| swaggerConfig                      | object \| Array<object>               | いいえ | Swagger サーバー設定。単一サーバーの場合は直接オブジェクトを記入、複数サーバーの場合は配列を使用。各サーバーで `url`、`publicPrefix`、`modulePrefix`、`apiListFileName`、`headers`、`dataLevel`、`parameterSeparator`、`includeInterface`、`excludeInterface` を設定可能<br />このフィールドは単一 Swagger サーバー設定と複数の Swagger サーバー設定の例に対応します。上にスクロールして確認してください |
+| swaggerConfig[].url                | string                                | はい   | Swagger JSON ドキュメントのアドレス                                                                                                                                                                                                                                                                                                                                                                      |
+| swaggerConfig[].publicPrefix       | string                                | いいえ | URL パス上の共通プレフィックス、例：api/users、api/users/{id}、api が共通プレフィックスです                                                                                                                                                                                                                                                                                                              |
+| swaggerConfig[].apiListFileName    | string                                | いいえ | API リストファイル名、デフォルトは `index.ts`。複数サーバー使用時、各サーバーのファイル名は一意である必要があります                                                                                                                                                                                                                                                                                      |
+| swaggerConfig[].headers            | object                                | いいえ | このサーバーのリクエストヘッダー設定                                                                                                                                                                                                                                                                                                                                                                     |
+| swaggerConfig[].modulePrefix       | string                                | いいえ | リクエストパスのプレフィックス（モジュール名として理解できます）、各 API リクエストパスの前に自動的に追加されます。<br />例：`modulePrefix: "/forward"` の場合<br />`/publicPrefix/modulePrefix/user` は `/api/forward/user` になります                                                                                                                                                                  |
+| swaggerConfig[].dataLevel          | 'data' \| 'serve' \| 'axios'          | いいえ | このサーバーのインターフェースレスポンスデータのレベル。設定されていない場合、グローバル `dataLevel` 設定を使用します                                                                                                                                                                                                                                                                                    |
+| swaggerConfig[].parameterSeparator | '$' \| '\_'                           | いいえ | このサーバーの API 名と型名を生成する際に使用される区切り文字。設定されていない場合、グローバル `parameterSeparator` 設定を使用します                                                                                                                                                                                                                                                                    |
+| swaggerConfig[].includeInterface   | Array<{path: string, method: string}> | いいえ | このサーバーに含めるインターフェースのリスト。設定されていない場合、グローバル `includeInterface` 設定を使用します                                                                                                                                                                                                                                                                                       |
+| swaggerConfig[].excludeInterface   | Array<{path: string, method: string}> | いいえ | このサーバーから除外するインターフェースのリスト。設定されていない場合、グローバル `excludeInterface` 設定を使用します                                                                                                                                                                                                                                                                                   |
+| requestMethodsImportPath           | string                                | はい   | リクエストメソッドのインポートパス                                                                                                                                                                                                                                                                                                                                                                       |
+| dataLevel                          | 'data' \| 'serve' \| 'axios'          | いいえ | グローバルインターフェースレスポンスデータのレベル設定、デフォルト：`'serve'`。各サーバーで個別に上書き可能                                                                                                                                                                                                                                                                                              |
+| formatting                         | object                                | いいえ | コードフォーマット設定                                                                                                                                                                                                                                                                                                                                                                                   |
+| formatting.indentation             | string                                | いいえ | コードインデント文字、例：`"\t"` または `"  "` (2スペース)                                                                                                                                                                                                                                                                                                                                               |
+| formatting.lineEnding              | string                                | いいえ | 改行、例：`"\n"` (LF) または `"\r\n"` (CRLF)                                                                                                                                                                                                                                                                                                                                                             |
+| headers                            | object                                | いいえ | リクエストヘッダー設定（`swaggerConfig` に移行済み、旧版設定との互換性のため保持）                                                                                                                                                                                                                                                                                                                       |
+| includeInterface                   | Array<{path: string, method: string}> | いいえ | グローバルに含めるインターフェース：`saveApiListFolderPath` で指定されたインターフェースリストファイルには、このリストに含まれるインターフェースのみが含まれます。`excludeInterface` フィールドと相互排他的です。各サーバーで個別に上書き可能                                                                                                                                                            |
+| excludeInterface                   | Array<{path: string, method: string}> | いいえ | グローバルに除外するインターフェース：`saveApiListFolderPath` で指定されたインターフェースリストテキストには、このリストに含まれないインターフェースが含まれます。`includeInterface` と相互排他的です。各サーバーで個別に上書き可能                                                                                                                                                                      |
+| publicPrefix                       | string                                | いいえ | グローバル URL パス上の共通プレフィックス（`swaggerConfig` に移行済み、旧版設定との互換性のため保持）                                                                                                                                                                                                                                                                                                    |
+| modulePrefix                       | string                                | いいえ | グローバルリクエストパスのプレフィックス（各サーバーで個別に上書き可能）                                                                                                                                                                                                                                                                                                                                 |
+| apiListFileName                    | string                                | いいえ | グローバル API リストファイル名、デフォルトは `index.ts`（`swaggerConfig` に移行済み、旧版設定との互換性のため保持）                                                                                                                                                                                                                                                                                     |
+| enmuConfig                         | object                                | はい   | 列挙型設定オブジェクト                                                                                                                                                                                                                                                                                                                                                                                   |
+| enmuConfig.erasableSyntaxOnly      | boolean                               | はい   | tsconfig.json の `compilerOptions.erasableSyntaxOnly` オプションと一致させます。`true` の場合、enum ではなく const オブジェクトを生成します（型のみの構文）。デフォルト値：`false`                                                                                                                                                                                                                       |
+| enmuConfig.varnames                | string                                | いいえ | Swagger schema フィールド名でカスタム列挙メンバー名用。デフォルト値：`enum-varnames`。                                                                                                                                                                                                                                                                                                                   |
+| enmuConfig.comment                 | string                                | いいえ | Swagger schema フィールド名で列挙メンバーの説明用（コメント生成に使用）。デフォルト値：`enum-descriptions`。                                                                                                                                                                                                                                                                                             |
+| parameterSeparator                 | '$' \| '\_'                           | いいえ | グローバル API 名と型名を生成する際に、パスセグメントとパラメータの間に使用される区切り文字。例えば、`/users/{userId}/posts` に区切り文字 `'_'` を使用すると `users_userId_posts_GET` が生成されます。デフォルト値：`'_'`。各サーバーで個別に上書き可能                                                                                                                                                  |
 
 #### 設定項目と生成ファイルの対応関係
 
@@ -276,7 +276,7 @@ export const userDetailGet = (params: UserDetail_GET.Query) => GET<UserDetail_GE
 - `parameterSeparator`: API 名と型名の区切り文字
 - `includeInterface`: 含めるインターフェースのリスト
 - `excludeInterface`: 除外するインターフェースのリスト
-- `pathPrefix`: リクエストパスのプレフィックス
+- `modulePrefix`: リクエストパスのプレフィックス
 - `publicPrefix`: URL の共通プレフィックス
 - `headers`: リクエストヘッダー設定
 
@@ -286,7 +286,7 @@ export const userDetailGet = (params: UserDetail_GET.Query) => GET<UserDetail_GE
 {
 	"dataLevel": "serve",
 	"parameterSeparator": "_",
-	"swaggerServers": [
+	"swaggerConfig": [
 		{
 			"url": "http://api1.example.com/swagger.json",
 			"dataLevel": "data",
@@ -385,7 +385,7 @@ interface User {
 ```json
 {
 	"dataLevel": "serve",
-	"swaggerServers": [
+	"swaggerConfig": [
 		{
 			"url": "http://api1.example.com/swagger.json",
 			"dataLevel": "data"
@@ -481,8 +481,8 @@ export const uploadFile = (params: UploadFile.Body) =>
 
 ツールは複数の Swagger サーバーの設定をサポートしており、各サーバーは独立して設定できます：
 
-- **単一サーバー**：`swaggerServers` は直接オブジェクトとして記入可能
-- **複数サーバー**：`swaggerServers` は配列形式を使用し、各サーバーは一意の `apiListFileName` を設定する必要があります
+- **単一サーバー**：`swaggerConfig` は直接オブジェクトとして記入可能
+- **複数サーバー**：`swaggerConfig` は配列形式を使用し、各サーバーは一意の `apiListFileName` を設定する必要があります
 
 **動作原理：**
 
@@ -498,11 +498,11 @@ export const uploadFile = (params: UploadFile.Body) =>
 - `parameterSeparator` - API 名と型名の区切り文字
 - `includeInterface` - 含めるインターフェースのリスト
 - `excludeInterface` - 除外するインターフェースのリスト
-- `pathPrefix` - リクエストパスのプレフィックス
+- `modulePrefix` - リクエストパスのプレフィックス
 
-#### パスプレフィックス（pathPrefix）
+#### パスプレフィックス（modulePrefix）
 
-`pathPrefix` はすべての API リクエストパスの前にプレフィックスを自動的に追加するために使用され、以下のシナリオで特に役立ちます：
+`modulePrefix` はすべての API リクエストパスの前にプレフィックスを自動的に追加するために使用され、以下のシナリオで特に役立ちます：
 
 1. **リバースプロキシシナリオ**：バックエンドサービスがリバースプロキシ経由で転送される場合
 2. **API ゲートウェイ**：パスに統一的にゲートウェイプレフィックスを追加
@@ -512,10 +512,10 @@ export const uploadFile = (params: UploadFile.Body) =>
 
 ```json
 {
-	"swaggerServers": [
+	"swaggerConfig": [
 		{
 			"url": "http://api.example.com/swagger.json",
-			"pathPrefix": "/forward",
+			"modulePrefix": "/forward",
 			"apiListFileName": "api.ts"
 		}
 	]
@@ -533,18 +533,18 @@ export const apiUserListGet = (params: ApiUserList_GET.Query) => GET<ApiUserList
 **publicPrefix との違い：**
 
 - `publicPrefix`: インターフェースパスからプレフィックスを削除し、生成される関数名にのみ影響します
-- `pathPrefix`: 実際のリクエストパスの前にプレフィックスを追加し、実行時のリクエスト URL に影響します
+- `modulePrefix`: 実際のリクエストパスの前にプレフィックスを追加し、実行時のリクエスト URL に影響します
 
 **設定例：**
 
 ```json
 {
-	"swaggerServers": [
+	"swaggerConfig": [
 		{
 			"url": "http://api1.example.com/swagger.json",
 			"apiListFileName": "api1.ts",
 			"publicPrefix": "/api/v1",
-			"pathPrefix": "/forward",
+			"modulePrefix": "/forward",
 			"dataLevel": "serve",
 			"parameterSeparator": "_",
 			"headers": {
@@ -574,7 +574,7 @@ export const apiUserListGet = (params: ApiUserList_GET.Query) => GET<ApiUserList
 
 - 旧版設定（`swaggerJsonUrl`、`publicPrefix`、`headers`）は引き続き互換性があります
 - ツールは自動的に旧版設定を検出し、移行方法を提示します
-- より柔軟性を得るために、新しい `swaggerServers` 設定への移行をお勧めします
+- より柔軟性を得るために、新しい `swaggerConfig` 設定への移行をお勧めします
 
 #### HTTP メソッドサポート
 
@@ -599,7 +599,7 @@ export const apiUserListGet = (params: ApiUserList_GET.Query) => GET<ApiUserList
 4. 生成されたファイルをバージョン管理に含めることをお勧めします
 5. 複数の Swagger サーバーを使用する場合、各サーバーの `apiListFileName` が一意であることを確認し、ファイルの上書きを避けてください
 6. 複数のサーバー設定を使用する場合、型定義と列挙型はマージされます。異なるサーバーに同じ名前の型がある場合、競合が発生する可能性があります
-7. サーバーレベルの設定（`dataLevel`、`parameterSeparator`、`includeInterface`、`excludeInterface`、`pathPrefix`）はグローバル設定を上書きします
+7. サーバーレベルの設定（`dataLevel`、`parameterSeparator`、`includeInterface`、`excludeInterface`、`modulePrefix`）はグローバル設定を上書きします
 8. `includeInterface` と `excludeInterface` は同時に設定できません。両方が設定された場合、`includeInterface` が優先されます
 
 ### よくある質問
@@ -613,15 +613,15 @@ export const apiUserListGet = (params: ApiUserList_GET.Query) => GET<ApiUserList
    - `requestMethodsImportPath` 設定が正しいか確認してください
    - リクエストメソッドファイルが存在するか確認してください
 
-3. **いつ `pathPrefix` を使用しますか？**
+3. **いつ `modulePrefix` を使用しますか？**
    - API がリバースプロキシまたはゲートウェイ経由でアクセスされる必要がある場合
    - 例：Swagger では `/api/user` と定義されていますが、実際のリクエストは `/gateway/api/user` である必要があります
-   - `pathPrefix: "/gateway"` を設定することで実現できます
+   - `modulePrefix: "/gateway"` を設定することで実現できます
 
-4. **`publicPrefix` と `pathPrefix` の違いは何ですか？**
+4. **`publicPrefix` と `modulePrefix` の違いは何ですか？**
    - `publicPrefix`: インターフェースパスからプレフィックスを削除し、生成される関数名にのみ影響します
      - 例：`/api/user/list` から `/api` を削除すると、関数名は `userListGet` になります
-   - `pathPrefix`: リクエストパスの前にプレフィックスを追加し、実際のリクエスト URL に影響します
+   - `modulePrefix`: リクエストパスの前にプレフィックスを追加し、実際のリクエスト URL に影響します
      - 例：`/api/user/list` に `/forward` を追加すると、リクエスト URL は `/forward/api/user/list` になります
 
 5. **複数のサーバーで異なる `dataLevel` を設定するには？**
@@ -629,7 +629,7 @@ export const apiUserListGet = (params: ApiUserList_GET.Query) => GET<ApiUserList
    ```json
    {
    	"dataLevel": "serve",
-   	"swaggerServers": [
+   	"swaggerConfig": [
    		{
    			"url": "http://old-api.com/swagger.json",
    			"dataLevel": "axios",
@@ -650,7 +650,7 @@ export const apiUserListGet = (params: ApiUserList_GET.Query) => GET<ApiUserList
    - `includeInterface` 設定を使用：
      ```json
      {
-     	"swaggerServers": [
+     	"swaggerConfig": [
      		{
      			"url": "http://api.com/swagger.json",
      			"includeInterface": [

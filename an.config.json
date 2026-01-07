@@ -14,16 +14,21 @@
 		"varnames": "enum-varnames",
 		"comment": "enum-descriptions"
 	},
-	"swaggerServers": [
+	"swaggerConfig": [
 		{
-			"url": "./data/op.json",
-			"url:remote": "http://172.24.160.153:8080/v3/api-docs",
+			"url": "http://172.24.160.86:8080/v3/api-docs",
 			"apiListFileName": "op.ts",
 			"headers": {},
 			"includeInterface": [
 				{
 					"path": "/op/trade/order/queryPage",
-					"method": "post"
+					"method": "post",
+					"dataLevel": "data"
+				},
+				{
+					"path": "/op/trade/order/getOrderEnums",
+					"method": "get",
+					"dataLevel": "serve"
 				}
 			],
 			"excludeInterface": [],

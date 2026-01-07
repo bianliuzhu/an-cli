@@ -4,6 +4,7 @@ import {
 	ArraySchemaObject,
 	ContentBody,
 	IContentType,
+	IIncludeInterface,
 	MapType,
 	NonArraySchemaObject,
 	OperationObject,
@@ -712,7 +713,8 @@ export class PathParse {
 	apiRequestItemHandle(content: ContentBody) {
 		const { payload, requestPath, _response, method, typeName, apiName, contentType } = content;
 		const { _path, _query, body } = payload;
-		const dataLevel = this.config.dataLevel || 'serve';
+		// 优先级：includeInterface[].dataLevel > swaggerConfig[].dataLevel > ConfigType.dataLevel > 默认值 'serve'
+		const dataLevel = content.dataLevel || this.config.dataLevel || 'serve';
 		const modulePrefix = this.normalizemodulePrefix(this.config.modulePrefix);
 
 		const pathParamsHandle = () => {
@@ -788,9 +790,13 @@ export class PathParse {
 		for (const method in itemObject) {
 			const methodItems = itemObject[method as HttpMethods];
 			if (methodItems) {
+				// 查找匹配的 includeInterface，用于获取接口级别的 dataLevel
+				let matchedInclude: IIncludeInterface | undefined;
+
 				if (this.config.includeInterface && this.config.includeInterface.length > 0) {
 					const include = this.config.includeInterface?.find((item) => pathKey.includes(item.path) && item.method === method);
 					if (!include) return;
+					matchedInclude = include;
 				} else if (this.config.excludeInterface && this.config.excludeInterface.length > 0) {
 					const exclude = this.config.excludeInterface?.find((item) => pathKey.includes(item.path) && item.method === method);
 					if (exclude) return;
@@ -815,6 +821,8 @@ export class PathParse {
 					summary: methodItems.summary,
 					deprecated: methodItems.deprecated ?? false,
 					contentType: supportedRequestTypesAll.includes(contentTypeKey) ? contentTypeKey : 'application/json',
+					// 保存接口级别的 dataLevel（如果存在）
+					dataLevel: matchedInclude?.dataLevel,
 				};
 
 				this.requestHandle(methodItems);
