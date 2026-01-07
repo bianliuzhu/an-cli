@@ -355,13 +355,34 @@ export class PathParse {
 			const fileName = this.typeNameToFileName(typeName);
 
 			// 改进的枚举检测逻辑：
-			// 1. 首先检查类型名称中是否包含 "enum"
-			// 2. 然后检查 schema 定义中是否有 enum 字段
-			const regEnum = /enum/gi;
-			const hasEnumInName = regEnum.test(typeName);
+			// 1. 优先检查 schema 的结构定义（最可靠的方式）
+			// 2. 如果 schema 是对象类型（有 properties 或 type 为 object），则不是枚举
+			// 3. 只有当 schema 有 enum 字段且是数组时，才是真正的枚举类型
+			// 4. 类型名称中包含 "enum" 仅作为辅助判断
 			const schema = this.schemas?.[typeName];
-			const hasEnumField = schema && 'enum' in schema && Array.isArray(schema.enum);
-			const isEnum = hasEnumInName || hasEnumField;
+			let isEnum = false;
+
+			if (schema && !('$ref' in schema)) {
+				// 类型守卫：确保不是 ReferenceObject
+				// 如果是对象类型（有 properties 或显式声明 type 为 object），一定不是枚举
+				const isObject = 'properties' in schema || schema.type === 'object';
+
+				// 如果是数组类型，也不是枚举
+				const isArray = schema.type === 'array' || 'items' in schema;
+
+				// 只有当 schema 有 enum 字段且是数组，并且不是对象/数组类型时，才是枚举
+				const hasEnumField = 'enum' in schema && Array.isArray(schema.enum);
+
+				if (hasEnumField && !isObject && !isArray) {
+					isEnum = true;
+				}
+			} else {
+				// 如果 schema 不存在或是引用类型，尝试通过类型名称判断（兼容处理）
+				// 但要更严格：只有当名称本身就是枚举名（通常以 Enum 结尾）时才认为是枚举
+				// 而不是名称中包含 Enum 的复杂类型（如 xxxEnumsVO）
+				const regEnum = /Enum$/i;
+				isEnum = regEnum.test(typeName);
+			}
 
 			// 如果是枚举类型，根据配置决定是否添加 Type 后缀
 			const finalTypeName = isEnum ? this.getEnumTypeName(typeName) : typeName;
