@@ -681,6 +681,30 @@ export class PathParse {
 	}
 
 	/**
+	 * 规范化路径前缀
+	 * @param modulePrefix 路径前缀
+	 * @returns 规范化后的路径前缀（以 / 开头，不以 / 结尾）
+	 */
+	private normalizemodulePrefix(modulePrefix?: string): string {
+		if (!modulePrefix || modulePrefix.trim() === '') {
+			return '';
+		}
+
+		// 移除首尾的空格
+		let normalized = modulePrefix.trim();
+
+		// 移除尾部的所有斜杠
+		normalized = normalized.replace(/\/+$/g, '');
+
+		// 确保以 / 开头
+		if (!normalized.startsWith('/')) {
+			normalized = '/' + normalized;
+		}
+
+		return normalized;
+	}
+
+	/**
 	 * 处理API请求项
 	 * @param content 内容主体对象
 	 * @returns 生成的API请求代码
@@ -689,6 +713,7 @@ export class PathParse {
 		const { payload, requestPath, _response, method, typeName, apiName, contentType } = content;
 		const { _path, _query, body } = payload;
 		const dataLevel = this.config.dataLevel || 'serve';
+		const modulePrefix = this.normalizemodulePrefix(this.config.modulePrefix);
 
 		const pathParamsHandle = () => {
 			const arr = [];
@@ -743,7 +768,7 @@ export class PathParse {
 			method,
 			`${_response ? '<' + `${typeName}.Response` + '>' : ''}`,
 			'(',
-			'`' + requestPath + '`,',
+			'`' + `${modulePrefix}${requestPath}` + '`,',
 			objParamsHandle(),
 			`'${dataLevel}'`,
 			');',

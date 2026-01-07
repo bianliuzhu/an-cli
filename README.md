@@ -176,30 +176,41 @@ $ anl type
 
 #### Configuration Item Descriptions
 
-| Configuration Item                           | Type                                  | Required | Description                                                         |
-| -------------------------------------------- | ------------------------------------- | -------- | ------------------------------------------------------------------- |
-| saveTypeFolderPath                           | string                                | Yes      | Type definition file save path                                       |
-| saveApiListFolderPath                        | string                                | Yes      | API request function file save path                                  |
-| saveEnumFolderPath                           | string                                | Yes      | Enum data file save path                                             |
-| importEnumPath                               | string                                | Yes      | Enum import path (path referenced by enum files in apps/types/models/\*.ts) |
-| swaggerJsonUrl                               | string                                | No       | Swagger JSON documentation address (migrated to `swaggerServers`, retained for backward compatibility) **This field will be removed in future versions** |
-| swaggerServers                               | object \| Array<object>               | No       | Swagger server configuration. Single server can be an object, multiple servers use an array. Each server can configure `url`, `publicPrefix`, `apiListFileName`, `headers`<br />See single and multiple Swagger server configuration examples above |
-| swaggerServers[].url                         | string                                | Yes      | Swagger JSON documentation address                                   |
-| swaggerServers[].publicPrefix                | string                                | No       | Common prefix on url path, e.g.: api/users, api/users/{id}, api is the common prefix |
-| swaggerServers[].apiListFileName             | string                                | No       | API list file name, defaults to `index.ts`. When using multiple servers, each server's file name must be unique |
-| swaggerServers[].headers                     | object                                | No       | Request header configuration                                         |
-| requestMethodsImportPath                     | string                                | Yes      | Request method import path                                            |
-| dataLevel                                    | 'data' \| 'serve' \| 'axios'          | Yes      | Interface return data level                                          |
-| formatting                                   | object                                | No       | Code formatting configuration                                        |
-| headers                                      | object                                | No       | Request header configuration (migrated to `swaggerServers`, retained for backward compatibility) |
-| includeInterface                             | Array<{path: string, method: string}> | No       | Included interfaces: The interface list file specified by `saveApiListFolderPath` will only include interfaces in the list, mutually exclusive with `excludeInterface` field |
-| excludeInterface                             | Array<{path: string, method: string}> | No       | Excluded interfaces: The interface list file specified by `saveApiListFolderPath` will not include interfaces in this list, mutually exclusive with `includeInterface` |
-| publicPrefix                                 | string                                | No       | Common prefix on url path (migrated to `swaggerServers`, retained for backward compatibility) |
-| apiListFileName                              | string                                | No       | API list file name, defaults to `index.ts` (migrated to `swaggerServers`, retained for backward compatibility) |
-| enmuConfig.erasableSyntaxOnly               | boolean                               | Yes      | Align with tsconfig.json `compilerOptions.erasableSyntaxOnly`. When `true`, generates const objects instead of enums (type-only syntax). Default: `false` |
-| parameterSeparator                           | string                                | No       | Separator used between path segments and parameters when generating API names and type names. For example, `/users/{userId}/posts` with separator `'_'` generates `users_userId_posts_GET`. Default: `'_'` |
-| enmuConfig.varnames                          | string                                | No       | Schema field name that stores custom enum member identifiers. Default: `enum-varnames`. |
-| enmuConfig.comment                           | string                                | No       | Schema field name that stores enum member descriptions (used for inline comments). Default: `enum-descriptions`. |
+| Configuration Item                  | Type                                  | Required | Description                                                                                                                                                                                                                                                                                                                                  |
+| ----------------------------------- | ------------------------------------- | -------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| saveTypeFolderPath                  | string                                | Yes      | Type definition file save path                                                                                                                                                                                                                                                                                                               |
+| saveApiListFolderPath               | string                                | Yes      | API request function file save path                                                                                                                                                                                                                                                                                                          |
+| saveEnumFolderPath                  | string                                | Yes      | Enum data file save path                                                                                                                                                                                                                                                                                                                     |
+| importEnumPath                      | string                                | Yes      | Enum import path (path referenced by enum files in apps/types/models/\*.ts)                                                                                                                                                                                                                                                                  |
+| swaggerJsonUrl                      | string                                | No       | Swagger JSON documentation address (migrated to `swaggerServers`, retained for backward compatibility) **This field will be removed in future versions**                                                                                                                                                                                     |
+| swaggerServers                      | object \| Array<object>               | No       | Swagger server configuration. Single server can be an object, multiple servers use an array. Each server can configure `url`, `publicPrefix`, `pathPrefix`, `apiListFileName`, `headers`, `dataLevel`, `parameterSeparator`, `includeInterface`, `excludeInterface`<br />See single and multiple Swagger server configuration examples above |
+| swaggerServers[].url                | string                                | Yes      | Swagger JSON documentation address                                                                                                                                                                                                                                                                                                           |
+| swaggerServers[].publicPrefix       | string                                | No       | Common prefix on url path, e.g.: api/users, api/users/{id}, api is the common prefix                                                                                                                                                                                                                                                         |
+| swaggerServers[].apiListFileName    | string                                | No       | API list file name, defaults to `index.ts`. When using multiple servers, each server's file name must be unique                                                                                                                                                                                                                              |
+| swaggerServers[].headers            | object                                | No       | Request header configuration for this server                                                                                                                                                                                                                                                                                                 |
+| swaggerServers[].pathPrefix         | string                                | No       | Request path prefix (can be understood as module name), automatically added to the front of each API request path.<br />For example: when `pathPrefix: "/forward"`<br />`/publicPrefix/pathPrefix/user` becomes `/api/forward/user`                                                                                                          |
+| swaggerServers[].dataLevel          | 'data' \| 'serve' \| 'axios'          | No       | Interface return data level for this server. If not set, uses global `dataLevel` configuration                                                                                                                                                                                                                                               |
+| swaggerServers[].parameterSeparator | '$' \| '\_'                           | No       | Separator used when generating API names and type names for this server. If not set, uses global `parameterSeparator` configuration                                                                                                                                                                                                          |
+| swaggerServers[].includeInterface   | Array<{path: string, method: string}> | No       | List of interfaces to include for this server. If not set, uses global `includeInterface` configuration                                                                                                                                                                                                                                      |
+| swaggerServers[].excludeInterface   | Array<{path: string, method: string}> | No       | List of interfaces to exclude for this server. If not set, uses global `excludeInterface` configuration                                                                                                                                                                                                                                      |
+| requestMethodsImportPath            | string                                | Yes      | Request method import path                                                                                                                                                                                                                                                                                                                   |
+| dataLevel                           | 'data' \| 'serve' \| 'axios'          | No       | Global interface return data level configuration, default: `'serve'`. Each server can override individually                                                                                                                                                                                                                                  |
+| formatting                          | object                                | No       | Code formatting configuration                                                                                                                                                                                                                                                                                                                |
+| formatting.indentation              | string                                | No       | Code indentation character, e.g.: `"\t"` or `"  "` (two spaces)                                                                                                                                                                                                                                                                              |
+| formatting.lineEnding               | string                                | No       | Line ending, e.g.: `"\n"` (LF) or `"\r\n"` (CRLF)                                                                                                                                                                                                                                                                                            |
+| headers                             | object                                | No       | Request header configuration (migrated to `swaggerServers`, retained for backward compatibility)                                                                                                                                                                                                                                             |
+| includeInterface                    | Array<{path: string, method: string}> | No       | Global included interfaces: The interface list file specified by `saveApiListFolderPath` will only include interfaces in the list, mutually exclusive with `excludeInterface` field. Each server can override individually                                                                                                                   |
+| excludeInterface                    | Array<{path: string, method: string}> | No       | Global excluded interfaces: The interface list file specified by `saveApiListFolderPath` will not include interfaces in this list, mutually exclusive with `includeInterface`. Each server can override individually                                                                                                                         |
+| publicPrefix                        | string                                | No       | Global common prefix on url path (migrated to `swaggerServers`, retained for backward compatibility)                                                                                                                                                                                                                                         |
+| pathPrefix                          | string                                | No       | Global request path prefix (each server can override individually)                                                                                                                                                                                                                                                                           |
+| apiListFileName                     | string                                | No       | Global API list file name, defaults to `index.ts` (migrated to `swaggerServers`, retained for backward compatibility)                                                                                                                                                                                                                        |
+| enmuConfig                          | object                                | Yes      | Enum configuration object                                                                                                                                                                                                                                                                                                                    |
+| enmuConfig.erasableSyntaxOnly       | boolean                               | Yes      | Align with tsconfig.json `compilerOptions.erasableSyntaxOnly`. When `true`, generates const objects instead of enums (type-only syntax). Default: `false`                                                                                                                                                                                    |
+| enmuConfig.varnames                 | string                                | No       | Swagger schema field name for custom enum member names. Default: `enum-varnames`.                                                                                                                                                                                                                                                            |
+| enmuConfig.comment                  | string                                | No       | Swagger schema field name for custom enum descriptions (used for generating comments). Default: `enum-descriptions`.                                                                                                                                                                                                                         |
+| parameterSeparator                  | '$' \| '\_'                           | No       | Global separator used between path segments and parameters when generating API names and type names. For example, `/users/{userId}/posts` with separator `'_'` generates `users_userId_posts_GET`. Default: `'_'`. Each server can override individually                                                                                     |
+| enmuConfig.varnames                 | string                                | No       | Schema field name that stores custom enum member identifiers. Default: `enum-varnames`.                                                                                                                                                                                                                                                      |
+| enmuConfig.comment                  | string                                | No       | Schema field name that stores enum member descriptions (used for inline comments). Default: `enum-descriptions`.                                                                                                                                                                                                                             |
 
 #### Configuration Items and Generated Files Correspondence
 
@@ -253,6 +264,48 @@ export const userDetailGet = (params: UserDetail_GET.Query) => GET<UserDetail_GE
 
 ### Feature Descriptions
 
+#### Configuration Priority
+
+The tool supports global configuration and server-level configuration, following these priority rules:
+
+**Priority: Server-level configuration > Global configuration > Default values**
+
+The following configuration items support server-level override of global configuration:
+
+- `dataLevel`: Interface return data level
+- `parameterSeparator`: Separator for API names and type names
+- `includeInterface`: List of included interfaces
+- `excludeInterface`: List of excluded interfaces
+- `pathPrefix`: Request path prefix
+- `publicPrefix`: URL common prefix
+- `headers`: Request header configuration
+
+**Example:**
+
+```json
+{
+	"dataLevel": "serve",
+	"parameterSeparator": "_",
+	"swaggerServers": [
+		{
+			"url": "http://api1.example.com/swagger.json",
+			"dataLevel": "data",
+			"apiListFileName": "api1.ts"
+		},
+		{
+			"url": "http://api2.example.com/swagger.json",
+			"apiListFileName": "api2.ts"
+		}
+	]
+}
+```
+
+In the above configuration:
+
+- `api1.ts` uses `dataLevel: "data"` (server-level configuration)
+- `api2.ts` uses `dataLevel: "serve"` (global configuration)
+- Both servers use `parameterSeparator: "_"` (global configuration)
+
 #### Type Parsing
 
 - Supports all OpenAPI 3.0 specification data types
@@ -302,6 +355,73 @@ interface User {
 	status: StatusType; // Use the generated type with 'Type' suffix
 }
 ```
+
+#### Data Level Configuration (dataLevel)
+
+`dataLevel` is used to configure the extraction level of interface return data, supporting three options:
+
+1. **`'serve'` (default)**: Extracts the `data` field from server response
+
+   ```typescript
+   // Server returns: { code: 200, message: 'success', data: { id: 1, name: 'user' } }
+   // Function returns: { id: 1, name: 'user' }
+   ```
+
+2. **`'data'`**: Extracts the `data.data` field (for nested data scenarios)
+
+   ```typescript
+   // Server returns: { data: { code: 200, data: { id: 1, name: 'user' } } }
+   // Function returns: { id: 1, name: 'user' }
+   ```
+
+3. **`'axios'`**: Returns the complete axios response object
+   ```typescript
+   // Server returns: { code: 200, message: 'success', data: { id: 1, name: 'user' } }
+   // Function returns: { code: 200, message: 'success', data: { id: 1, name: 'user' } }
+   ```
+
+**Configuration example:**
+
+```json
+{
+	"dataLevel": "serve",
+	"swaggerServers": [
+		{
+			"url": "http://api1.example.com/swagger.json",
+			"dataLevel": "data"
+		}
+	]
+}
+```
+
+> **Note**: Server-level `dataLevel` configuration will override global configuration.
+
+#### Code Formatting
+
+The tool supports custom code formatting options, controlled by the `formatting` configuration:
+
+**Configuration example:**
+
+```json
+{
+	"formatting": {
+		"indentation": "\t",
+		"lineEnding": "\n"
+	}
+}
+```
+
+**Configuration description:**
+
+- `indentation`: Code indentation character
+  - `"\t"`: Use Tab indentation (default)
+  - `"  "`: Use 2 spaces indentation
+  - `"    "`: Use 4 spaces indentation
+- `lineEnding`: Line ending type
+  - `"\n"`: LF (Linux/macOS style, recommended)
+  - `"\r\n"`: CRLF (Windows style)
+
+**Note:** If Prettier is configured in the project, the generated code will automatically use Prettier for formatting, and the `formatting` configuration may be overridden by Prettier.
 
 #### File Upload
 
@@ -370,6 +490,51 @@ The tool supports configuring multiple Swagger servers, each server can be confi
 - Subsequent servers' APIs will be appended to their respective `apiListFileName` files
 - Type definitions and enums will be merged into a unified folder to avoid duplication
 
+**Server-level configuration:**
+
+Each server supports independent configuration of the following options. If not set, global configuration will be used:
+
+- `dataLevel` - Interface return data level
+- `parameterSeparator` - Separator for API names and type names
+- `includeInterface` - List of included interfaces
+- `excludeInterface` - List of excluded interfaces
+- `pathPrefix` - Request path prefix
+
+#### Path Prefix (pathPrefix)
+
+`pathPrefix` is used to automatically add a prefix to all API request paths, which is particularly useful in the following scenarios:
+
+1. **Reverse proxy scenarios**: When backend services are forwarded through a reverse proxy
+2. **API Gateway**: Uniformly add gateway prefix to paths
+3. **Multi-environment configuration**: Use different path prefixes for different environments
+
+**Usage example:**
+
+```json
+{
+	"swaggerServers": [
+		{
+			"url": "http://api.example.com/swagger.json",
+			"pathPrefix": "/forward",
+			"apiListFileName": "api.ts"
+		}
+	]
+}
+```
+
+**Effect:**
+
+The path `/api/user/list` defined in Swagger will be generated as:
+
+```typescript
+export const apiUserListGet = (params: ApiUserList_GET.Query) => GET<ApiUserList_GET.Response>('/forward/api/user/list', params);
+```
+
+**Difference from publicPrefix:**
+
+- `publicPrefix`: Used to remove common prefix from interface paths (only affects generated function names)
+- `pathPrefix`: Used to add prefix to actual request paths (affects runtime request URLs)
+
 **Configuration example:**
 
 ```json
@@ -379,14 +544,24 @@ The tool supports configuring multiple Swagger servers, each server can be confi
 			"url": "http://api1.example.com/swagger.json",
 			"apiListFileName": "api1.ts",
 			"publicPrefix": "/api/v1",
+			"pathPrefix": "/forward",
+			"dataLevel": "serve",
+			"parameterSeparator": "_",
 			"headers": {
 				"Authorization": "Bearer token1"
-			}
+			},
+			"includeInterface": [
+				{
+					"path": "/api/v1/users",
+					"method": "get"
+				}
+			]
 		},
 		{
 			"url": "http://api2.example.com/swagger.json",
 			"apiListFileName": "api2.ts",
 			"publicPrefix": "/api/v2",
+			"dataLevel": "data",
 			"headers": {
 				"Authorization": "Bearer token2"
 			}
@@ -420,20 +595,78 @@ All methods support type-safe parameter and response type definitions.
 
 1. Ensure the Swagger JSON documentation address is accessible
 2. Paths in the configuration file need to be relative to the project root directory
-3. Generated files will overwrite existing files with the same name
+3. Generated files will overwrite existing files with the same name (but `config.ts`, `error-message.ts`, `fetch.ts`, `api-type.d.ts` will not be overwritten if they already exist)
 4. It's recommended to add generated files to version control
 5. When using multiple Swagger servers, ensure each server's `apiListFileName` is unique to avoid file overwriting
 6. When configuring multiple servers, type definitions and enums will be merged. If different servers have types with the same name, conflicts may occur
+7. Server-level configuration (`dataLevel`, `parameterSeparator`, `includeInterface`, `excludeInterface`, `pathPrefix`) will override global configuration
+8. `includeInterface` and `excludeInterface` cannot be configured simultaneously. If both are configured, `includeInterface` will be prioritized
 
 ### Common Issues
 
-1. Generated type file formatting fails
+1. **Generated type file formatting fails**
    - Check if prettier is installed
    - Confirm if there's a prettier configuration file in the project root directory
+   - Check if the `formatting` configuration is correct
 
-2. Request function import path error
-   - Check if the requestMethodsImportPath configuration is correct
+2. **Request function import path error**
+   - Check if the `requestMethodsImportPath` configuration is correct
    - Confirm if the request method file exists
+
+3. **When to use `pathPrefix`?**
+   - When your APIs need to be accessed through a reverse proxy or gateway
+   - For example: Swagger defines `/api/user`, but the actual request needs to be `/gateway/api/user`
+   - Set `pathPrefix: "/gateway"` to achieve this
+
+4. **What's the difference between `publicPrefix` and `pathPrefix`?**
+   - `publicPrefix`: Removes prefix from interface paths, only affects generated function names
+     - Example: `/api/user/list` after removing `/api`, function name becomes `userListGet`
+   - `pathPrefix`: Adds prefix to request paths, affects actual request URLs
+     - Example: `/api/user/list` after adding `/forward`, request URL becomes `/forward/api/user/list`
+
+5. **How to configure different `dataLevel` for multiple servers?**
+
+   ```json
+   {
+   	"dataLevel": "serve",
+   	"swaggerServers": [
+   		{
+   			"url": "http://old-api.com/swagger.json",
+   			"dataLevel": "axios",
+   			"apiListFileName": "old-api.ts"
+   		},
+   		{
+   			"url": "http://new-api.com/swagger.json",
+   			"apiListFileName": "new-api.ts"
+   		}
+   	]
+   }
+   ```
+
+   - `old-api.ts` uses `dataLevel: "axios"`
+   - `new-api.ts` uses the global `dataLevel: "serve"`
+
+6. **How to generate only specific interfaces?**
+   - Use `includeInterface` configuration:
+     ```json
+     {
+     	"swaggerServers": [
+     		{
+     			"url": "http://api.com/swagger.json",
+     			"includeInterface": [
+     				{ "path": "/api/user", "method": "get" },
+     				{ "path": "/api/user/{id}", "method": "post" }
+     			]
+     		}
+     	]
+     }
+     ```
+   - Or use `excludeInterface` to exclude unwanted interfaces
+
+7. **What if generated files are overwritten?**
+   - Files like `config.ts`, `error-message.ts`, `fetch.ts`, `api-type.d.ts` are only generated when they don't exist
+   - API list files and type files are regenerated each time
+   - It's recommended to add generated files to version control for easy tracking of changes
 
 # `anl lint` Command Usage
 

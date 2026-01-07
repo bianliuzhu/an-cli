@@ -208,6 +208,7 @@ export class Main {
 				publicPrefix: config.publicPrefix || '',
 				apiListFileName: config.apiListFileName || 'index.ts',
 				headers: config.headers || {},
+				modulePrefix: config.modulePrefix,
 			};
 		}
 
@@ -230,6 +231,7 @@ export class Main {
 			const parameterSeparator = server.parameterSeparator || config.parameterSeparator || '_';
 			const includeInterface = server.includeInterface || config.includeInterface || [];
 			const excludeInterface = server.excludeInterface || config.excludeInterface || [];
+			const modulePrefix = server.modulePrefix ?? config.modulePrefix ?? '';
 
 			return {
 				url,
@@ -240,6 +242,7 @@ export class Main {
 				parameterSeparator,
 				includeInterface,
 				excludeInterface,
+				modulePrefix,
 			};
 		};
 
@@ -280,6 +283,7 @@ export class Main {
 			parameterSeparator: server.parameterSeparator,
 			includeInterface: server.includeInterface,
 			excludeInterface: server.excludeInterface,
+			modulePrefix: server.modulePrefix,
 			swaggerServers: server,
 		};
 	}

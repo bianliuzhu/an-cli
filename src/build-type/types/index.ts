@@ -146,6 +146,8 @@ export interface IConfigSwaggerServer {
 	includeInterface?: IncludeOrExcludeInterface[];
 	/** 排除的接口（服务级配置） */
 	excludeInterface?: IncludeOrExcludeInterface[];
+	/** path 前缀 */
+	modulePrefix?: string;
 }
 
 export interface ConfigType {
@@ -178,6 +180,8 @@ export interface ConfigType {
 	includeInterface?: IncludeOrExcludeInterface[];
 	/** 排除的接口（服务级配置注入） */
 	excludeInterface?: IncludeOrExcludeInterface[];
+	/** path 前缀（服务级配置注入） */
+	modulePrefix?: string;
 	/** 格式化 */
 	formatting?: {
 		/** 缩进 */
