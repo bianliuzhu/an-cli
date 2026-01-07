@@ -28,7 +28,7 @@ const configContent: ConfigType = {
 		indentation: '\t',
 		lineEnding: '\n',
 	},
-	swaggerServers: {
+	swaggerConfig: {
 		url: 'https://generator3.swagger.io/openapi.json',
 		apiListFileName: 'index.ts',
 		headers: {},
@@ -55,8 +55,8 @@ export class Main {
 	 */
 	private async handle(config: ConfigType, appendMode: boolean) {
 		try {
-			// 无论是否为调试模式，都优先按配置从 swaggerServers.url 获取数据
-			// 若需要本地调试示例数据，可以在 an.config.json 中将 swaggerServers.url
+			// 无论是否为调试模式，都优先按配置从 swaggerConfig.url 获取数据
+			// 若需要本地调试示例数据，可以在 an.config.json 中将 swaggerConfig.url
 			// 配置为本地文件路径（例如 ./data/openapi.json.js），getSwaggerJson 会自动处理。
 			const response = (await getSwaggerJson(config)) as OpenAPIV3.Document;
 
@@ -179,27 +179,27 @@ export class Main {
 
 		if (isChinese) {
 			console.log('\n检测到旧版配置，请更新 an.config.json：');
-			console.log('1) 将 swaggerJsonUrl / publicPrefix / headers 移到 swaggerServers 字段。');
+			console.log('1) 将 swaggerJsonUrl / publicPrefix / headers 移到 swaggerConfig 字段。');
 			console.log('2) 单个服务可直接填写对象，多个服务请使用数组，并确保 apiListFileName 唯一。');
 			console.log('示例：');
-			console.log(JSON.stringify({ swaggerServers: exampleServer }, null, 2));
+			console.log(JSON.stringify({ swaggerConfig: exampleServer }, null, 2));
 			console.log('');
 		} else {
 			console.log('\nLegacy configuration detected, please update an.config.json:');
-			console.log('1) Move swaggerJsonUrl / publicPrefix / headers to swaggerServers field.');
+			console.log('1) Move swaggerJsonUrl / publicPrefix / headers to swaggerConfig field.');
 			console.log('2) Single service can be an object directly, multiple services should use an array, and ensure apiListFileName is unique.');
 			console.log('Example:');
-			console.log(JSON.stringify({ swaggerServers: exampleServer }, null, 2));
+			console.log(JSON.stringify({ swaggerConfig: exampleServer }, null, 2));
 			console.log('');
 		}
 	}
 
 	/**
-	 * 规范化 swaggerServers，兼容旧配置并校验必填字段
+	 * 规范化 swaggerConfig，兼容旧配置并校验必填字段
 	 */
-	private normalizeSwaggerServers(config: ConfigType, hasUserDefinedServers: boolean): NormalizedSwaggerServer[] {
+	private normalizeswaggerConfig(config: ConfigType, hasUserDefinedServers: boolean): NormalizedSwaggerServer[] {
 		let legacyDetected = false;
-		let serversInput = hasUserDefinedServers ? config.swaggerServers : undefined;
+		let serversInput = hasUserDefinedServers ? config.swaggerConfig : undefined;
 
 		if (!serversInput) {
 			legacyDetected = true;
@@ -215,7 +215,7 @@ export class Main {
 		const fillDefaults = (server: IConfigSwaggerServer, index: number): NormalizedSwaggerServer => {
 			const url = server.url || config.swaggerJsonUrl;
 			if (!url) {
-				throw new Error(`swaggerServers[${index}] 缺少 url，请补充后重试。`);
+				throw new Error(`swaggerConfig[${index}] 缺少 url，请补充后重试。`);
 			}
 
 			const publicPrefix = server.publicPrefix ?? config.publicPrefix ?? '';
@@ -249,14 +249,14 @@ export class Main {
 		const normalized = Array.isArray(serversInput) ? serversInput.map((item, index) => fillDefaults(item, index)) : [fillDefaults(serversInput, 0)];
 
 		if (normalized.length === 0) {
-			throw new Error('swaggerServers 不能为空，请至少配置一个 swagger 服务。');
+			throw new Error('swaggerConfig 不能为空，请至少配置一个 swagger 服务。');
 		}
 
 		if (normalized.length > 1) {
 			const nameSet = new Set<string>();
 			normalized.forEach((server) => {
 				if (nameSet.has(server.apiListFileName)) {
-					throw new Error(`swaggerServers 中 apiListFileName 重复：${server.apiListFileName}，请为每个服务设置唯一文件名。`);
+					throw new Error(`swaggerConfig 中 apiListFileName 重复：${server.apiListFileName}，请为每个服务设置唯一文件名。`);
 				}
 				nameSet.add(server.apiListFileName);
 			});
@@ -284,7 +284,7 @@ export class Main {
 			includeInterface: server.includeInterface,
 			excludeInterface: server.excludeInterface,
 			modulePrefix: server.modulePrefix,
-			swaggerServers: server,
+			swaggerConfig: server,
 		};
 	}
 
@@ -311,8 +311,8 @@ export class Main {
 		try {
 			const userConfig = await this.getConfig(configFilePath);
 			const mergedConfig = { ...configContent, ...userConfig };
-			const hasUserSwaggerServers = Object.prototype.hasOwnProperty.call(userConfig, 'swaggerServers');
-			const servers = this.normalizeSwaggerServers(mergedConfig, hasUserSwaggerServers);
+			const hasUserswaggerConfig = Object.prototype.hasOwnProperty.call(userConfig, 'swaggerConfig');
+			const servers = this.normalizeswaggerConfig(mergedConfig, hasUserswaggerConfig);
 
 			if (!isConfigFile) return;
 

@@ -68,8 +68,8 @@ export function getValueByPath<T = any>(obj: any, path: string): T | undefined {
 
 	let tempObj = obj;
 	let pathH = path.replace(/\[(\w+)\]/g, '.$1');
-	pathH = pathH.replace(/^[\.|\/]/, '');
-	const keyArr = pathH.split(/[\.|\/]/);
+	pathH = pathH.replace(/^[./]/, '');
+	const keyArr = pathH.split(/[./]/);
 
 	let i = 0;
 	for (let len = keyArr.length; i < len - 1; ++i) {

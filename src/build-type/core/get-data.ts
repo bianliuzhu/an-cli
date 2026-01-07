@@ -15,7 +15,7 @@ type TReturnType = Promise<OpenAPI.Document & DocumentCommom>;
 /** 获取 Swagger JSON 数据 */
 export async function getSwaggerJson(config: ConfigType): TReturnType {
 	if (!config.swaggerJsonUrl) {
-		return Promise.reject(new Error('swaggerJsonUrl 未配置，请检查 swaggerServers.url'));
+		return Promise.reject(new Error('swaggerJsonUrl 未配置，请检查 swaggerConfig.url'));
 	}
 
 	if (/^https?:\/\//.test(config.swaggerJsonUrl)) {
