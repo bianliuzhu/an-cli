@@ -115,7 +115,7 @@ $ anl type
 		"url": "https://generator3.swagger.io/openapi2.json",
 		"apiListFileName": "index.ts",
 		"publicPrefix": "/api",
-		"pathPrefix": "/gateway",
+		"modulePrefix": "/gateway",
 		"dataLevel": "serve",
 		"parameterSeparator": "_",
 		"headers": {
@@ -160,7 +160,7 @@ $ anl type
 		{
 			"url": "https://generator3.swagger.io/openapi1.json",
 			"apiListFileName": "op.ts",
-			"pathPrefix": "/forward",
+			"modulePrefix": "/forward",
 			"dataLevel": "serve",
 			"parameterSeparator": "_",
 			"headers": {},
@@ -184,39 +184,39 @@ $ anl type
 
 #### Descripción de Elementos de Configuración
 
-| Elemento de Configuración       | Tipo                                  | Requerido | Descripción                                                                                                                                                                                                                    |
-| ------------------------------ | ------------------------------------- | --------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| saveTypeFolderPath             | string                                | Sí        | Ruta de guardado de archivos de definición de tipos                                                                                                                                                                            |
-| saveApiListFolderPath          | string                                | Sí        | Ruta de guardado de archivos de funciones de solicitud API                                                                                                                                                                     |
-| saveEnumFolderPath             | string                                | Sí        | Ruta de guardado de archivos de datos enum                                                                                                                                                                                     |
-| importEnumPath                 | string                                | Sí        | Ruta de importación de enum (ruta de referencia de archivos enum en apps/types/models/\*.ts)                                                                                                                                   |
-| swaggerJsonUrl                 | string                                | No        | Dirección del documento Swagger JSON (migrado a `swaggerServers`, conservado para compatibilidad con configuración antigua) **Este campo se eliminará en versiones futuras**                                                 |
-| swaggerServers                 | object \| Array<object>               | No        | Configuración del servidor Swagger. Un solo servidor se puede completar directamente como objeto, múltiples servidores usan array. Cada servidor puede configurar `url`, `publicPrefix`, `apiListFileName`, `headers`<br />Este campo corresponde a los ejemplos de configuración de un solo servidor Swagger y configuración de múltiples servidores Swagger, desplázate hacia arriba para verlos |
-| swaggerServers[].url             | string                                | Sí        | Dirección del documento Swagger JSON                                                                                                                                                                                           |
-| swaggerServers[].publicPrefix    | string                                | No        | Prefijo público en la ruta URL, por ejemplo: api/users, api/users/{id}, api es el prefijo público                                                                                                                              |
-| swaggerServers[].pathPrefix      | string                                | No        | Prefijo de ruta de solicitud (puede entenderse como nombre de módulo), se agregará automáticamente delante de cada ruta de solicitud API.<br />Por ejemplo: cuando `pathPrefix: "/forward"`,<br />`/publicPrefix/pathPrefix/user` se convierte en `/api/forward/user` |
-| swaggerServers[].apiListFileName | string                                | No        | Nombre del archivo de lista de API, el predeterminado es `index.ts`. Cuando hay múltiples servidores, el nombre de archivo de cada servidor debe ser único                                                                     |
-| swaggerServers[].headers         | object                                | No        | Configuración de encabezados de solicitud para este servidor                                                                                                                                                                    |
-| swaggerServers[].dataLevel       | 'data' \| 'serve' \| 'axios'          | No        | Nivel de datos de retorno de interfaz para este servidor. Si no se configura, se usa la configuración global `dataLevel`                                                                                                        |
-| swaggerServers[].parameterSeparator | '$' \| '\_'                        | No        | Separador utilizado al generar nombres de API y nombres de tipo para este servidor. Si no se configura, se usa la configuración global `parameterSeparator`                                                                     |
-| swaggerServers[].includeInterface | Array<{path: string, method: string}> | No        | Lista de interfaces incluidas para este servidor. Si no se configura, se usa la configuración global `includeInterface`                                                                                                         |
-| swaggerServers[].excludeInterface | Array<{path: string, method: string}> | No        | Lista de interfaces excluidas para este servidor. Si no se configura, se usa la configuración global `excludeInterface`                                                                                                         |
-| requestMethodsImportPath           | string                                | Sí        | Ruta de importación de métodos de solicitud                                                                                                                                                                                    |
-| dataLevel                          | 'data' \| 'serve' \| 'axios'          | No        | Configuración global de nivel de datos de retorno de interfaz, valor predeterminado: `'serve'`. Cada servidor puede configurarlo individualmente para sobrescribir                                                             |
-| formatting                         | object                                | No        | Configuración de formateo de código                                                                                                                                                                                            |
-| formatting.indentation             | string                                | No        | Carácter de indentación de código, por ejemplo: `"\t"` o `"  "` (dos espacios)                                                                                                                                                 |
-| formatting.lineEnding              | string                                | No        | Carácter de salto de línea, por ejemplo: `"\n"` (LF) o `"\r\n"` (CRLF)                                                                                                                                                         |
-| headers                        | object                                | No        | Configuración de encabezados de solicitud (migrado a `swaggerServers`, conservado para compatibilidad con configuración antigua)                                                                                               |
-| includeInterface                   | Array<{path: string, method: string}> | No        | Interfaces incluidas globalmente: el archivo de lista de interfaces especificado por `saveApiListFolderPath` solo incluirá las interfaces en la lista, es mutuamente excluyente con el campo `excludeInterface`. Cada servidor puede configurarlo individualmente para sobrescribir |
-| excludeInterface                   | Array<{path: string, method: string}> | No        | Interfaces excluidas globalmente: el texto de lista de interfaces especificado por `saveApiListFolderPath` no incluirá las interfaces en esta lista, es mutuamente excluyente con `includeInterface`. Cada servidor puede configurarlo individualmente para sobrescribir        |
-| publicPrefix                       | string                                | No        | Prefijo público global en la ruta URL (migrado a `swaggerServers`, conservado para compatibilidad con configuración antigua)                                                                                                    |
-| pathPrefix                         | string                                | No        | Prefijo de ruta de solicitud global (cada servidor puede configurarlo individualmente para sobrescribir)                                                                                                                         |
-| apiListFileName                    | string                                | No        | Nombre del archivo de lista de API global, el predeterminado es `index.ts` (migrado a `swaggerServers`, conservado para compatibilidad con configuración antigua)                                                               |
-| enmuConfig                         | object                                | Sí        | Objeto de configuración de enumeración                                                                                                                                                                                          |
-| enmuConfig.erasableSyntaxOnly      | boolean                               | Sí        | Alineado con la opción `compilerOptions.erasableSyntaxOnly` de tsconfig.json. Cuando es `true`, genera objetos const en lugar de enum (solo sintaxis de tipo). Valor predeterminado: `false`                                   |
-| enmuConfig.varnames                | string                                | No        | Nombre del campo en el esquema Swagger que contiene los nombres personalizados de los miembros del enum. Valor predeterminado: `enum-varnames`.                                                                               |
-| enmuConfig.comment                 | string                                | No        | Nombre del campo en el esquema Swagger que contiene las descripciones de los miembros del enum (se usa para generar comentarios). Valor predeterminado: `enum-descriptions`.                                                   |
-| parameterSeparator                 | '$' \| '\_'                           | No        | Separador utilizado globalmente entre segmentos de ruta y parámetros al generar nombres de API y nombres de tipo. Por ejemplo, `/users/{userId}/posts` con el separador `'_'` genera `users_userId_posts_GET`. Valor predeterminado: `'_'`. Cada servidor puede configurarlo individualmente para sobrescribir |
+| Elemento de Configuración           | Tipo                                  | Requerido | Descripción                                                                                                                                                                                                                                                                                                                                                                                        |
+| ----------------------------------- | ------------------------------------- | --------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| saveTypeFolderPath                  | string                                | Sí        | Ruta de guardado de archivos de definición de tipos                                                                                                                                                                                                                                                                                                                                                |
+| saveApiListFolderPath               | string                                | Sí        | Ruta de guardado de archivos de funciones de solicitud API                                                                                                                                                                                                                                                                                                                                         |
+| saveEnumFolderPath                  | string                                | Sí        | Ruta de guardado de archivos de datos enum                                                                                                                                                                                                                                                                                                                                                         |
+| importEnumPath                      | string                                | Sí        | Ruta de importación de enum (ruta de referencia de archivos enum en apps/types/models/\*.ts)                                                                                                                                                                                                                                                                                                       |
+| swaggerJsonUrl                      | string                                | No        | Dirección del documento Swagger JSON (migrado a `swaggerServers`, conservado para compatibilidad con configuración antigua) **Este campo se eliminará en versiones futuras**                                                                                                                                                                                                                       |
+| swaggerServers                      | object \| Array<object>               | No        | Configuración del servidor Swagger. Un solo servidor se puede completar directamente como objeto, múltiples servidores usan array. Cada servidor puede configurar `url`, `publicPrefix`, `apiListFileName`, `headers`<br />Este campo corresponde a los ejemplos de configuración de un solo servidor Swagger y configuración de múltiples servidores Swagger, desplázate hacia arriba para verlos |
+| swaggerServers[].url                | string                                | Sí        | Dirección del documento Swagger JSON                                                                                                                                                                                                                                                                                                                                                               |
+| swaggerServers[].publicPrefix       | string                                | No        | Prefijo público en la ruta URL, por ejemplo: api/users, api/users/{id}, api es el prefijo público                                                                                                                                                                                                                                                                                                  |
+| swaggerServers[].modulePrefix       | string                                | No        | Prefijo de ruta de solicitud (puede entenderse como nombre de módulo), se agregará automáticamente delante de cada ruta de solicitud API.<br />Por ejemplo: cuando `modulePrefix: "/forward"`,<br />`/publicPrefix/modulePrefix/user` se convierte en `/api/forward/user`                                                                                                                          |
+| swaggerServers[].apiListFileName    | string                                | No        | Nombre del archivo de lista de API, el predeterminado es `index.ts`. Cuando hay múltiples servidores, el nombre de archivo de cada servidor debe ser único                                                                                                                                                                                                                                         |
+| swaggerServers[].headers            | object                                | No        | Configuración de encabezados de solicitud para este servidor                                                                                                                                                                                                                                                                                                                                       |
+| swaggerServers[].dataLevel          | 'data' \| 'serve' \| 'axios'          | No        | Nivel de datos de retorno de interfaz para este servidor. Si no se configura, se usa la configuración global `dataLevel`                                                                                                                                                                                                                                                                           |
+| swaggerServers[].parameterSeparator | '$' \| '\_'                           | No        | Separador utilizado al generar nombres de API y nombres de tipo para este servidor. Si no se configura, se usa la configuración global `parameterSeparator`                                                                                                                                                                                                                                        |
+| swaggerServers[].includeInterface   | Array<{path: string, method: string}> | No        | Lista de interfaces incluidas para este servidor. Si no se configura, se usa la configuración global `includeInterface`                                                                                                                                                                                                                                                                            |
+| swaggerServers[].excludeInterface   | Array<{path: string, method: string}> | No        | Lista de interfaces excluidas para este servidor. Si no se configura, se usa la configuración global `excludeInterface`                                                                                                                                                                                                                                                                            |
+| requestMethodsImportPath            | string                                | Sí        | Ruta de importación de métodos de solicitud                                                                                                                                                                                                                                                                                                                                                        |
+| dataLevel                           | 'data' \| 'serve' \| 'axios'          | No        | Configuración global de nivel de datos de retorno de interfaz, valor predeterminado: `'serve'`. Cada servidor puede configurarlo individualmente para sobrescribir                                                                                                                                                                                                                                 |
+| formatting                          | object                                | No        | Configuración de formateo de código                                                                                                                                                                                                                                                                                                                                                                |
+| formatting.indentation              | string                                | No        | Carácter de indentación de código, por ejemplo: `"\t"` o `"  "` (dos espacios)                                                                                                                                                                                                                                                                                                                     |
+| formatting.lineEnding               | string                                | No        | Carácter de salto de línea, por ejemplo: `"\n"` (LF) o `"\r\n"` (CRLF)                                                                                                                                                                                                                                                                                                                             |
+| headers                             | object                                | No        | Configuración de encabezados de solicitud (migrado a `swaggerServers`, conservado para compatibilidad con configuración antigua)                                                                                                                                                                                                                                                                   |
+| includeInterface                    | Array<{path: string, method: string}> | No        | Interfaces incluidas globalmente: el archivo de lista de interfaces especificado por `saveApiListFolderPath` solo incluirá las interfaces en la lista, es mutuamente excluyente con el campo `excludeInterface`. Cada servidor puede configurarlo individualmente para sobrescribir                                                                                                                |
+| excludeInterface                    | Array<{path: string, method: string}> | No        | Interfaces excluidas globalmente: el texto de lista de interfaces especificado por `saveApiListFolderPath` no incluirá las interfaces en esta lista, es mutuamente excluyente con `includeInterface`. Cada servidor puede configurarlo individualmente para sobrescribir                                                                                                                           |
+| publicPrefix                        | string                                | No        | Prefijo público global en la ruta URL (migrado a `swaggerServers`, conservado para compatibilidad con configuración antigua)                                                                                                                                                                                                                                                                       |
+| modulePrefix                        | string                                | No        | Prefijo de ruta de solicitud global (cada servidor puede configurarlo individualmente para sobrescribir)                                                                                                                                                                                                                                                                                           |
+| apiListFileName                     | string                                | No        | Nombre del archivo de lista de API global, el predeterminado es `index.ts` (migrado a `swaggerServers`, conservado para compatibilidad con configuración antigua)                                                                                                                                                                                                                                  |
+| enmuConfig                          | object                                | Sí        | Objeto de configuración de enumeración                                                                                                                                                                                                                                                                                                                                                             |
+| enmuConfig.erasableSyntaxOnly       | boolean                               | Sí        | Alineado con la opción `compilerOptions.erasableSyntaxOnly` de tsconfig.json. Cuando es `true`, genera objetos const en lugar de enum (solo sintaxis de tipo). Valor predeterminado: `false`                                                                                                                                                                                                       |
+| enmuConfig.varnames                 | string                                | No        | Nombre del campo en el esquema Swagger que contiene los nombres personalizados de los miembros del enum. Valor predeterminado: `enum-varnames`.                                                                                                                                                                                                                                                    |
+| enmuConfig.comment                  | string                                | No        | Nombre del campo en el esquema Swagger que contiene las descripciones de los miembros del enum (se usa para generar comentarios). Valor predeterminado: `enum-descriptions`.                                                                                                                                                                                                                       |
+| parameterSeparator                  | '$' \| '\_'                           | No        | Separador utilizado globalmente entre segmentos de ruta y parámetros al generar nombres de API y nombres de tipo. Por ejemplo, `/users/{userId}/posts` con el separador `'_'` genera `users_userId_posts_GET`. Valor predeterminado: `'_'`. Cada servidor puede configurarlo individualmente para sobrescribir                                                                                     |
 
 #### Relación entre Elementos de Configuración y Archivos Generados
 
@@ -282,7 +282,7 @@ Los siguientes elementos de configuración admiten sobrescritura a nivel de serv
 - `parameterSeparator`: Separador para nombres de API y nombres de tipo
 - `includeInterface`: Lista de interfaces incluidas
 - `excludeInterface`: Lista de interfaces excluidas
-- `pathPrefix`: Prefijo de ruta de solicitud
+- `modulePrefix`: Prefijo de ruta de solicitud
 - `publicPrefix`: Prefijo común de URL
 - `headers`: Configuración de encabezados de solicitud
 
@@ -504,11 +504,11 @@ Cada servidor admite configuración independiente de las siguientes opciones. Si
 - `parameterSeparator` - Separador para nombres de API y nombres de tipo
 - `includeInterface` - Lista de interfaces incluidas
 - `excludeInterface` - Lista de interfaces excluidas
-- `pathPrefix` - Prefijo de ruta de solicitud
+- `modulePrefix` - Prefijo de ruta de solicitud
 
-#### Prefijo de Ruta (pathPrefix)
+#### Prefijo de Ruta (modulePrefix)
 
-`pathPrefix` se utiliza para agregar automáticamente un prefijo delante de todas las rutas de solicitud API, esto es especialmente útil en los siguientes escenarios:
+`modulePrefix` se utiliza para agregar automáticamente un prefijo delante de todas las rutas de solicitud API, esto es especialmente útil en los siguientes escenarios:
 
 1. **Escenario de proxy inverso**: Cuando el servicio backend se enruta a través de un proxy inverso
 2. **Gateway de API**: Agregar uniformemente un prefijo de gateway delante de la ruta
@@ -521,7 +521,7 @@ Cada servidor admite configuración independiente de las siguientes opciones. Si
 	"swaggerServers": [
 		{
 			"url": "http://api.example.com/swagger.json",
-			"pathPrefix": "/forward",
+			"modulePrefix": "/forward",
 			"apiListFileName": "api.ts"
 		}
 	]
@@ -539,7 +539,7 @@ export const apiUserListGet = (params: ApiUserList_GET.Query) => GET<ApiUserList
 **Diferencia con publicPrefix:**
 
 - `publicPrefix`: Se usa para eliminar el prefijo común de la ruta de interfaz (solo afecta al nombre de función generado)
-- `pathPrefix`: Se usa para agregar prefijo delante de la ruta de solicitud real (afecta a la URL de solicitud en tiempo de ejecución)
+- `modulePrefix`: Se usa para agregar prefijo delante de la ruta de solicitud real (afecta a la URL de solicitud en tiempo de ejecución)
 
 **Ejemplo de configuración:**
 
@@ -550,7 +550,7 @@ export const apiUserListGet = (params: ApiUserList_GET.Query) => GET<ApiUserList
 			"url": "http://api1.example.com/swagger.json",
 			"apiListFileName": "api1.ts",
 			"publicPrefix": "/api/v1",
-			"pathPrefix": "/forward",
+			"modulePrefix": "/forward",
 			"dataLevel": "serve",
 			"parameterSeparator": "_",
 			"headers": {
@@ -630,7 +630,7 @@ Todos los métodos admiten definiciones de tipos seguros para parámetros y resp
 4. Se recomienda incluir los archivos generados en el control de versiones
 5. Al usar múltiples servidores Swagger, asegúrate de que el `apiListFileName` de cada servidor sea único para evitar sobrescritura de archivos
 6. Al configurar múltiples servidores, las definiciones de tipos y enumeraciones se fusionarán, y pueden ocurrir conflictos si hay tipos con el mismo nombre de diferentes servidores
-7. La configuración a nivel de servidor (`dataLevel`, `parameterSeparator`, `includeInterface`, `excludeInterface`, `pathPrefix`) sobrescribirá la configuración global
+7. La configuración a nivel de servidor (`dataLevel`, `parameterSeparator`, `includeInterface`, `excludeInterface`, `modulePrefix`) sobrescribirá la configuración global
 8. `includeInterface` y `excludeInterface` no se pueden configurar simultáneamente. Si se configuran ambos, se usará `includeInterface` con prioridad
 
 ### Preguntas Frecuentes
@@ -643,15 +643,15 @@ Todos los métodos admiten definiciones de tipos seguros para parámetros y resp
    - Verifica si la configuración de requestMethodsImportPath es correcta
    - Confirma si el archivo de métodos de solicitud existe
 
-3. **¿Cuándo usar `pathPrefix`?**
+3. **¿Cuándo usar `modulePrefix`?**
    - Cuando tu API necesita accederse a través de un proxy inverso o gateway
    - Por ejemplo: Swagger define `/api/user`, pero la solicitud real necesita ser `/gateway/api/user`
-   - Simplemente configura `pathPrefix: "/gateway"`
+   - Simplemente configura `modulePrefix: "/gateway"`
 
-4. **¿Cuál es la diferencia entre `publicPrefix` y `pathPrefix`?**
+4. **¿Cuál es la diferencia entre `publicPrefix` y `modulePrefix`?**
    - `publicPrefix`: Elimina el prefijo de la ruta de interfaz, solo afecta al nombre de función generado
      - Por ejemplo: `/api/user/list` después de eliminar `/api`, el nombre de función es `userListGet`
-   - `pathPrefix`: Agrega prefijo delante de la ruta de solicitud, afecta a la URL de solicitud real
+   - `modulePrefix`: Agrega prefijo delante de la ruta de solicitud, afecta a la URL de solicitud real
      - Por ejemplo: `/api/user/list` después de agregar `/forward`, la URL de solicitud es `/forward/api/user/list`
 
 5. **¿Cómo configurar diferentes `dataLevel` para múltiples servidores?**

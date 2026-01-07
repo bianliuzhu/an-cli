@@ -16,8 +16,8 @@
 	},
 	"swaggerServers": [
 		{
-			"url": "./data/op.json",
-			"url:remote": "http://172.24.160.153:8080/v3/api-docs",
+			"url": "http://172.24.160.86:8080/v3/api-docs",
+			"url:local": "./data/op.json",
 			"apiListFileName": "op.ts",
 			"headers": {},
 			"includeInterface": [
