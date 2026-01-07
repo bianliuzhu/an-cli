@@ -106,32 +106,30 @@ $ anl type
 	"saveApiListFolderPath": "apps/api/",
 	"saveEnumFolderPath": "apps/enums",
 	"importEnumPath": "../../enums",
-	"swaggerServers": {
-		"url": "https://generator3.swagger.io/openapi2.json",
-		"apiListFileName": "index.ts",
-		"publicPrefix": "api",
-		"headers": {}
-	},
 	"requestMethodsImportPath": "./fetch",
 	"dataLevel": "serve",
+	"parameterSeparator": "_",
 	"formatting": {
 		"indentation": "\t",
 		"lineEnding": "\n"
 	},
-	"headers": {},
-	"includeInterface": [
-		{
-			"path": "/api/user",
-			"method": "get"
-		}
-	],
-	"excludeInterface": [
-		{
-			"path": "/api/admin",
-			"method": "post"
-		}
-	],
-	"parameterSeparator": "_",
+	"swaggerServers": {
+		"url": "https://generator3.swagger.io/openapi2.json",
+		"apiListFileName": "index.ts",
+		"publicPrefix": "/api",
+		"pathPrefix": "/gateway",
+		"dataLevel": "serve",
+		"parameterSeparator": "_",
+		"headers": {
+			"Authorization": "Bearer token"
+		},
+		"includeInterface": [
+			{
+				"path": "/api/user",
+				"method": "get"
+			}
+		]
+	},
 	"enmuConfig": {
 		"erasableSyntaxOnly": false,
 		"varnames": "enum-varnames",
@@ -164,12 +162,22 @@ $ anl type
 		{
 			"url": "https://generator3.swagger.io/openapi1.json",
 			"apiListFileName": "op.ts",
-			"headers": {}
+			"pathPrefix": "/forward",
+			"dataLevel": "serve",
+			"parameterSeparator": "_",
+			"headers": {},
+			"includeInterface": [
+				{
+					"path": "/op/trade/order/queryPage",
+					"method": "post"
+				}
+			]
 		},
 		{
 			"url": "https://generator3.swagger.io/openapi2.json",
 			"apiListFileName": "index.ts",
 			"publicPrefix": "/api",
+			"dataLevel": "data",
 			"headers": {}
 		}
 	]
@@ -186,22 +194,31 @@ $ anl type
 | importEnumPath                   | string                                | نعم   | مسار استيراد التعداد (مسار ملف enum المُشار إليه في apps/types/models/\*.ts)                                                                                                                                                                                                      |
 | swaggerJsonUrl                   | string                                | لا    | عنوان مستند Swagger JSON (تم نقله إلى `swaggerServers`، محفوظ للتوافق مع التكوين القديم) **سيتم حذف هذا الحقل في الإصدارات التالية**                                                                                                                                              |
 | swaggerServers                   | object \| Array<object>               | لا    | تكوين خادم Swagger. يمكن ملء خادم واحد مباشرة ككائن، أو استخدام مصفوفة لخوادم متعددة. يمكن تكوين `url` و `publicPrefix` و `apiListFileName` و `headers` لكل خادم<br />يتوافق هذا الحقل مع أمثلة تكوين خادم Swagger الواحد وتكوين خوادم Swagger المتعددة، يرجى التمرير لأعلى للعرض |
-| swaggerServers[].url             | string                                | نعم   | عنوان مستند Swagger JSON                                                                                                                                                                                                                                                          |
-| swaggerServers[].publicPrefix    | string                                | لا    | البادئة العامة على مسار url، على سبيل المثال: api/users، api/users/{id}، api هي البادئة العامة                                                                                                                                                                                    |
-| swaggerServers[].apiListFileName | string                                | لا    | اسم ملف قائمة API، الافتراضي هو `index.ts`. عند استخدام خوادم متعددة، يجب أن يكون اسم الملف لكل خادم فريدًا                                                                                                                                                                       |
-| swaggerServers[].headers         | object                                | لا    | تكوين رأس الطلب                                                                                                                                                                                                                                                                   |
-| requestMethodsImportPath         | string                                | نعم   | مسار استيراد طرق الطلب                                                                                                                                                                                                                                                            |
-| dataLevel                        | 'data' \| 'serve' \| 'axios'          | نعم   | مستوى بيانات استجابة الواجهة                                                                                                                                                                                                                                                      |
-| formatting                       | object                                | لا    | تكوين تنسيق الكود                                                                                                                                                                                                                                                                 |
+| swaggerServers[].url                | string                                | نعم   | عنوان مستند Swagger JSON                                                                                                                                                                                                                                                          |
+| swaggerServers[].publicPrefix       | string                                | لا    | البادئة العامة على مسار url، على سبيل المثال: api/users، api/users/{id}، api هي البادئة العامة                                                                                                                                                                                    |
+| swaggerServers[].pathPrefix         | string                                | لا    | بادئة مسار الطلب (يمكن فهمها كاسم وحدة)، سيتم إضافتها تلقائيًا أمام كل مسار طلب API.<br />على سبيل المثال: عندما `pathPrefix: "/forward"`، <br />`/publicPrefix/pathPrefix/user` سيصبح `/api/forward/user`                                                                      |
+| swaggerServers[].apiListFileName    | string                                | لا    | اسم ملف قائمة API، الافتراضي هو `index.ts`. عند استخدام خوادم متعددة، يجب أن يكون اسم الملف لكل خادم فريدًا                                                                                                                                                                       |
+| swaggerServers[].headers            | object                                | لا    | تكوين رأس طلب هذا الخادم                                                                                                                                                                                                                                                           |
+| swaggerServers[].dataLevel          | 'data' \| 'serve' \| 'axios'          | لا    | مستوى بيانات إرجاع واجهة هذا الخادم. إذا لم يتم تعيينه، يتم استخدام تكوين `dataLevel` العام                                                                                                                                                                                        |
+| swaggerServers[].parameterSeparator | '$' \| '\_'                           | لا    | الفاصل المستخدم عند إنشاء أسماء API وأسماء الأنواع لهذا الخادم. إذا لم يتم تعيينه، يتم استخدام تكوين `parameterSeparator` العام                                                                                                                                                    |
+| swaggerServers[].includeInterface   | Array<{path: string, method: string}> | لا    | قائمة الواجهات المضمنة في هذا الخادم. إذا لم يتم تعيينها، يتم استخدام تكوين `includeInterface` العام                                                                                                                                                                               |
+| swaggerServers[].excludeInterface   | Array<{path: string, method: string}> | لا    | قائمة الواجهات المستبعدة في هذا الخادم. إذا لم يتم تعيينها، يتم استخدام تكوين `excludeInterface` العام                                                                                                                                                                             |
+| requestMethodsImportPath            | string                                | نعم   | مسار استيراد طرق الطلب                                                                                                                                                                                                                                                            |
+| dataLevel                           | 'data' \| 'serve' \| 'axios'          | لا    | تكوين مستوى بيانات إرجاع الواجهة العامة، القيمة الافتراضية: `'serve'`. يمكن لكل خادم تكوينه بشكل منفصل للتجاوز                                                                                                                                                                    |
+| formatting                          | object                                | لا    | تكوين تنسيق الكود                                                                                                                                                                                                                                                                 |
+| formatting.indentation              | string                                | لا    | حرف مسافة بادئة الكود، على سبيل المثال: `"\t"` أو `"  "` (مسافتان)                                                                                                                                                                                                               |
+| formatting.lineEnding               | string                                | لا    | حرف سطر جديد، على سبيل المثال: `"\n"` (LF) أو `"\r\n"` (CRLF)                                                                                                                                                                                                                     |
 | headers                          | object                                | لا    | تكوين رأس الطلب (تم نقله إلى `swaggerServers`، محفوظ للتوافق مع التكوين القديم)                                                                                                                                                                                                   |
-| includeInterface                 | Array<{path: string, method: string}> | لا    | الواجهات المضمنة: ملف قائمة الواجهات المحدد بـ `saveApiListFolderPath` سيتضمن فقط الواجهات في القائمة، متعارض مع حقل `excludeInterface`                                                                                                                                           |
-| excludeInterface                 | Array<{path: string, method: string}> | لا    | الواجهات المستبعدة: نص قائمة الواجهات المحدد بـ `saveApiListFolderPath` لن يتضمن الواجهات في هذه القائمة، متعارض مع `includeInterface`                                                                                                                                            |
-| publicPrefix                     | string                                | لا    | البادئة العامة على مسار url (تم نقله إلى `swaggerServers`، محفوظ للتوافق مع التكوين القديم)                                                                                                                                                                                       |
-| apiListFileName                  | string                                | لا    | اسم ملف قائمة API، الافتراضي هو `index.ts` (تم نقله إلى `swaggerServers`، محفوظ للتوافق مع التكوين القديم)                                                                                                                                                                        |
-| enmuConfig.erasableSyntaxOnly    | boolean                               | نعم   | يتوافق مع خيار `compilerOptions.erasableSyntaxOnly` في tsconfig.json. عندما يكون `true`، يتم إنشاء كائن const بدلاً من enum (صيغة النوع فقط). القيمة الافتراضية: `false`                                                                                                          |
-| parameterSeparator               | string                                | لا    | الفاصل المستخدم بين أجزاء المسار والمعاملات عند إنشاء أسماء API وأسماء الأنواع. على سبيل المثال، `/users/{userId}/posts` مع الفاصل `'_'` ينشئ `users_userId_posts_GET`. القيمة الافتراضية: `'_'`                                                                                  |
-| enmuConfig.varnames              | string                                | لا    | اسم الحقل في مخطط Swagger الذي يحتوي على أسماء عناصر التعداد المخصصة. القيمة الافتراضية: `enum-varnames`.                                                                                                                                                                         |
-| enmuConfig.comment               | string                                | لا    | اسم الحقل في مخطط Swagger الذي يحتوي على أوصاف عناصر التعداد (يُستخدم لإنشاء التعليقات). القيمة الافتراضية: `enum-descriptions`.                                                                                                                                                  |
+| includeInterface                    | Array<{path: string, method: string}> | لا    | الواجهات المضمنة عالميًا: ملف قائمة الواجهات المحدد بـ `saveApiListFolderPath` سيتضمن فقط الواجهات في القائمة، متعارض مع حقل `excludeInterface`. يمكن لكل خادم تكوينه بشكل منفصل للتجاوز                                                                                            |
+| excludeInterface                    | Array<{path: string, method: string}> | لا    | الواجهات المستبعدة عالميًا: نص قائمة الواجهات المحدد بـ `saveApiListFolderPath` لن يتضمن الواجهات في هذه القائمة، متعارض مع `includeInterface`. يمكن لكل خادم تكوينه بشكل منفصل للتجاوز                                                                                              |
+| publicPrefix                        | string                                | لا    | البادئة العامة على مسار url عالميًا (تم نقله إلى `swaggerServers`، محفوظ للتوافق مع التكوين القديم)                                                                                                                                                                                |
+| pathPrefix                          | string                                | لا    | بادئة مسار الطلب العامة (يمكن لكل خادم تكوينه بشكل منفصل للتجاوز)                                                                                                                                                                                                                   |
+| apiListFileName                     | string                                | لا    | اسم ملف قائمة API العامة، الافتراضي هو `index.ts` (تم نقله إلى `swaggerServers`، محفوظ للتوافق مع التكوين القديم)                                                                                                                                                                   |
+| enmuConfig                          | object                                | نعم   | كائن تكوين التعداد                                                                                                                                                                                                                                                                |
+| enmuConfig.erasableSyntaxOnly       | boolean                               | نعم   | يتوافق مع خيار `compilerOptions.erasableSyntaxOnly` في tsconfig.json. عندما يكون `true`، يتم إنشاء كائن const بدلاً من enum (صيغة النوع فقط). القيمة الافتراضية: `false`                                                                                                          |
+| enmuConfig.varnames                 | string                                | لا    | اسم الحقل في مخطط Swagger الذي يحتوي على أسماء عناصر التعداد المخصصة. القيمة الافتراضية: `enum-varnames`.                                                                                                                                                                         |
+| enmuConfig.comment                  | string                                | لا    | اسم الحقل في مخطط Swagger الذي يحتوي على أوصاف عناصر التعداد (يُستخدم لإنشاء التعليقات). القيمة الافتراضية: `enum-descriptions`.                                                                                                                                                  |
+| parameterSeparator                  | '$' \| '\_'                           | لا    | الفاصل المستخدم بين أجزاء المسار والمعاملات عالميًا عند إنشاء أسماء API وأسماء الأنواع. على سبيل المثال، `/users/{userId}/posts` مع الفاصل `'_'` ينشئ `users_userId_posts_GET`. القيمة الافتراضية: `'_'`. يمكن لكل خادم تكوينه بشكل منفصل للتجاوز                                    |
 
 #### العلاقة بين عناصر التكوين والملفات المولدة
 
@@ -255,6 +272,48 @@ export const userDetailGet = (params: UserDetail_GET.Query) => GET<UserDetail_GE
 
 ### شرح الميزات
 
+#### أولوية التكوين
+
+تدعم الأداة التكوين العام والتكوين على مستوى الخادم، وتتبع قواعد الأولوية التالية:
+
+**الأولوية: تكوين مستوى الخادم > التكوين العام > القيم الافتراضية**
+
+عناصر التكوين التالية تدعم تجاوز التكوين العام على مستوى الخادم:
+
+- `dataLevel`: مستوى بيانات إرجاع الواجهة
+- `parameterSeparator`: الفاصل لأسماء API وأسماء الأنواع
+- `includeInterface`: قائمة الواجهات المضمنة
+- `excludeInterface`: قائمة الواجهات المستبعدة
+- `pathPrefix`: بادئة مسار الطلب
+- `publicPrefix`: البادئة العامة لـ URL
+- `headers`: تكوين رأس الطلب
+
+**مثال:**
+
+```json
+{
+	"dataLevel": "serve",
+	"parameterSeparator": "_",
+	"swaggerServers": [
+		{
+			"url": "http://api1.example.com/swagger.json",
+			"dataLevel": "data",
+			"apiListFileName": "api1.ts"
+		},
+		{
+			"url": "http://api2.example.com/swagger.json",
+			"apiListFileName": "api2.ts"
+		}
+	]
+}
+```
+
+في التكوين أعلاه:
+
+- يستخدم `api1.ts` `dataLevel: "data"` (تكوين مستوى الخادم)
+- يستخدم `api2.ts` `dataLevel: "serve"` (التكوين العام)
+- يستخدم كلا الخادمين `parameterSeparator: "_"` (التكوين العام)
+
 #### تحليل الأنواع
 
 - يدعم جميع أنواع البيانات في مواصفات OpenAPI 3.0
@@ -305,6 +364,46 @@ interface User {
 }
 ```
 
+#### تكوين مستوى البيانات (dataLevel)
+
+يُستخدم `dataLevel` لتكوين مستوى استخراج البيانات المرتجعة من الواجهة، ويدعم ثلاثة خيارات:
+
+1. **`'serve'` (القيمة الافتراضية)**: استخراج حقل `data` المرتجع من الخادم
+
+   ```typescript
+   // إرجاع الخادم: { code: 200, message: 'success', data: { id: 1, name: 'user' } }
+   // إرجاع الدالة: { id: 1, name: 'user' }
+   ```
+
+2. **`'data'`**: استخراج حقل `data.data` (مناسب لسيناريوهات data المتداخلة)
+
+   ```typescript
+   // إرجاع الخادم: { data: { code: 200, data: { id: 1, name: 'user' } } }
+   // إرجاع الدالة: { id: 1, name: 'user' }
+   ```
+
+3. **`'axios'`**: إرجاع كائن استجابة axios الكامل
+   ```typescript
+   // إرجاع الخادم: { code: 200, message: 'success', data: { id: 1, name: 'user' } }
+   // إرجاع الدالة: { code: 200, message: 'success', data: { id: 1, name: 'user' } }
+   ```
+
+**مثال على التكوين:**
+
+```json
+{
+	"dataLevel": "serve",
+	"swaggerServers": [
+		{
+			"url": "http://api1.example.com/swagger.json",
+			"dataLevel": "data"
+		}
+	]
+}
+```
+
+> **ملاحظة**: تكوين `dataLevel` على مستوى الخادم سيتجاوز التكوين العام.
+
 #### تحميل الملفات
 
 عند اكتشاف نوع تحميل ملف، سيتم إضافة رأس الطلب المقابل تلقائيًا:
@@ -315,6 +414,33 @@ export const uploadFile = (params: UploadFile.Body) =>
 		headers: { 'Content-Type': 'multipart/form-data' },
 	});
 ```
+
+#### تنسيق الكود
+
+تدعم الأداة خيارات تنسيق كود مخصصة، يتم التحكم فيها من خلال تكوين `formatting`:
+
+**مثال على التكوين:**
+
+```json
+{
+	"formatting": {
+		"indentation": "\t",
+		"lineEnding": "\n"
+	}
+}
+```
+
+**شرح التكوين:**
+
+- `indentation`: حرف مسافة بادئة الكود
+  - `"\t"`: استخدام مسافة بادئة Tab (افتراضي)
+  - `"  "`: استخدام مسافة بادئة بمسافتين
+  - `"    "`: استخدام مسافة بادئة بأربع مسافات
+- `lineEnding`: نوع حرف السطر الجديد
+  - `"\n"`: LF (نمط Linux/macOS، موصى به)
+  - `"\r\n"`: CRLF (نمط Windows)
+
+**ملاحظة:** إذا تم تكوين Prettier في المشروع، سيتم تنسيق الكود المولد تلقائيًا باستخدام Prettier، وقد يتم تجاوز تكوين `formatting` بواسطة Prettier.
 
 #### معالجة الأخطاء
 
@@ -372,7 +498,87 @@ export const uploadFile = (params: UploadFile.Body) =>
 - يتم إلحاق API للخوادم اللاحقة بملفات `apiListFileName` الخاصة بها
 - يتم دمج تعريفات الأنواع والتعدادات في مجلد موحد لتجنب التكرار
 
+**تكوين على مستوى الخادم:**
+
+كل خادم يدعم تكوينًا مستقلاً للخيارات التالية، إذا لم يتم تعيينها، يتم استخدام التكوين العام:
+
+- `dataLevel` - مستوى بيانات إرجاع الواجهة
+- `parameterSeparator` - الفاصل لأسماء API وأسماء الأنواع
+- `includeInterface` - قائمة الواجهات المضمنة
+- `excludeInterface` - قائمة الواجهات المستبعدة
+- `pathPrefix` - بادئة مسار الطلب
+
+#### بادئة المسار (pathPrefix)
+
+يُستخدم `pathPrefix` لإضافة بادئة تلقائيًا أمام جميع مسارات طلبات API، وهو مفيد بشكل خاص في السيناريوهات التالية:
+
+1. **سيناريو الوكيل العكسي**: عندما يتم توجيه خدمة الخلفية من خلال وكيل عكسي
+2. **بوابة API**: إضافة بادئة بوابة موحدة أمام المسار
+3. **تكوين بيئات متعددة**: استخدام بادئات مسار مختلفة لبيئات مختلفة
+
+**مثال على الاستخدام:**
+
+```json
+{
+	"swaggerServers": [
+		{
+			"url": "http://api.example.com/swagger.json",
+			"pathPrefix": "/forward",
+			"apiListFileName": "api.ts"
+		}
+	]
+}
+```
+
+**التأثير:**
+
+المسار `/api/user/list` المحدد في Swagger سيتم توليده كـ:
+
+```typescript
+export const apiUserListGet = (params: ApiUserList_GET.Query) => GET<ApiUserList_GET.Response>('/forward/api/user/list', params);
+```
+
+**الفرق مع publicPrefix:**
+
+- `publicPrefix`: يُستخدم لإزالة البادئة العامة من مسار الواجهة (يؤثر فقط على اسم الدالة المولدة)
+- `pathPrefix`: يُستخدم لإضافة بادئة أمام مسار الطلب الفعلي (يؤثر على URL الطلب في وقت التشغيل)
+
 **مثال على التكوين:**
+
+```json
+{
+	"swaggerServers": [
+		{
+			"url": "http://api1.example.com/swagger.json",
+			"apiListFileName": "api1.ts",
+			"publicPrefix": "/api/v1",
+			"pathPrefix": "/forward",
+			"dataLevel": "serve",
+			"parameterSeparator": "_",
+			"headers": {
+				"Authorization": "Bearer token1"
+			},
+			"includeInterface": [
+				{
+					"path": "/api/v1/users",
+					"method": "get"
+				}
+			]
+		},
+		{
+			"url": "http://api2.example.com/swagger.json",
+			"apiListFileName": "api2.ts",
+			"publicPrefix": "/api/v2",
+			"dataLevel": "data",
+			"headers": {
+				"Authorization": "Bearer token2"
+			}
+		}
+	]
+}
+```
+
+**مثال على التكوين (التنسيق القديم):**
 
 ```json
 {
@@ -422,10 +628,12 @@ export const uploadFile = (params: UploadFile.Body) =>
 
 1. تأكد من إمكانية الوصول إلى عنوان مستند Swagger JSON
 2. يجب أن تكون المسارات في ملف التكوين نسبية إلى الدليل الجذر للمشروع
-3. ستستبدل الملفات المولدة الملفات الموجودة بنفس الاسم
+3. ستستبدل الملفات المولدة الملفات الموجودة بنفس الاسم (لكن `config.ts` و `error-message.ts` و `fetch.ts` و `api-type.d.ts` لن يتم استبدالها إذا كانت موجودة بالفعل)
 4. يُنصح بإضافة الملفات المولدة إلى التحكم في الإصدار
 5. عند استخدام خوادم Swagger متعددة، تأكد من أن `apiListFileName` لكل خادم فريد لتجنب استبدال الملفات
 6. عند تكوين خوادم متعددة، سيتم دمج تعريفات الأنواع والتعدادات، وقد تحدث تعارضات إذا كانت هناك أنواع بنفس الاسم من خوادم مختلفة
+7. تكوين مستوى الخادم (`dataLevel` و `parameterSeparator` و `includeInterface` و `excludeInterface` و `pathPrefix`) سيتجاوز التكوين العام
+8. لا يمكن تكوين `includeInterface` و `excludeInterface` في نفس الوقت، إذا تم تكوينهما معًا، سيتم إعطاء الأولوية لـ `includeInterface`
 
 ### الأسئلة الشائعة
 
@@ -436,6 +644,61 @@ export const uploadFile = (params: UploadFile.Body) =>
 2. خطأ في مسار استيراد دالة الطلب
    - تحقق من صحة تكوين requestMethodsImportPath
    - تأكد من وجود ملف طريقة الطلب
+
+3. **متى تستخدم `pathPrefix`؟**
+   - عندما تحتاج واجهة API الخاصة بك إلى الوصول عبر وكيل عكسي أو بوابة
+   - على سبيل المثال: المحدد في Swagger هو `/api/user`، لكن الطلب الفعلي يحتاج إلى `/gateway/api/user`
+   - ما عليك سوى تعيين `pathPrefix: "/gateway"`
+
+4. **ما الفرق بين `publicPrefix` و `pathPrefix`؟**
+   - `publicPrefix`: يزيل البادئة من مسار الواجهة، ويؤثر فقط على اسم الدالة المولدة
+     - على سبيل المثال: `/api/user/list` بعد إزالة `/api`، يكون اسم الدالة `userListGet`
+   - `pathPrefix`: يضيف بادئة أمام مسار الطلب، ويؤثر على URL الطلب الفعلي
+     - على سبيل المثال: `/api/user/list` بعد إضافة `/forward`، يكون URL الطلب `/forward/api/user/list`
+
+5. **كيفية تكوين `dataLevel` مختلف لخوادم متعددة؟**
+
+   ```json
+   {
+   	"dataLevel": "serve",
+   	"swaggerServers": [
+   		{
+   			"url": "http://old-api.com/swagger.json",
+   			"dataLevel": "axios",
+   			"apiListFileName": "old-api.ts"
+   		},
+   		{
+   			"url": "http://new-api.com/swagger.json",
+   			"apiListFileName": "new-api.ts"
+   		}
+   	]
+   }
+   ```
+
+   - يستخدم `old-api.ts` `dataLevel: "axios"`
+   - يستخدم `new-api.ts` `dataLevel: "serve"` العام
+
+6. **كيفية توليد واجهات جزئية فقط؟**
+   - استخدم تكوين `includeInterface`:
+     ```json
+     {
+     	"swaggerServers": [
+     		{
+     			"url": "http://api.com/swagger.json",
+     			"includeInterface": [
+     				{ "path": "/api/user", "method": "get" },
+     				{ "path": "/api/user/{id}", "method": "post" }
+     			]
+     		}
+     	]
+     }
+     ```
+   - أو استخدم `excludeInterface` لاستبعاد الواجهات غير المطلوبة
+
+7. **ماذا تفعل إذا تم استبدال الملفات المولدة؟**
+   - الملفات `config.ts` و `error-message.ts` و `fetch.ts` و `api-type.d.ts` تُنشأ فقط عند عدم وجودها لأول مرة
+   - ملفات قائمة API وملفات الأنواع تُعاد توليدها في كل مرة
+   - يُنصح بإدراج الملفات المولدة في التحكم في الإصدار لسهولة مراجعة التغييرات
 
 # تعليمات استخدام أمر `anl lint`
 

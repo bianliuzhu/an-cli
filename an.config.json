@@ -16,7 +16,8 @@
 	},
 	"swaggerServers": [
 		{
-			"url": "http://172.24.160.153:8080/v3/api-docs",
+			"url": "./data/op.json",
+			"url:remote": "http://172.24.160.153:8080/v3/api-docs",
 			"apiListFileName": "op.ts",
 			"headers": {},
 			"includeInterface": [
@@ -27,7 +28,8 @@
 			],
 			"excludeInterface": [],
 			"dataLevel": "serve",
-			"parameterSeparator": "_"
+			"parameterSeparator": "_",
+			"modulePrefix": "/forward"
 		},
 		{
 			"url": "http://127.0.0.1:7001/api-docs/json",
