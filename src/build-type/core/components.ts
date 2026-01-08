@@ -37,6 +37,9 @@ class Components {
 		this.schemas = schemas;
 		this.config = config;
 		this.appendMode = options?.appendMode ?? false;
+		if (this.config.formatting) {
+			this.config.formatting.indentation = this.config.formatting.indentation ?? INDENT;
+		}
 	}
 
 	private handleEnum(value: NonArraySchemaObject, key: string): TReturnType | null {
@@ -46,7 +49,7 @@ class Components {
 			const typeName = this.getEnumTypeName(enumName);
 			return {
 				headerRef: '',
-				renderStr: `${INDENT}${key}${this.requiredFieldS.includes(key) ? '' : '?'}: ${typeName}${this.nullable(value.nullable)};`,
+				renderStr: `${this.config.formatting?.indentation}${key}${this.requiredFieldS.includes(key) ? '' : '?'}: ${typeName}${this.nullable(value.nullable)};`,
 				comment: enumContent,
 			};
 		}
@@ -139,9 +142,9 @@ class Components {
 				renderStr = value?.renderStr ?? '';
 			}
 			if (typeof nonArraySchema.additionalProperties === 'boolean') {
-				renderStr = `${INDENT}${key}${this.requiredFieldS.includes(key) ? '' : '?'}: Record<string, unknown>${this.nullable(nonArraySchema.nullable)};`;
+				renderStr = `${this.config.formatting?.indentation}${key}${this.requiredFieldS.includes(key) ? '' : '?'}: Record<string, unknown>${this.nullable(nonArraySchema.nullable)};`;
 			} else {
-				renderStr = `${INDENT}${key}${this.requiredFieldS.includes(key) ? '' : '?'}: ${obj.type}${this.nullable(obj.nullable)};`;
+				renderStr = `${this.config.formatting?.indentation}${key}${this.requiredFieldS.includes(key) ? '' : '?'}: ${obj.type}${this.nullable(obj.nullable)};`;
 			}
 		}
 
@@ -167,7 +170,7 @@ class Components {
 
 			return {
 				headerRef: headerRefStr,
-				renderStr: `${INDENT}${name}${this.requiredFieldS.includes(name) ? '' : '?'}: Array<${finalTypeName}>${this.nullable(nullable)};`,
+				renderStr: `${this.config.formatting?.indentation}${name}${this.requiredFieldS.includes(name) ? '' : '?'}: Array<${finalTypeName}>${this.nullable(nullable)};`,
 				typeName: finalTypeName,
 			};
 		}
@@ -180,14 +183,14 @@ class Components {
 
 		return {
 			headerRef: '',
-			renderStr: `${INDENT}${name}${this.requiredFieldS.includes(name) ? '' : '?'}: Array<${finalType}>${this.nullable(nullable)};`,
+			renderStr: `${this.config.formatting?.indentation}${name}${this.requiredFieldS.includes(name) ? '' : '?'}: Array<${finalType}>${this.nullable(nullable)};`,
 			typeName: finalType,
 		};
 	}
 
 	parseBoolean(schemaObject: NonArraySchemaObject, key: string): string {
 		return schemaObject.type === 'boolean'
-			? `${INDENT}${key}${this.requiredFieldS.includes(key) ? '' : '?'}: boolean${this.nullable(schemaObject.nullable)};`
+			? `${this.config.formatting?.indentation}${key}${this.requiredFieldS.includes(key) ? '' : '?'}: boolean${this.nullable(schemaObject.nullable)};`
 			: '';
 	}
 
@@ -266,10 +269,10 @@ class Components {
 			const description = descriptionMap?.[String(item)];
 
 			if (description) {
-				return [`${INDENT}/** ${description} */`, `${INDENT}${assignment}`].join('\n');
+				return [`${this.config.formatting?.indentation}/** ${description} */`, `${this.config.formatting?.indentation}${assignment}`].join('\n');
 			}
 
-			return `${INDENT}${assignment}`;
+			return `${this.config.formatting?.indentation}${assignment}`;
 		});
 
 		if (!enumEntries.length) return null;
@@ -298,7 +301,7 @@ class Components {
 			const enumName = key.charAt(0).toUpperCase() + key.slice(1);
 			return this.parseEnum(value, enumName)?.renderStr ?? '';
 		} else {
-			return `${INDENT}${key}${this.requiredFieldS.includes(key) ? '' : '?'}: number${this.nullable(value.nullable)};`;
+			return `${this.config.formatting?.indentation}${key}${this.requiredFieldS.includes(key) ? '' : '?'}: number${this.nullable(value.nullable)};`;
 		}
 	}
 
@@ -312,7 +315,7 @@ class Components {
 
 		return {
 			headerRef: '',
-			renderStr: `${INDENT}${key}${this.requiredFieldS.includes(key) ? '' : '?'}: number${this.nullable(value.nullable)};`,
+			renderStr: `${this.config.formatting?.indentation}${key}${this.requiredFieldS.includes(key) ? '' : '?'}: number${this.nullable(value.nullable)};`,
 		};
 	}
 
@@ -323,13 +326,13 @@ class Components {
 			if (this.config.enmuConfig.erasableSyntaxOnly) {
 				// 生成 const 对象形式
 				const enumValues = Object.entries(jsonObj)
-					.map(([key, value]) => `${INDENT}${key}: '${value}'`)
+					.map(([key, value]) => `${this.config.formatting?.indentation}${key}: '${value}'`)
 					.join(',\n');
 				return `export const ${enumName} = {\n${enumValues}\n} as const;\n\nexport type ${this.getEnumTypeName(enumName)} = typeof ${enumName}[keyof typeof ${enumName}];`;
 			} else {
 				// 生成传统 enum 形式
 				const enumValues = Object.entries(jsonObj)
-					.map(([key, value]) => `${INDENT}${key} = '${value}'`)
+					.map(([key, value]) => `${this.config.formatting?.indentation}${key} = '${value}'`)
 					.join(',\n');
 				return `export enum ${enumName} {\n${enumValues}\n}`;
 			}
@@ -349,7 +352,7 @@ class Components {
 
 		return {
 			headerRef: '',
-			renderStr: `${INDENT}${key}${this.requiredFieldS.includes(key) ? '' : '?'}: string${this.nullable(value.nullable)};`,
+			renderStr: `${this.config.formatting?.indentation}${key}${this.requiredFieldS.includes(key) ? '' : '?'}: string${this.nullable(value.nullable)};`,
 		};
 	}
 
@@ -363,7 +366,8 @@ class Components {
 			if ((schemaSource as ReferenceObject)?.$ref) {
 				// 这里引用类型会携带 example
 				const { headerRefStr, typeName, dataType } = this.parseRef((schemaSource as ReferenceObject).$ref);
-				if (!headerRef.includes(headerRefStr)) headerRef.push(headerRefStr);
+				// 避免自引用：只有当引用的类型不是当前接口时才添加 import
+				if (!headerRef.includes(headerRefStr) && typeName !== interfaceKey) headerRef.push(headerRefStr);
 
 				// 添加注释（如果存在 description）
 				const schema = schemaSource as SchemaObject;
@@ -372,7 +376,7 @@ class Components {
 
 				// 如果是枚举类型，需要使用正确的类型名
 				const finalTypeName = dataType === 'enum' ? this.getEnumTypeName(typeName) : typeName;
-				content.push(`${INDENT}${name}${this.requiredFieldS.includes(name) ? '' : '?'}: ${finalTypeName};`);
+				content.push(`${this.config.formatting?.indentation}${name}${this.requiredFieldS.includes(name) ? '' : '?'}: ${finalTypeName};`);
 
 				const example = (schemaSource as SchemaObject).example;
 				if (dataType === 'enum' && example && isValidJSON(example)) {
@@ -392,14 +396,17 @@ class Components {
 					const { headerRefStr, typeName, dataType } = this.parseRef(V1.$ref);
 					const finalTypeName = dataType === 'enum' ? this.getEnumTypeName(typeName) : typeName;
 
-					if (!headerRef.includes(headerRefStr)) headerRef.push(headerRefStr);
+					// 避免自引用：只有当引用的类型不是当前接口时才添加 import
+					if (!headerRef.includes(headerRefStr) && typeName !== interfaceKey) headerRef.push(headerRefStr);
 
 					// 添加注释（如果存在 description）
 					const schema = schemaSource as SchemaObject;
 					const comment = this.fieldComment(schema as NonArraySchemaObject);
 					comment !== '' && content.push(comment);
 
-					content.push(`${INDENT}${name}${this.requiredFieldS.includes(name) ? '' : '?'}: ${finalTypeName}${this.nullable(schemaSource.nullable)};`);
+					content.push(
+						`${this.config.formatting?.indentation}${name}${this.requiredFieldS.includes(name) ? '' : '?'}: ${finalTypeName}${this.nullable(schemaSource.nullable)};`,
+					);
 
 					continue;
 				}
@@ -459,7 +466,9 @@ class Components {
 									this.enumsMap.set(fileName, { fileName, content: enumContent });
 								}
 
-								content.push(`${INDENT}${name}${this.requiredFieldS.includes(name) ? '' : '?'}: ${typeName}${this.nullable(schema.nullable)};`);
+								content.push(
+									`${this.config.formatting?.indentation}${name}${this.requiredFieldS.includes(name) ? '' : '?'}: ${typeName}${this.nullable(schema.nullable)};`,
+								);
 							} else {
 								const enumResult = this.parseEnum(schema as NonArraySchemaObject, enumName);
 								if (enumResult?.renderStr) {
@@ -473,11 +482,15 @@ class Components {
 										this.enumsMap.set(fileName, { fileName, content: enumResult.renderStr });
 									}
 
-									content.push(`${INDENT}${name}${this.requiredFieldS.includes(name) ? '' : '?'}: ${typeName}${this.nullable(schema.nullable)};`);
+									content.push(
+										`${this.config.formatting?.indentation}${name}${this.requiredFieldS.includes(name) ? '' : '?'}: ${typeName}${this.nullable(schema.nullable)};`,
+									);
 								}
 							}
 						} else if (schema.format && schema.format === 'binary') {
-							content.push(`${INDENT}${name}${this.requiredFieldS.includes(name) ? '' : '?'}: File${this.nullable(schema.nullable)};`);
+							content.push(
+								`${this.config.formatting?.indentation}${name}${this.requiredFieldS.includes(name) ? '' : '?'}: File${this.nullable(schema.nullable)};`,
+							);
 						} else {
 							content.push(this.parseString(schema as NonArraySchemaObject, name)?.renderStr ?? '');
 						}
