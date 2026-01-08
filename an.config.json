@@ -16,7 +16,7 @@
 	},
 	"swaggerConfig": [
 		{
-			"url": "http://172.24.160.86:8080/v3/api-docs",
+			"url": "https://dot-op.dev.dotfortune.com/order/v3/api-docs",
 			"apiListFileName": "op.ts",
 			"headers": {},
 			"includeInterface": [
