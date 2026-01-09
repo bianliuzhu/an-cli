@@ -16,7 +16,7 @@
 	},
 	"swaggerConfig": [
 		{
-			"url": "https://dot-op.dev.dotfortune.com/order/v3/api-docs",
+			"url": "./data/op.json",
 			"apiListFileName": "op.ts",
 			"headers": {},
 			"includeInterface": [
