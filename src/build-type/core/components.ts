@@ -345,67 +345,37 @@ class Components {
 	/**
 	 * 根据 format 字段返回更精确的类型说明
 	 */
-	private getStringTypeByFormat(format?: string): { type: string; comment?: string } {
-		if (!format) return { type: 'string' };
+	private getStringTypeByFormat(format?: string): string {
+		if (!format) return 'string';
 
 		switch (format) {
 			case 'date-time':
-				return {
-					type: 'Date',
-					comment: 'ISO 8601 格式的日期时间字符串 (例如: 2024-01-09T12:00:00Z)',
-				};
+				return 'Date';
 			case 'date':
-				return {
-					type: 'Date',
-					comment: 'ISO 8601 格式的日期字符串 (例如: 2024-01-09)',
-				};
+				return 'Date';
 			case 'time':
-				return {
-					type: 'string',
-					comment: 'ISO 8601 格式的时间字符串 (例如: 12:00:00)',
-				};
+				return 'string';
 			case 'email':
 			case 'idn-email':
-				return {
-					type: 'string',
-					comment: '邮箱地址',
-				};
+				return 'string';
 			case 'uuid':
-				return {
-					type: 'string',
-					comment: 'UUID 格式字符串',
-				};
+				return 'string';
 			case 'uri':
 			case 'uri-reference':
 			case 'iri':
 			case 'iri-reference':
-				return {
-					type: 'string',
-					comment: 'URI 格式字符串',
-				};
+				return 'string';
 			case 'hostname':
 			case 'idn-hostname':
-				return {
-					type: 'string',
-					comment: '主机名',
-				};
+				return 'string';
 			case 'ipv4':
-				return {
-					type: 'string',
-					comment: 'IPv4 地址',
-				};
+				return 'string';
 			case 'ipv6':
-				return {
-					type: 'string',
-					comment: 'IPv6 地址',
-				};
+				return 'string';
 			case 'binary':
-				return {
-					type: 'File',
-					comment: '二进制文件',
-				};
+				return 'File';
 			default:
-				return { type: 'string' };
+				return 'string';
 		}
 	}
 
@@ -417,11 +387,11 @@ class Components {
 			if (enumResult) return enumResult;
 		}
 
-		const { type, comment } = this.getStringTypeByFormat(value.format);
+		const strType = this.getStringTypeByFormat(value.format);
 
 		return {
 			headerRef: '',
-			renderStr: `${this.config.formatting?.indentation}${key}${this.requiredFieldS.includes(key) ? '' : '?'}: ${type}${this.nullable(value.nullable)};${comment ? ` // ${comment}` : ''}`,
+			renderStr: `${this.config.formatting?.indentation}${key}${this.requiredFieldS.includes(key) ? '' : '?'}: ${strType}${this.nullable(value.nullable)};`,
 		};
 	}
 
