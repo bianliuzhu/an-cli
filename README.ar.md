@@ -160,7 +160,7 @@ $ anl type
 	},
 	"swaggerConfig": [
 		{
-			"url": "https://generator3.swagger.io/openapi1.json",
+			"url": "https://generator3.swagger.io/openapi.json",
 			"apiListFileName": "op.ts",
 			"modulePrefix": "/forward",
 			"dataLevel": "serve",
@@ -168,7 +168,7 @@ $ anl type
 			"headers": {},
 			"includeInterface": [
 				{
-					"path": "/op/trade/order/queryPage",
+					"path": "/generate",
 					"method": "post"
 				}
 			]

@@ -166,7 +166,7 @@ $ anl type
 			"headers": {},
 			"includeInterface": [
 				{
-					"path": "/op/trade/order/queryPage",
+					"path": "/generate",
 					"method": "post"
 				}
 			]

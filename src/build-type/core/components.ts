@@ -342,6 +342,73 @@ class Components {
 		}
 	}
 
+	/**
+	 * 根据 format 字段返回更精确的类型说明
+	 */
+	private getStringTypeByFormat(format?: string): { type: string; comment?: string } {
+		if (!format) return { type: 'string' };
+
+		switch (format) {
+			case 'date-time':
+				return {
+					type: 'Date',
+					comment: 'ISO 8601 格式的日期时间字符串 (例如: 2024-01-09T12:00:00Z)',
+				};
+			case 'date':
+				return {
+					type: 'Date',
+					comment: 'ISO 8601 格式的日期字符串 (例如: 2024-01-09)',
+				};
+			case 'time':
+				return {
+					type: 'string',
+					comment: 'ISO 8601 格式的时间字符串 (例如: 12:00:00)',
+				};
+			case 'email':
+			case 'idn-email':
+				return {
+					type: 'string',
+					comment: '邮箱地址',
+				};
+			case 'uuid':
+				return {
+					type: 'string',
+					comment: 'UUID 格式字符串',
+				};
+			case 'uri':
+			case 'uri-reference':
+			case 'iri':
+			case 'iri-reference':
+				return {
+					type: 'string',
+					comment: 'URI 格式字符串',
+				};
+			case 'hostname':
+			case 'idn-hostname':
+				return {
+					type: 'string',
+					comment: '主机名',
+				};
+			case 'ipv4':
+				return {
+					type: 'string',
+					comment: 'IPv4 地址',
+				};
+			case 'ipv6':
+				return {
+					type: 'string',
+					comment: 'IPv6 地址',
+				};
+			case 'binary':
+				return {
+					type: 'File',
+					comment: '二进制文件',
+				};
+			default:
+				return { type: 'string' };
+		}
+	}
+
 	parseString(value: NonArraySchemaObject, key: string): TReturnType {
 		if (value.type !== 'string') return null;
 
@@ -350,9 +417,11 @@ class Components {
 			if (enumResult) return enumResult;
 		}
 
+		const { type, comment } = this.getStringTypeByFormat(value.format);
+
 		return {
 			headerRef: '',
-			renderStr: `${this.config.formatting?.indentation}${key}${this.requiredFieldS.includes(key) ? '' : '?'}: string${this.nullable(value.nullable)};`,
+			renderStr: `${this.config.formatting?.indentation}${key}${this.requiredFieldS.includes(key) ? '' : '?'}: ${type}${this.nullable(value.nullable)};${comment ? ` // ${comment}` : ''}`,
 		};
 	}
 
@@ -487,11 +556,8 @@ class Components {
 									);
 								}
 							}
-						} else if (schema.format && schema.format === 'binary') {
-							content.push(
-								`${this.config.formatting?.indentation}${name}${this.requiredFieldS.includes(name) ? '' : '?'}: File${this.nullable(schema.nullable)};`,
-							);
 						} else {
+							// 统一使用 parseString 处理，它会根据 format 字段生成合适的类型和注释
 							content.push(this.parseString(schema as NonArraySchemaObject, name)?.renderStr ?? '');
 						}
 					}
