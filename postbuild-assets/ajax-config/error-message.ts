@@ -2,52 +2,56 @@ import type { AxiosResponse } from 'axios';
 
 import { message } from 'antd';
 
-type BaseResponse<T> = {
-	code: number;
-	msg: string;
-	data: T;
-};
-
 /**
  * 跳过提示的 code 码
  */
-const skipTipCode: number[] = [4023, 4009];
+const skipTipCode: number[] = [];
 
 /**
  * 需要重写提示的 code 码
  */
-const rewriteCodeMessage = ({ code = 10000, msg = '网络错误，稍后重试！' }: BaseResponse<unknown>) => {
+const rewriteCodeMessage = ({ code = 10000, message = '网络错误，稍后重试！' }: ResponseModel<unknown>) => {
 	switch (code) {
 		case 10000:
-			return { code, msg: '系统错误，稍后重试！' };
-		case 4001:
-			return { code, msg: '登录超时，请重新登录！' };
+			return { code, message: '系统错误，稍后重试！' };
 		default:
-			return { code, msg };
+			return { code, message };
 	}
 };
 
-export const messageTip = ({ data }: AxiosResponse<BaseResponse<unknown>>) => {
+export const messageTip = ({ data }: AxiosResponse<ResponseModel<unknown>>) => {
 	if (Object.prototype.toString.call(data) !== '[object Object]') return;
-	if (!('msg' in data && 'code' in data)) return;
+	if (!('message' in data && 'code' in data)) return;
 
-	const { code, msg } = rewriteCodeMessage(data);
+	const { code, message: msg } = rewriteCodeMessage(data);
 
 	if (skipTipCode.includes(code)) return;
 
+	/**
+	 * 信息提示范围
+	 */
 	if (code >= 2000 && code <= 3999) {
-		message.inof(msg);
+		message.info(msg);
 	}
 
+	/**
+	 * 警告提示范围
+	 */
 	if (code > 3999 && code <= 4999) {
 		message.warning(msg);
 	}
 
+	/**
+	 * 错误提示范围
+	 */
 	if (code > 4999 && code <= 5999) {
 		message.error(msg);
 	}
 
+	/**
+	 * 系统提示范围
+	 */
 	if (code >= 9000) {
-		message.error(msg);
+		message.info(msg);
 	}
 };

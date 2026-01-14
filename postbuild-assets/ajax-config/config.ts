@@ -2,15 +2,13 @@ import type { AxiosInstance } from 'axios';
 
 import axios from 'axios';
 
-// 这里 环境判断 自行替换
-const IS_PROD = false;
 import { message } from 'antd/message';
 
 const { VITE_API_URL, VITE_API_PROXY, VITE_PUBLIC_PATH } = import.meta.env;
 
 const HTTP_PROXY = `${VITE_PUBLIC_PATH}${VITE_API_PROXY}`;
 // 基础URL
-export const BASE_URL = IS_PROD ? VITE_API_URL : HTTP_PROXY;
+export const BASE_URL = process.env.NODE_ENV === 'production' ? VITE_API_URL : HTTP_PROXY;
 
 export const dio: AxiosInstance = axios.create({
 	// 设置baseUr地址,如果通过proxy跨域可直接填写base地址
@@ -25,8 +23,7 @@ export const dio: AxiosInstance = axios.create({
 	validateStatus(status: number) {
 		switch (status) {
 			case 200:
-				// window.location.href = VITE_PUBLIC_PATH + 404;
-				break;
+				return true;
 			case 400:
 				message.error({ type: 'error', content: '请求无效或格式错误！' });
 				break;
@@ -70,10 +67,7 @@ dio.interceptors.response.use(
 		// 对响应数据做处理，例如只返回data部分
 		if (response.data.code === 4001) {
 			// 退出登录逻辑 自己写
-			window.location.href = VITE_PUBLIC_PATH + 'login';
-		}
-		if (response.headers['Authorization']) {
-			// 设置 token 自己实现
+			// window.location.href =  + 'login';
 		}
 		return response;
 	},
