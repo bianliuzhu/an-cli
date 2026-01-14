@@ -8,7 +8,7 @@ function GET<R = unknown>(url: string, params: IRequestFnParams, datalevel?: 'da
 function GET<R = unknown>(url: string, params: IRequestFnParams, datalevel?: 'axios'): RAxios<R>;
 function GET<R = unknown>(url: string, params: IRequestFnParams, datalevel: TDatalevel = 'serve') {
 	return axios
-		.request<any, AxiosResponse<ResponseModel<R>>>({
+		.request<unknown, AxiosResponse<ResponseModel<R>>>({
 			...params,
 			url,
 			params: params.query,
@@ -32,7 +32,7 @@ function DELETE<R = unknown>(url: string, params: IRequestFnParams, datalevel?: 
 function DELETE<R = unknown>(url: string, params: IRequestFnParams, datalevel?: 'axios'): RAxios<R>;
 function DELETE<R = unknown>(url: string, params: IRequestFnParams, datalevel: TDatalevel = 'serve') {
 	return axios
-		.request<any, AxiosResponse<ResponseModel<R>>>({
+		.request<unknown, AxiosResponse<ResponseModel<R>>>({
 			...params,
 			url,
 			params: params.query,
@@ -56,7 +56,7 @@ function PUT<R = unknown>(url: string, params: IRequestFnParams, datalevel?: 'da
 function PUT<R = unknown>(url: string, params: IRequestFnParams, datalevel?: 'axios'): RAxios<R>;
 function PUT<R = unknown>(url: string, { query, body, ...rest }: IRequestFnParams, datalevel: TDatalevel = 'serve') {
 	return axios
-		.request<any, AxiosResponse<ResponseModel<R>>>({
+		.request<unknown, AxiosResponse<ResponseModel<R>>>({
 			...rest,
 			url,
 			params: query,
@@ -81,7 +81,7 @@ function POST<R = unknown>(url: string, params: IRequestFnParams, datalevel?: 'd
 function POST<R = unknown>(url: string, params: IRequestFnParams, datalevel?: 'axios'): RAxios<R>;
 function POST<R = unknown>(url: string, { query, body, ...rest }: IRequestFnParams, datalevel: TDatalevel = 'serve') {
 	return axios
-		.request<any, AxiosResponse<ResponseModel<R>>>({
+		.request<unknown, AxiosResponse<ResponseModel<R>>>({
 			...rest,
 			url,
 			params: query,
@@ -106,7 +106,7 @@ function PATCH<R = unknown>(url: string, params: IRequestFnParams, datalevel?: '
 function PATCH<R = unknown>(url: string, params: IRequestFnParams, datalevel?: 'axios'): RAxios<R>;
 function PATCH<R = unknown>(url: string, { query, body, ...rest }: IRequestFnParams, datalevel: TDatalevel = 'serve') {
 	return axios
-		.request<any, AxiosResponse<ResponseModel<R>>>({
+		.request<unknown, AxiosResponse<ResponseModel<R>>>({
 			...rest,
 			url,
 			params: query,
@@ -125,12 +125,13 @@ function PATCH<R = unknown>(url: string, { query, body, ...rest }: IRequestFnPar
 			}
 		});
 }
+
 function OPTIONS<R = unknown>(url: string, params: IRequestFnParams, datalevel?: 'serve'): RServe<R>;
 function OPTIONS<R = unknown>(url: string, params: IRequestFnParams, datalevel?: 'data'): Promise<R>;
 function OPTIONS<R = unknown>(url: string, params: IRequestFnParams, datalevel?: 'axios'): RAxios<R>;
 function OPTIONS<R = unknown>(url: string, { query, body, ...rest }: IRequestFnParams, datalevel: TDatalevel = 'serve') {
 	return axios
-		.request<any, AxiosResponse<ResponseModel<R>>>({
+		.request<unknown, AxiosResponse<ResponseModel<R>>>({
 			...rest,
 			url,
 			params: query,
@@ -155,7 +156,7 @@ function HEAD<R = unknown>(url: string, params: IRequestFnParams, datalevel?: 'd
 function HEAD<R = unknown>(url: string, params: IRequestFnParams, datalevel?: 'axios'): RAxios<R>;
 function HEAD<R = unknown>(url: string, { query, body, ...rest }: IRequestFnParams, datalevel: TDatalevel = 'serve') {
 	return axios
-		.request<any, AxiosResponse<ResponseModel<R>>>({
+		.request<unknown, AxiosResponse<ResponseModel<R>>>({
 			...rest,
 			url,
 			params: query,
@@ -174,12 +175,13 @@ function HEAD<R = unknown>(url: string, { query, body, ...rest }: IRequestFnPara
 			}
 		});
 }
+
 function SEARCH<R = unknown>(url: string, params: IRequestFnParams, datalevel?: 'serve'): RServe<R>;
 function SEARCH<R = unknown>(url: string, params: IRequestFnParams, datalevel?: 'data'): Promise<R>;
 function SEARCH<R = unknown>(url: string, params: IRequestFnParams, datalevel?: 'axios'): RAxios<R>;
 function SEARCH<R = unknown>(url: string, { query, body, ...rest }: IRequestFnParams, datalevel: TDatalevel = 'serve') {
 	return axios
-		.request<any, AxiosResponse<ResponseModel<R>>>({
+		.request<unknown, AxiosResponse<ResponseModel<R>>>({
 			...rest,
 			url,
 			params: query,
@@ -198,4 +200,5 @@ function SEARCH<R = unknown>(url: string, { query, body, ...rest }: IRequestFnPa
 			}
 		});
 }
+
 export { DELETE, GET, PATCH, POST, PUT, OPTIONS, HEAD, SEARCH };
