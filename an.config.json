@@ -43,51 +43,7 @@
 			"headers": {},
 			"includeInterface": [
 				{
-					"path": "/api/portal/main",
-					"method": "post"
-				},
-				{
-					"path": "/api/portal/main",
-					"method": "get"
-				},
-				{
-					"path": "/api/portal/common",
-					"method": "post"
-				},
-				{
-					"path": "/api/portal/common",
-					"method": "get"
-				},
-				{
-					"path": "/api/portal/experts/{expertId}",
-					"method": "post"
-				},
-				{
-					"path": "/api/portal/experts/{expertId}",
-					"method": "get"
-				},
-				{
-					"path": "/api/portal/configs",
-					"method": "get"
-				},
-				{
-					"path": "/api/user/login",
-					"method": "post"
-				},
-				{
-					"path": "/api/file/upload",
-					"method": "post"
-				},
-				{
-					"path": "/api/file/upload/image",
-					"method": "post"
-				},
-				{
-					"path": "/api/file/upload/video",
-					"method": "post"
-				},
-				{
-					"path": "/api/file/oss/credentials",
+					"path": "/api/users/current",
 					"method": "get"
 				}
 			],

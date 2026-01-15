@@ -815,11 +815,11 @@ export class PathParse {
 				let matchedInclude: IIncludeInterface | undefined;
 
 				if (this.config.includeInterface && this.config.includeInterface.length > 0) {
-					const include = this.config.includeInterface?.find((item) => pathKey.includes(item.path) && item.method === method);
+					const include = this.config.includeInterface?.find((item) => pathKey === item.path && item.method === method);
 					if (!include) return;
 					matchedInclude = include;
 				} else if (this.config.excludeInterface && this.config.excludeInterface.length > 0) {
-					const exclude = this.config.excludeInterface?.find((item) => pathKey.includes(item.path) && item.method === method);
+					const exclude = this.config.excludeInterface?.find((item) => pathKey === item.path && item.method === method);
 					if (exclude) return;
 				}
 
