@@ -16,37 +16,11 @@
 	},
 	"swaggerConfig": [
 		{
-			"url": "./data/op.json",
-			"apiListFileName": "op.ts",
-			"headers": {},
-			"includeInterface": [
-				{
-					"path": "/op/trade/order/queryPage",
-					"method": "post",
-					"dataLevel": "data"
-				},
-				{
-					"path": "/op/trade/order/getOrderEnums",
-					"method": "get",
-					"dataLevel": "serve"
-				}
-			],
-			"excludeInterface": [],
-			"dataLevel": "serve",
-			"parameterSeparator": "_",
-			"modulePrefix": "/forward"
-		},
-		{
 			"url": "http://127.0.0.1:7001/api-docs/json",
 			"apiListFileName": "index.ts",
 			"publicPrefix": "/api",
 			"headers": {},
-			"includeInterface": [
-				{
-					"path": "/api/users/current",
-					"method": "get"
-				}
-			],
+			"includeInterface": [],
 			"excludeInterface": [],
 			"dataLevel": "serve",
 			"parameterSeparator": "_"
