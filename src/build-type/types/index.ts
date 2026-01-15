@@ -145,6 +145,8 @@ export type ContentBody = {
 		_path?: { [key: string]: string };
 		query: Array<string>;
 		_query?: { [key: string]: string };
+		header: Array<string>;
+		_header?: { [key: string]: string };
 		body: Array<string>;
 	};
 	response: string;

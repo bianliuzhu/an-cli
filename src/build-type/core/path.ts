@@ -90,6 +90,7 @@ export class PathParse {
 		payload: {
 			path: [],
 			query: [],
+			header: [],
 			body: [],
 		},
 		response: '',
@@ -609,7 +610,65 @@ export class PathParse {
 		return '{}';
 	}
 
-	parametersItemHandle(item: ReferenceObject | ParameterObject, path: string[], query: string[]) {
+	/**
+	 * 生成参数的 JSDoc 注释
+	 * @param param 参数对象
+	 * @returns JSDoc 注释字符串数组
+	 */
+	private generateParamComment(param: ParameterObject, indent: string): string[] {
+		const comments: string[] = [];
+		const commentLines: string[] = [];
+
+		// 添加描述
+		if (param.description) {
+			commentLines.push(param.description);
+		}
+
+		// 添加 deprecated 标记
+		if (param.deprecated) {
+			commentLines.push('@deprecated');
+		}
+
+		// 添加示例值
+		if (param.schema && typeof param.schema === 'object' && 'example' in param.schema) {
+			const example = param.schema.example;
+			const exampleStr = typeof example === 'string' ? example : JSON.stringify(example);
+			commentLines.push(`@example ${exampleStr}`);
+		}
+
+		// 添加默认值
+		if (param.schema && typeof param.schema === 'object' && 'default' in param.schema) {
+			const defaultValue = param.schema.default;
+			const defaultStr = typeof defaultValue === 'string' ? defaultValue : JSON.stringify(defaultValue);
+			commentLines.push(`@default ${defaultStr}`);
+		}
+
+		// 如果有注释内容，生成 JSDoc
+		if (commentLines.length > 0) {
+			if (commentLines.length === 1 && !commentLines[0].includes('\n')) {
+				// 单行注释
+				comments.push(`${indent}/** ${commentLines[0]} */`);
+			} else {
+				// 多行注释
+				comments.push(`${indent}/**`);
+				commentLines.forEach((line) => {
+					// 处理多行描述
+					if (line.includes('\n')) {
+						line.split('\n').forEach((subLine) => {
+							comments.push(`${indent} * ${subLine}`);
+						});
+					} else {
+						comments.push(`${indent} * ${line}`);
+					}
+				});
+				comments.push(`${indent} */`);
+			}
+		}
+
+		return comments;
+	}
+
+	parametersItemHandle(item: ReferenceObject | ParameterObject, path: string[], query: string[], header: string[]) {
 		const V1 = '$ref' in item ? (item as ReferenceObject) : null;
 		const V2 = 'name' in item ? (item as ParameterObject) : null;
 
@@ -617,43 +676,73 @@ export class PathParse {
 			const typeName = V1.$ref.replace(componentsPathEnum.parameters, '');
 
 			const value = this.parameters[typeName];
-			this.parametersItemHandle(value, path, query);
+			this.parametersItemHandle(value, path, query, header);
 		}
 
 		if (V2) {
-			if (V2.in === 'path') {
-				const v2value = this.schemaParse(V2.schema);
-				path.push(`${TIGHTEN}${TIGHTEN}type ${V2.name} = ${v2value};`);
-				if (this.contentBody.payload._path) {
-					if (typeof v2value === 'string') {
-						this.contentBody.payload._path[V2.name] = v2value;
-					} else {
-						console.log('Unexpected v2value type:', v2value);
-					}
-				} else {
-					if (typeof v2value === 'string') {
-						this.contentBody.payload._path = { [V2.name]: v2value };
-					} else {
-						console.log('Unexpected v2value type:', v2value);
-					}
-				}
+			// 检查 schema 是否存在
+			if (!V2.schema) {
+				console.warn(`Parameter "${V2.name}" has no schema defined, skipping...`);
+				return;
 			}
-			if (V2.in === 'query') {
-				const v2value = this.schemaParse(V2.schema);
-				query.push(`${TIGHTEN}${TIGHTEN}${V2.name}: ${v2value};`);
-				if (this.contentBody.payload._query) {
-					if (typeof v2value === 'string') {
-						this.contentBody.payload._query[V2.name] = v2value;
-					} else {
-						console.log('Unexpected v2value type:', v2value);
-					}
+
+			const v2value = this.schemaParse(V2.schema);
+
+			// 验证解析结果
+			if (!v2value || typeof v2value !== 'string') {
+				console.warn(`Failed to parse schema for parameter "${V2.name}", got:`, v2value);
+				return;
+			}
+
+			if (V2.in === 'path') {
+				// 添加注释
+				const comments = this.generateParamComment(V2, `${TIGHTEN}${TIGHTEN}`);
+				comments.forEach((comment) => path.push(comment));
+
+				path.push(`${TIGHTEN}${TIGHTEN}type ${V2.name} = ${v2value};`);
+				// v2value 已经在上面验证过是字符串类型
+				if (this.contentBody.payload._path) {
+					this.contentBody.payload._path[V2.name] = v2value;
 				} else {
-					if (typeof v2value === 'string') {
-						this.contentBody.payload._query = { [V2.name]: v2value };
-					} else {
-						console.log('Unexpected v2value type:', v2value);
-					}
+					this.contentBody.payload._path = { [V2.name]: v2value };
 				}
+			} else if (V2.in === 'query') {
+				// 添加注释
+				const comments = this.generateParamComment(V2, `${TIGHTEN}${TIGHTEN}`);
+				comments.forEach((comment) => query.push(comment));
+
+				// 根据 required 字段决定是否可选（默认 required 为 false）
+				const optional = V2.required !== true ? '?' : '';
+				query.push(`${TIGHTEN}${TIGHTEN}${V2.name}${optional}: ${v2value};`);
+
+				// v2value 已经在上面验证过是字符串类型
+				if (this.contentBody.payload._query) {
+					this.contentBody.payload._query[V2.name] = v2value;
+				} else {
+					this.contentBody.payload._query = { [V2.name]: v2value };
+				}
+			} else if (V2.in === 'header') {
+				// 添加注释
+				const comments = this.generateParamComment(V2, `${TIGHTEN}${TIGHTEN}`);
+				comments.forEach((comment) => header.push(comment));
+
+				// header 参数通常是可选的
+				const optional = V2.required !== true ? '?' : '';
+				header.push(`${TIGHTEN}${TIGHTEN}${V2.name}${optional}: ${v2value};`);
+
+				// v2value 已经在上面验证过是字符串类型
+				if (this.contentBody.payload._header) {
+					this.contentBody.payload._header[V2.name] = v2value;
+				} else {
+					this.contentBody.payload._header = { [V2.name]: v2value };
+				}
+			} else if (V2.in === 'cookie') {
+				// cookie 参数支持（虽然不常用）
+				// 注意：cookie 参数通常不会在类型定义中显示，但我们在这里记录它们
+				console.info(`Cookie parameter "${V2.name}" detected but not added to type definition (cookies are typically handled separately)`);
+			} else {
+				// 未知的参数位置
+				console.warn(`Unknown parameter location "${V2.in}" for parameter "${V2.name}"`);
 			}
 		}
 	}
@@ -665,8 +754,9 @@ export class PathParse {
 	requestParametersParse(parameters: OperationObject['parameters']) {
 		const path: Array<string> = [];
 		const query: Array<string> = [];
+		const header: Array<string> = [];
 
-		parameters?.map((item) => this.parametersItemHandle(item, path, query));
+		parameters?.map((item) => this.parametersItemHandle(item, path, query, header));
 
 		if (path.length !== 0) {
 			path.unshift(`${TIGHTEN}namespace Path {`);
@@ -678,8 +768,14 @@ export class PathParse {
 			query.push(`${TIGHTEN}}`);
 		}
 
+		if (header.length !== 0) {
+			header.unshift(`${TIGHTEN}interface Header {`);
+			header.push(`${TIGHTEN}}`);
+		}
+
 		this.contentBody.payload.path = path;
 		this.contentBody.payload.query = query;
+		this.contentBody.payload.header = header;
 	}
 
 	/**
@@ -831,7 +927,7 @@ export class PathParse {
 				const contentTypeKey = (typeof contentType === 'object' ? Object.keys(contentType)[0] : 'application/json') as IContentType;
 
 				this.contentBody = {
-					payload: { path: [], query: [], body: [] },
+					payload: { path: [], query: [], header: [], body: [] },
 					response: '',
 					_response: '',
 					fileName,
@@ -1133,7 +1229,15 @@ export class PathParse {
 					const [, method] = key.split('|');
 					!methodList.includes(method) && methodList.push(method);
 
-					const contentArray = [`declare namespace ${typeName} {`, ...payload.path, ...payload.query, ...payload.body, `${TIGHTEN}${response}`, `}`];
+					const contentArray = [
+						`declare namespace ${typeName} {`,
+						...payload.path,
+						...payload.query,
+						...payload.header,
+						...payload.body,
+						`${TIGHTEN}${response}`,
+						`}`,
+					];
 
 					// 添加注释
 					if (summary) {
