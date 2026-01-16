@@ -220,3 +220,23 @@ export function isValidJSON(str: string) {
 		return false;
 	}
 }
+
+/**
+ * 动态导入一个 ts 文件
+ * @param modulePath 要导入的文件路径
+ * @param clearCache 是否清除缓存
+ */
+export function requireModule(modulePath: string, clearCache = true) {
+	try {
+		// eslint-disable-next-line @typescript-eslint/no-var-requires
+		const m = require(modulePath);
+		if (clearCache) {
+			setTimeout(() => {
+				delete require.cache[require.resolve(modulePath)];
+			}, 200);
+		}
+		return m;
+	} catch (error: unknown) {
+		throw new Error(error instanceof Error ? error.message : String(error));
+	}
+}

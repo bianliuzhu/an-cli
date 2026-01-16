@@ -1,6 +1,6 @@
 import { program } from 'commander';
 import data from '../package.json';
-import { Main } from './build-type';
+import { Main } from './swagger-codegen';
 import { lintHandle } from './standard/lint-init';
 import { gitHandle, type GitFeatureOption } from './git-local-config';
 import inquirer from 'inquirer';

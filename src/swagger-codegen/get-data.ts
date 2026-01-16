@@ -2,8 +2,8 @@ import http from 'http';
 import https from 'https';
 import { OpenAPI } from 'openapi-types';
 import path from 'path';
-import { requireModule } from '../tools';
-import { ConfigType } from '../types';
+import { requireModule } from '../utils';
+import { ConfigType } from './types';
 
 interface DocumentCommom {
 	swagger?: string;
