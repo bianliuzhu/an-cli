@@ -9,7 +9,7 @@
 			"type": "node",
 			"request": "launch",
 			"args": [
-				"${workspaceRoot}/src/build-type/index.ts"
+				"${workspaceFolder}/src/swagger-codegen/index.ts"
 			],
 			"runtimeArgs": [
 				"--nolazy",
@@ -30,7 +30,7 @@
 			"type": "node",
 			"request": "launch",
 			"args": [
-				"${workspaceRoot}/src/build-type/index.ts"
+				"${workspaceFolder}/src/swagger-codegen/index.ts"
 			],
 			"runtimeArgs": [
 				"--nolazy",

@@ -1,9 +1,9 @@
 import fs from 'fs';
 import { OpenAPIV3 } from 'openapi-types';
 import { clearDir, writeFileRecursive } from '../utils';
-import Components from './core/components';
-import { getSwaggerJson } from './core/get-data';
-import PathParse from './core/path';
+import Components from './components/index';
+import { getSwaggerJson } from './get-data';
+import PathParse from './path/index';
 import { ComponentsSchemas, ConfigType, IConfigSwaggerServer, PathsObject } from './types';
 import { exec } from 'shelljs';
 import { log } from '../utils';

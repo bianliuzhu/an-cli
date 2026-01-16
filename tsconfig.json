@@ -16,7 +16,6 @@
 	"include": [
 		"src",
 		"data/install-stylelint.ts",
-		"data/install-stylelint.ts",
 		"apps",
 		"data/files-get.d.ts"
 	],
