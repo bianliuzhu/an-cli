@@ -278,8 +278,8 @@ export class ComponentSchemaParser {
 		switch (format) {
 			case 'date-time':
 			case 'date':
-				return 'Date';
 			case 'time':
+				return 'Date';
 			case 'email':
 			case 'idn-email':
 			case 'uuid':
