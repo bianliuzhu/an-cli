@@ -120,9 +120,7 @@ export class Main {
 	private async copyAjaxConfigFiles(saveApiListFolderPath: string) {
 		try {
 			const filesToCopy = ['config.ts', 'error-message.ts', 'fetch.ts', 'api-type.d.ts'];
-			const sourceDir = isDebug
-				? path.join(__dirname, '..', '..', 'postbuild-assets', 'ajax-config')
-				: path.join(__dirname, '..', '..', 'ajax-config');
+			const sourceDir = isDebug ? path.join(__dirname, '..', '..', 'postbuild-assets', 'ajax-config') : path.join(__dirname, '..', 'ajax-config');
 			const destDir = saveApiListFolderPath;
 
 			for (const file of filesToCopy) {
