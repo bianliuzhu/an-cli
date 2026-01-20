@@ -20,6 +20,7 @@ import {
 import { SchemaResolver } from './schema-resolver';
 import { convertEndpointString } from './naming';
 import { PathWriter } from './writer';
+import { formatPropertyName } from '../shared/naming';
 import { applyFormattingDefaults, getIndentation } from '../shared/format';
 import { SUPPORTED_REQUEST_TYPES_ALL, SUPPORTED_REQUEST_UPLOAD_TYPES } from '../shared/http';
 
@@ -204,24 +205,26 @@ export class PathParse {
 				} else {
 					this.contentBody.payload._path = { [V2.name]: v2value };
 				}
-			} else if (V2.in === 'query') {
-				const comments = this.generateParamComment(V2, doubleIndent);
-				comments.forEach((comment) => query.push(comment));
+		} else if (V2.in === 'query') {
+			const comments = this.generateParamComment(V2, doubleIndent);
+			comments.forEach((comment) => query.push(comment));
 
-				const optional = V2.required !== true ? '?' : '';
-				query.push(`${doubleIndent}${V2.name}${optional}: ${v2value};`);
+			const optional = V2.required !== true ? '?' : '';
+			const propertyName = formatPropertyName(V2.name);
+			query.push(`${doubleIndent}${propertyName}${optional}: ${v2value};`);
 
 				if (this.contentBody.payload._query) {
 					this.contentBody.payload._query[V2.name] = v2value;
 				} else {
 					this.contentBody.payload._query = { [V2.name]: v2value };
 				}
-			} else if (V2.in === 'header') {
-				const comments = this.generateParamComment(V2, doubleIndent);
-				comments.forEach((comment) => header.push(comment));
+		} else if (V2.in === 'header') {
+			const comments = this.generateParamComment(V2, doubleIndent);
+			comments.forEach((comment) => header.push(comment));
 
-				const optional = V2.required !== true ? '?' : '';
-				header.push(`${doubleIndent}${V2.name}${optional}: ${v2value};`);
+			const optional = V2.required !== true ? '?' : '';
+			const propertyName = formatPropertyName(V2.name);
+			header.push(`${doubleIndent}${propertyName}${optional}: ${v2value};`);
 
 				if (this.contentBody.payload._header) {
 					this.contentBody.payload._header[V2.name] = v2value;
