@@ -14,7 +14,7 @@
 		"gitlens.codeLens.scopes": [
 			"document"
 		],
-		"editor.defaultFormatter": "esbenp.prettier-vscode"
+		"editor.defaultFormatter": "vscode.json-language-features"
 	},
 	"editor.tabSize": 2,
 	"swaggerToTypes.jsonUrl": [

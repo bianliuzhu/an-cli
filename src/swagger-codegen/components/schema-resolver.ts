@@ -21,7 +21,7 @@ type TReturnType = {
 export class ComponentSchemaResolver {
 	private schemas: ComponentsSchemas;
 	private config: ConfigType;
-	private requiredFieldS: string[] = [];
+	private requiredFieldSet: Set<string> = new Set();
 	private readonly defaultReturn = { headerRef: '', renderStr: '', comment: '', typeName: '' };
 	private enumParser: EnumParser;
 
@@ -37,20 +37,83 @@ export class ComponentSchemaResolver {
 		return nullableSuffix(v);
 	}
 
-	private fieldComment(schemaSource: NonArraySchemaObject) {
-		const { description } = schemaSource;
-		if (description) {
-			const Comment = [
-				getIndentation(this.config),
-				'/**',
-				'\n',
-				`${getIndentation(this.config)} * ${description}`,
-				'\n',
-				`${getIndentation(this.config)} */`,
-			].join('');
-			return Comment;
+	private isRequired(fieldName: string): boolean {
+		return this.requiredFieldSet.has(fieldName);
+	}
+
+	private stringifyValue(value: unknown): string {
+		if (typeof value === 'string') return value;
+		try {
+			return JSON.stringify(value);
+		} catch {
+			return String(value);
 		}
-		return '';
+	}
+
+	private buildDocComment(schemaSource: NonArraySchemaObject | ArraySchemaObject, fieldName?: string): string {
+		const indent = getIndentation(this.config);
+		const lines: string[] = [];
+
+		if ('description' in schemaSource && schemaSource.description) {
+			schemaSource.description.split('\n').forEach((line) => lines.push(line));
+		}
+
+		if ('deprecated' in schemaSource && schemaSource.deprecated) {
+			lines.push('@deprecated');
+		}
+
+		if ('default' in schemaSource && schemaSource.default !== undefined) {
+			lines.push(`@default ${this.stringifyValue(schemaSource.default)}`);
+		}
+
+		if ('example' in schemaSource && schemaSource.example !== undefined) {
+			lines.push(`@example ${this.stringifyValue(schemaSource.example)}`);
+		}
+
+		if ('format' in schemaSource && schemaSource.format) {
+			lines.push(`@format ${schemaSource.format}`);
+		}
+
+		const constraints: Array<[keyof OpenAPIV3.SchemaObject, string]> = [
+			['pattern', '@pattern'],
+			['minimum', '@minimum'],
+			['maximum', '@maximum'],
+			['exclusiveMinimum', '@exclusiveMinimum'],
+			['exclusiveMaximum', '@exclusiveMaximum'],
+			['minLength', '@minLength'],
+			['maxLength', '@maxLength'],
+			['minItems', '@minItems'],
+			['maxItems', '@maxItems'],
+		];
+		const recordSource = schemaSource as Record<string, unknown>;
+		const hasConstraint = constraints.some(([key]) => recordSource[key] !== undefined);
+		if (hasConstraint) {
+			const constraintLines = constraints
+				.map(([key, tag]) => {
+					if (recordSource[key] === undefined) return '';
+					return `${tag} ${this.stringifyValue(recordSource[key])}`;
+				})
+				.filter(Boolean);
+			lines.push(...constraintLines);
+		}
+
+		if (!lines.length) return '';
+
+		if (lines.length === 1 && !lines[0].includes('\n')) {
+			return `${indent}/** ${lines[0]} */`;
+		}
+
+		const rendered = [`${indent}/**`];
+		lines.forEach((line) => {
+			if (!line) return;
+			if (line.includes('\n')) {
+				line.split('\n').forEach((sub) => rendered.push(`${indent} * ${sub}`));
+			} else {
+				rendered.push(`${indent} * ${line}`);
+			}
+		});
+		rendered.push(`${indent} */`);
+		return rendered.join('\n');
 	}
 
 	private nameTheHumpCenterStroke(ref: string): { typeName: string; fileName: string; dataType: string | undefined } {
@@ -99,7 +162,7 @@ export class ComponentSchemaResolver {
 
 			return {
 				headerRef: headerRefStr,
-				renderStr: `${getIndentation(this.config)}${name}${this.requiredFieldS.includes(name) ? '' : '?'}: Array<${finalTypeName}>${this.nullable(nullable)};`,
+				renderStr: `${getIndentation(this.config)}${name}${this.isRequired(name) ? '' : '?'}: Array<${finalTypeName}>${this.nullable(nullable)};`,
 				typeName: finalTypeName,
 			};
 		}
@@ -111,23 +174,23 @@ export class ComponentSchemaResolver {
 
 		return {
 			headerRef: '',
-			renderStr: `${getIndentation(this.config)}${name}${this.requiredFieldS.includes(name) ? '' : '?'}: Array<${finalType}>${this.nullable(nullable)};`,
+			renderStr: `${getIndentation(this.config)}${name}${this.isRequired(name) ? '' : '?'}: Array<${finalType}>${this.nullable(nullable)};`,
 			typeName: finalType,
 		};
 	}
 
 	private parseBoolean(schemaObject: NonArraySchemaObject, key: string): string {
 		return schemaObject.type === 'boolean'
-			? `${getIndentation(this.config)}${key}${this.requiredFieldS.includes(key) ? '' : '?'}: boolean${this.nullable(schemaObject.nullable)};`
+			? `${getIndentation(this.config)}${key}${this.isRequired(key) ? '' : '?'}: boolean${this.nullable(schemaObject.nullable)};`
 			: '';
 	}
 
 	private parseInteger(value: NonArraySchemaObject, key: string): string {
 		if (Array.isArray(value.enum)) {
-			const enumResult = this.enumParser.handleEnum(value, key, this.requiredFieldS.includes(key));
+			const enumResult = this.enumParser.handleEnum(value, key, this.isRequired(key));
 			return enumResult?.renderStr ?? '';
 		} else {
-			return `${getIndentation(this.config)}${key}${this.requiredFieldS.includes(key) ? '' : '?'}: number${this.nullable(value.nullable)};`;
+			return `${getIndentation(this.config)}${key}${this.isRequired(key) ? '' : '?'}: number${this.nullable(value.nullable)};`;
 		}
 	}
 
@@ -135,13 +198,13 @@ export class ComponentSchemaResolver {
 		if (value.type !== 'number') return null;
 
 		if (value.enum) {
-			const enumResult = this.enumParser.handleEnum(value, key, this.requiredFieldS.includes(key));
+			const enumResult = this.enumParser.handleEnum(value, key, this.isRequired(key));
 			if (enumResult) return enumResult;
 		}
 
 		return {
 			headerRef: '',
-			renderStr: `${getIndentation(this.config)}${key}${this.requiredFieldS.includes(key) ? '' : '?'}: number${this.nullable(value.nullable)};`,
+			renderStr: `${getIndentation(this.config)}${key}${this.isRequired(key) ? '' : '?'}: number${this.nullable(value.nullable)};`,
 		};
 	}
 
@@ -176,7 +239,7 @@ export class ComponentSchemaResolver {
 		if (value.type !== 'string') return null;
 
 		if (value.enum) {
-			const enumResult = this.enumParser.handleEnum(value, key, this.requiredFieldS.includes(key));
+			const enumResult = this.enumParser.handleEnum(value, key, this.isRequired(key));
 			if (enumResult) return enumResult;
 		}
 
@@ -184,7 +247,7 @@ export class ComponentSchemaResolver {
 
 		return {
 			headerRef: '',
-			renderStr: `${getIndentation(this.config)}${key}${this.requiredFieldS.includes(key) ? '' : '?'}: ${strType}${this.nullable(value.nullable)};`,
+			renderStr: `${getIndentation(this.config)}${key}${this.isRequired(key) ? '' : '?'}: ${strType}${this.nullable(value.nullable)};`,
 		};
 	}
 
@@ -200,9 +263,9 @@ export class ComponentSchemaResolver {
 				renderStr = value?.renderStr ?? '';
 			}
 			if (typeof nonArraySchema.additionalProperties === 'boolean') {
-				renderStr = `${getIndentation(this.config)}${key}${this.requiredFieldS.includes(key) ? '' : '?'}: Record<string, unknown>${this.nullable(nonArraySchema.nullable)};`;
+				renderStr = `${getIndentation(this.config)}${key}${this.isRequired(key) ? '' : '?'}: Record<string, unknown>${this.nullable(nonArraySchema.nullable)};`;
 			} else {
-				renderStr = `${getIndentation(this.config)}${key}${this.requiredFieldS.includes(key) ? '' : '?'}: ${obj.type}${this.nullable(obj.nullable)};`;
+				renderStr = `${getIndentation(this.config)}${key}${this.isRequired(key) ? '' : '?'}: ${obj.type}${this.nullable(obj.nullable)};`;
 			}
 		}
 
@@ -221,11 +284,11 @@ export class ComponentSchemaResolver {
 				if (!headerRef.includes(headerRefStr) && typeName !== interfaceKey) headerRef.push(headerRefStr);
 
 				const schema = schemaSource as SchemaObject;
-				const comment = this.fieldComment(schema as NonArraySchemaObject);
+				const comment = this.buildDocComment(schema as NonArraySchemaObject, name);
 				comment !== '' && content.push(comment);
 
 				const finalTypeName = dataType === 'enum' ? getEnumTypeName(this.config, typeName) : typeName;
-				content.push(`${getIndentation(this.config)}${name}${this.requiredFieldS.includes(name) ? '' : '?'}: ${finalTypeName};`);
+				content.push(`${getIndentation(this.config)}${name}${this.isRequired(name) ? '' : '?'}: ${finalTypeName};`);
 
 				const example = (schemaSource as SchemaObject).example;
 				if (dataType === 'enum' && example && isValidJSON(example)) {
@@ -244,11 +307,11 @@ export class ComponentSchemaResolver {
 					if (!headerRef.includes(headerRefStr) && typeName !== interfaceKey) headerRef.push(headerRefStr);
 
 					const schema = schemaSource as SchemaObject;
-					const comment = this.fieldComment(schema as NonArraySchemaObject);
+					const comment = this.buildDocComment(schema as NonArraySchemaObject, name);
 					comment !== '' && content.push(comment);
 
 					content.push(
-						`${getIndentation(this.config)}${name}${this.requiredFieldS.includes(name) ? '' : '?'}: ${finalTypeName}${this.nullable(schemaSource.nullable)};`,
+						`${getIndentation(this.config)}${name}${this.isRequired(name) ? '' : '?'}: ${finalTypeName}${this.nullable(schemaSource.nullable)};`,
 					);
 
 					continue;
@@ -256,7 +319,7 @@ export class ComponentSchemaResolver {
 			}
 
 			const schema = schemaSource as OpenAPIV3.SchemaObject;
-			const comment = this.fieldComment(schema as NonArraySchemaObject);
+			const comment = this.buildDocComment(schema as NonArraySchemaObject, name);
 			comment !== '' && content.push(comment);
 
 			switch (schema.type) {
@@ -289,7 +352,7 @@ export class ComponentSchemaResolver {
 				case 'string':
 					{
 						if (schema.enum) {
-							const enumResult = this.enumParser.handleEnum(schema as NonArraySchemaObject, name, this.requiredFieldS.includes(name));
+							const enumResult = this.enumParser.handleEnum(schema as NonArraySchemaObject, name, this.isRequired(name));
 							if (enumResult) {
 								if (enumResult.headerRef && !headerRef.includes(enumResult.headerRef)) {
 									headerRef.push(enumResult.headerRef);
@@ -376,7 +439,16 @@ export class ComponentSchemaResolver {
 				console.warn(`无效的 schema 对象: ${key}`);
 				continue;
 			}
-			this.requiredFieldS = schema.required ?? [];
+
+			if (Array.isArray((schema as NonArraySchemaObject).enum)) {
+				const enumResult = this.enumParser.parseEnum(schema as NonArraySchemaObject, key);
+				if (enumResult?.renderStr && !this.enumParser.hasEnum(key)) {
+					this.enumParser.addEnumByName(key, enumResult.renderStr);
+				}
+				continue;
+			}
+
+			this.requiredFieldSet = new Set(schema.required ?? []);
 
 			const fileName = typeNameToFileName(key);
 			const content = await this.generateContent(schemaObject, key);
