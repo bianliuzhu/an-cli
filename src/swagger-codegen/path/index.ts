@@ -83,6 +83,7 @@ export class PathParse {
 	private schemas: OpenAPIV3.ComponentsObject['schemas'] = {};
 	private schemaResolver: SchemaResolver;
 	private writer: PathWriter;
+	private apiListFileContent: string[] = [];
 
 	constructor(
 		pathsObject: OpenAPIV3.PathsObject,
@@ -186,7 +187,7 @@ export class PathParse {
 				return;
 			}
 
-			const v2value = this.schemaResolver.schemaParse(V2.schema);
+			const v2value = this.schemaResolver.main(V2.schema);
 
 			if (!v2value || typeof v2value !== 'string') {
 				console.warn(`Failed to parse schema for parameter "${V2.name}", got:`, v2value);
@@ -510,8 +511,6 @@ export class PathParse {
 		}
 		return this.Map;
 	}
-
-	private apiListFileContent: string[] = [];
 
 	private async writeFile() {
 		const methodList: Array<string> = [];

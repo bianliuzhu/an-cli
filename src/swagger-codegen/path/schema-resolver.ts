@@ -45,15 +45,15 @@ export class SchemaResolver {
 	handleComplexType(schema: SchemaObject): string {
 		try {
 			if (schema.oneOf) {
-				return schema.oneOf.map((type) => this.stringifySchemaResult(this.schemaParse(type))).join(' | ');
+				return schema.oneOf.map((type) => this.stringifySchemaResult(this.main(type))).join(' | ');
 			}
 
 			if (schema.allOf) {
-				return schema.allOf.map((type) => this.stringifySchemaResult(this.schemaParse(type))).join(' & ');
+				return schema.allOf.map((type) => this.stringifySchemaResult(this.main(type))).join(' & ');
 			}
 
 			if (schema.anyOf) {
-				return schema.anyOf.map((type) => this.stringifySchemaResult(this.schemaParse(type))).join(' | ');
+				return schema.anyOf.map((type) => this.stringifySchemaResult(this.main(type))).join(' | ');
 			}
 
 			if (schema.enum) {
@@ -168,7 +168,7 @@ export class SchemaResolver {
 		}
 
 		if (schemaObject) {
-			const val = this.schemaParse(items);
+			const val = this.main(items);
 			if (Array.isArray(val)) {
 				return `Array<{${val.join('\n')}}>`;
 			} else {
@@ -179,7 +179,7 @@ export class SchemaResolver {
 	}
 
 	propertiesParse(properties: OpenAPIV3.BaseSchemaObject['properties']): string[] {
-		return formatObjectProperties(properties, this.config, (schema) => this.schemaParse(schema));
+		return formatObjectProperties(properties, this.config, (schema) => this.main(schema));
 	}
 
 	responseObjectParse(responseObject: OpenAPIV3.ResponseObject) {
@@ -197,7 +197,7 @@ export class SchemaResolver {
 			}
 
 			if (schema) {
-				return this.schemaParse(schema);
+				return this.main(schema);
 			}
 
 			return '';
@@ -211,7 +211,7 @@ export class SchemaResolver {
 		}
 	}
 
-	schemaParse(schema: Schema | undefined): string | string[] {
+	main(schema: Schema | undefined): string | string[] {
 		try {
 			if (!schema) return 'unknown';
 
@@ -233,7 +233,7 @@ export class SchemaResolver {
 			}
 
 			if (type === 'array' && schemaObj.items) {
-				const itemType = this.schemaParse(schemaObj.items as Schema);
+				const itemType = this.main(schemaObj.items as Schema);
 				return stringifyArrayType(itemType, this.config);
 			}
 
@@ -246,7 +246,7 @@ export class SchemaResolver {
 					return 'Record<string, unknown>' + nullableStr;
 				}
 				if (typeof schemaObj.additionalProperties === 'object') {
-					const valueType = this.schemaParse(schemaObj.additionalProperties as Schema);
+					const valueType = this.main(schemaObj.additionalProperties as Schema);
 					return `Record<string, ${valueType}>` + nullableStr;
 				}
 			}
