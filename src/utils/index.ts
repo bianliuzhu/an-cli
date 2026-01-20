@@ -119,7 +119,7 @@ function emptyDir(path: string): Promise<boolean> {
  * 删除指定路径下的所有空文件夹
  * @param {*} path
  */
-function rmEmptyDir(path: string, level = 0): Promise<boolean> {
+export function rmEmptyDir(path: string, level = 0): Promise<boolean> {
 	return new Promise((resolve, reject) => {
 		try {
 			if (fs.existsSync(path)) {

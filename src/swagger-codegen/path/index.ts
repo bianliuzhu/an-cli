@@ -17,7 +17,7 @@ import {
 	ResponseObject,
 	SchemaObject,
 } from '../types';
-import { SchemaResolver } from './schema-parser';
+import { SchemaResolver } from './schema-resolver';
 import { convertEndpointString } from './naming';
 import { PathWriter } from './writer';
 import { applyFormattingDefaults, getIndentation } from '../shared/format';
