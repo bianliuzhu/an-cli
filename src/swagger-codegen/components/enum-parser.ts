@@ -10,6 +10,7 @@ type NonArraySchemaObject = OpenAPIV3.NonArraySchemaObject;
 type EnumMetadata = {
 	customNames?: string[];
 	descriptionMap?: Record<string, string>;
+	rawEnumJson?: string;
 };
 
 type EnumParseResult = {
@@ -45,6 +46,10 @@ export class EnumParser {
 		const metadata: EnumMetadata = {};
 		const { enmuConfig } = this.config;
 		const schemaValue = value as Record<string, unknown>;
+
+		if (value.example && isValidJSON(value.example)) {
+			metadata.rawEnumJson = value.example as string;
+		}
 
 		if (enmuConfig?.varnames) {
 			const rawNames = schemaValue[enmuConfig.varnames];
@@ -122,6 +127,30 @@ export class EnumParser {
 		}
 	}
 
+	private normalizeEnumValues(enumValues: Array<unknown>): Array<string | number> {
+		return enumValues.map((item, index) => {
+			if (typeof item === 'string' || typeof item === 'number') return item;
+			if (item && typeof item === 'object') {
+				const record = item as Record<string, unknown>;
+				if (record.value !== undefined && (typeof record.value === 'string' || typeof record.value === 'number')) {
+					return record.value;
+				}
+				if (record.key !== undefined && (typeof record.key === 'string' || typeof record.key === 'number')) {
+					return record.key;
+				}
+				if (record.id !== undefined && (typeof record.id === 'string' || typeof record.id === 'number')) {
+					return record.id;
+				}
+				try {
+					return JSON.stringify(record);
+				} catch {
+					return `ENUM_${index}`;
+				}
+			}
+			return `ENUM_${index}`;
+		});
+	}
+
 	/**
 	 * 解析枚举定义
 	 */
@@ -129,13 +158,23 @@ export class EnumParser {
 		if (!Array.isArray(value.enum)) return null;
 
 		const Situation = ['integer', 'number'];
+		const normalizedEnumValues = this.normalizeEnumValues(value.enum);
 		const isNumericEnum = Boolean(value.type && Situation.includes(value.type));
-		const enumValues = value.enum as Array<string | number>;
-		const treatStringAsNumeric = value.type === 'string' && enumValues.every((item) => typeof item === 'string' && !isNaN(Number(item)));
-		const { customNames, descriptionMap } = this.extractEnumMetadata(value);
+		const treatStringAsNumeric = value.type === 'string' && normalizedEnumValues.every((item) => typeof item === 'string' && !isNaN(Number(item)));
+		const { customNames, descriptionMap, rawEnumJson } = this.extractEnumMetadata(value);
 		const useConstObject = this.config.enmuConfig.erasableSyntaxOnly;
 
-		const enumEntries = enumValues.map((item, index) => {
+		if (rawEnumJson) {
+			const enumContent = this.convertJsonToEnumString(rawEnumJson, enumName);
+			if (enumContent) {
+				return {
+					headerRef: '',
+					renderStr: enumContent,
+				};
+			}
+		}
+
+		const enumEntries = normalizedEnumValues.map((item, index) => {
 			const memberName = this.resolveEnumMemberName(item, index, {
 				customNames,
 				isNumericEnum,
