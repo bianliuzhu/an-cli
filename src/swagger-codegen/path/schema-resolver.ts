@@ -32,6 +32,48 @@ export class SchemaResolver {
 		this.handleError = onError;
 	}
 
+	private stringifySchemaResult(result: string | string[]): string {
+		if (Array.isArray(result)) {
+			const ln = getLineEnding(this.config);
+			const indent = getIndentation(this.config);
+			const body = result.join(ln);
+			return `{${ln}${body}${ln}${indent}}`;
+		}
+		return result;
+	}
+
+	handleComplexType(schema: SchemaObject): string {
+		try {
+			if (schema.oneOf) {
+				return schema.oneOf.map((type) => this.stringifySchemaResult(this.main(type))).join(' | ');
+			}
+
+			if (schema.allOf) {
+				return schema.allOf.map((type) => this.stringifySchemaResult(this.main(type))).join(' & ');
+			}
+
+			if (schema.anyOf) {
+				return schema.anyOf.map((type) => this.stringifySchemaResult(this.main(type))).join(' | ');
+			}
+
+			if (schema.enum) {
+				if (schema.type === 'number' || schema.type === 'integer') {
+					return schema.enum.join(' | ');
+				}
+				return schema.enum.map((v) => `'${v}'`).join(' | ');
+			}
+
+			return 'unknown';
+		} catch (error) {
+			this.handleError({
+				type: 'SCHEMA',
+				message: 'Failed to handle complex type',
+				details: error,
+			});
+			return 'unknown';
+		}
+	}
+
 	referenceObjectParse(refobj: ReferenceObject): string {
 		try {
 			const refKey = refobj.$ref;
@@ -90,52 +132,6 @@ export class SchemaResolver {
 		}
 	}
 
-	handleComplexType(schema: SchemaObject): string {
-		try {
-			if (schema.oneOf) {
-				return schema.oneOf.map((type) => this.stringifySchemaResult(this.schemaParse(type))).join(' | ');
-			}
-
-			if (schema.allOf) {
-				return schema.allOf.map((type) => this.stringifySchemaResult(this.schemaParse(type))).join(' & ');
-			}
-
-			if (schema.anyOf) {
-				return schema.anyOf.map((type) => this.stringifySchemaResult(this.schemaParse(type))).join(' | ');
-			}
-
-			if (schema.enum) {
-				if (schema.type === 'number' || schema.type === 'integer') {
-					return schema.enum.join(' | ');
-				}
-				return schema.enum.map((v) => `'${v}'`).join(' | ');
-			}
-
-			return 'unknown';
-		} catch (error) {
-			this.handleError({
-				type: 'SCHEMA',
-				message: 'Failed to handle complex type',
-				details: error,
-			});
-			return 'unknown';
-		}
-	}
-
-	private stringifySchemaResult(result: string | string[]): string {
-		if (Array.isArray(result)) {
-			const ln = getLineEnding(this.config);
-			const indent = getIndentation(this.config);
-			const body = result.join(ln);
-			return `{${ln}${body}${ln}${indent}}`;
-		}
-		return result;
-	}
-
-	propertiesParse(properties: OpenAPIV3.BaseSchemaObject['properties']): string[] {
-		return formatObjectProperties(properties, this.config, (schema) => this.schemaParse(schema));
-	}
-
 	nonArraySchemaObjectParse(nonArraySchemaObject: NonArraySchemaObject): string | string[] {
 		if (!nonArraySchemaObject) return 'unknown';
 		if (nonArraySchemaObject.format === 'binary' || (nonArraySchemaObject.type === 'string' && nonArraySchemaObject.format === 'binary')) {
@@ -172,7 +168,7 @@ export class SchemaResolver {
 		}
 
 		if (schemaObject) {
-			const val = this.schemaParse(items);
+			const val = this.main(items);
 			if (Array.isArray(val)) {
 				return `Array<{${val.join('\n')}}>`;
 			} else {
@@ -182,7 +178,40 @@ export class SchemaResolver {
 		return '';
 	}
 
-	schemaParse(schema: Schema | undefined): string | string[] {
+	propertiesParse(properties: OpenAPIV3.BaseSchemaObject['properties']): string[] {
+		return formatObjectProperties(properties, this.config, (schema) => this.main(schema));
+	}
+
+	responseObjectParse(responseObject: OpenAPIV3.ResponseObject) {
+		try {
+			const content = responseObject.content;
+			if (!content) return '';
+
+			let schema;
+
+			for (const type of SUPPORTED_REQUEST_TYPES_ALL) {
+				if (content[type]?.schema) {
+					schema = content[type].schema;
+					break;
+				}
+			}
+
+			if (schema) {
+				return this.main(schema);
+			}
+
+			return '';
+		} catch (error) {
+			this.handleError({
+				type: 'RESPONSE',
+				message: 'Failed to parse response object',
+				details: error,
+			});
+			return '';
+		}
+	}
+
+	main(schema: Schema | undefined): string | string[] {
 		try {
 			if (!schema) return 'unknown';
 
@@ -204,7 +233,7 @@ export class SchemaResolver {
 			}
 
 			if (type === 'array' && schemaObj.items) {
-				const itemType = this.schemaParse(schemaObj.items as Schema);
+				const itemType = this.main(schemaObj.items as Schema);
 				return stringifyArrayType(itemType, this.config);
 			}
 
@@ -217,7 +246,7 @@ export class SchemaResolver {
 					return 'Record<string, unknown>' + nullableStr;
 				}
 				if (typeof schemaObj.additionalProperties === 'object') {
-					const valueType = this.schemaParse(schemaObj.additionalProperties as Schema);
+					const valueType = this.main(schemaObj.additionalProperties as Schema);
 					return `Record<string, ${valueType}>` + nullableStr;
 				}
 			}
@@ -230,35 +259,6 @@ export class SchemaResolver {
 				details: error,
 			});
 			return 'unknown';
-		}
-	}
-
-	responseObjectParse(responseObject: OpenAPIV3.ResponseObject) {
-		try {
-			const content = responseObject.content;
-			if (!content) return '';
-
-			let schema;
-
-			for (const type of SUPPORTED_REQUEST_TYPES_ALL) {
-				if (content[type]?.schema) {
-					schema = content[type].schema;
-					break;
-				}
-			}
-
-			if (schema) {
-				return this.schemaParse(schema);
-			}
-
-			return '';
-		} catch (error) {
-			this.handleError({
-				type: 'RESPONSE',
-				message: 'Failed to parse response object',
-				details: error,
-			});
-			return '';
 		}
 	}
 }
