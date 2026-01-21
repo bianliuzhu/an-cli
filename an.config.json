@@ -16,7 +16,7 @@
 	},
 	"swaggerConfig": [
 		{
-			"url": "./data/sau.json",
+			"url": "./data/open-api.json",
 			"apiListFileName": "index.ts",
 			"publicPrefix": "/api",
 			"headers": {},

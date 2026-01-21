@@ -293,13 +293,24 @@ export class Main {
 		try {
 			const data = await fs.promises.readFile(configFilePath, 'utf8');
 			isConfigFile = true;
-			return JSON.parse(data) as ConfigType;
+			try {
+				return JSON.parse(data) as ConfigType;
+			} catch (parseError) {
+				// JSON 解析失败，配置文件存在但格式错误
+				isConfigFile = true; // 文件存在，不应该创建新文件
+				throw new Error(`配置文件格式错误，请检查 an.config.json 的 JSON 格式是否正确: ${parseError instanceof Error ? parseError.message : String(parseError)}`);
+			}
 		} catch (error: unknown) {
-			isConfigFile = false;
-			log.warning('Config file does not exist, will automatically create config file.');
-			await writeFileRecursive(configFilePath, JSON.stringify(configContent, null, 2));
-			log.success('Please check the an.config.json file in the project root directory');
-			return configContent;
+			// 文件不存在的情况
+			if (error instanceof Error && 'code' in error && (error as NodeJS.ErrnoException).code === 'ENOENT') {
+				isConfigFile = false;
+				log.warning('配置文件不存在，将自动创建配置文件。');
+				await writeFileRecursive(configFilePath, JSON.stringify(configContent, null, 2));
+				log.success('配置文件已创建，请检查项目根目录下的 an.config.json 文件并配置后重新运行。');
+				return configContent;
+			}
+			// 其他错误（如权限问题、JSON解析错误等）
+			throw error;
 		}
 	}
 
