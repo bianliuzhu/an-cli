@@ -1,5 +1,6 @@
 import { PathParseConfig, Schema } from '../types';
 import { getIndentation, getLineEnding } from './format';
+import { formatPropertyName } from './naming';
 
 export function nullableSuffix(nullable?: boolean): string {
 	return nullable ? ' | null' : '';
@@ -40,10 +41,11 @@ export function formatObjectProperties(
 	for (const key in properties) {
 		const item = (properties as Record<string, Schema>)[key];
 		const result = parseSchema(item);
+		const propertyName = formatPropertyName(key);
 		if (Array.isArray(result)) {
-			content.push(`${doubleIndent}${key}: {${result.join('\n')}};`);
+			content.push(`${doubleIndent}${propertyName}: {${result.join('\n')}};`);
 		} else {
-			content.push(`${doubleIndent}${key}: ${result};`);
+			content.push(`${doubleIndent}${propertyName}: ${result};`);
 		}
 	}
 	return content;
