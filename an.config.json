@@ -16,14 +16,156 @@
 	},
 	"swaggerConfig": [
 		{
-			"url": "./data/open-api.json",
-			"apiListFileName": "index.ts",
-			"publicPrefix": "/api",
+			"url": "./data/op.json",
+			"apiListFileName": "op.ts",
 			"headers": {},
-			"includeInterface": [],
+			"includeInterface": [
+				{
+					"path": "/op/trade/order/queryPage",
+					"method": "post"
+				},
+				{
+					"path": "/op/trade/order/getOrderEnums",
+					"method": "get"
+				},
+				{
+					"path": "/op/trade/order/createOrder",
+					"method": "post"
+				},
+				{
+					"path": "/op/trade/refund_order/deductBenefit",
+					"method": "get"
+				},
+				{
+					"path": "/op/trade/refund_order/queryPage",
+					"method": "post"
+				},
+				{
+					"path": "/op/trade/event/getMessageEventEnums",
+					"method": "get"
+				},
+				{
+					"path": "/op/trade/event/queryPage",
+					"method": "post"
+				},
+				{
+					"path": "/op/trade/event/processEvent",
+					"method": "get"
+				},
+				{
+					"path": "/op/trade/refund_order/createOrder",
+					"method": "post"
+				}
+			],
 			"excludeInterface": [],
 			"dataLevel": "serve",
-			"parameterSeparator": "_"
+			"parameterSeparator": "_",
+			"modulePrefix": "/forward",
+			"responseModelTransform": {
+				"type": "unwrap",
+				"dataField": "data"
+			}
+		},
+		{
+			"url": "./data/df.json",
+			"apiListFileName": "df.ts",
+			"publicPrefix": "/api",
+			"headers": {},
+			"includeInterface": [
+				{
+					"path": "/api/portal/main",
+					"method": "post"
+				},
+				{
+					"path": "/api/portal/main",
+					"method": "get"
+				},
+				{
+					"path": "/api/portal/common",
+					"method": "post"
+				},
+				{
+					"path": "/api/portal/common",
+					"method": "get"
+				},
+				{
+					"path": "/api/portal/experts/{expertId}",
+					"method": "post"
+				},
+				{
+					"path": "/api/portal/experts/{expertId}",
+					"method": "get"
+				},
+				{
+					"path": "/api/portal/configs",
+					"method": "get"
+				},
+				{
+					"path": "/api/user/login",
+					"method": "post"
+				},
+				{
+					"path": "/api/file/upload",
+					"method": "post"
+				},
+				{
+					"path": "/api/file/upload/image",
+					"method": "post"
+				},
+				{
+					"path": "/api/file/upload/video",
+					"method": "post"
+				},
+				{
+					"path": "/api/file/oss/credentials",
+					"method": "get"
+				},
+				{
+					"path": "/api/user/current",
+					"method": "get"
+				},
+				{
+					"path": "/api/lark/im/messages/refund",
+					"method": "post"
+				},
+				{
+					"path": "/api/app-users",
+					"method": "get"
+				},
+				{
+					"path": "/api/app-users/{id}",
+					"method": "get"
+				},
+				{
+					"path": "/api/user/sadmin",
+					"method": "get"
+				},
+				{
+					"path": "/api/user/bff",
+					"method": "get"
+				},
+				{
+					"path": "/api/user/bff",
+					"method": "post"
+				},
+				{
+					"path": "/api/user/bff",
+					"method": "put"
+				}
+			],
+			"excludeInterface": [],
+			"dataLevel": "serve",
+			"parameterSeparator": "_",
+			"responseModelTransform": {
+				"type": "wrap",
+				"dataField": "data",
+				"wrapperFields": {
+					"success": "boolean",
+					"code": "number",
+					"message": "string",
+					"data": "T"
+				}
+			}
 		}
 	]
 }

@@ -205,26 +205,26 @@ export class PathParse {
 				} else {
 					this.contentBody.payload._path = { [V2.name]: v2value };
 				}
-		} else if (V2.in === 'query') {
-			const comments = this.generateParamComment(V2, doubleIndent);
-			comments.forEach((comment) => query.push(comment));
+			} else if (V2.in === 'query') {
+				const comments = this.generateParamComment(V2, doubleIndent);
+				comments.forEach((comment) => query.push(comment));
 
-			const optional = V2.required !== true ? '?' : '';
-			const propertyName = formatPropertyName(V2.name);
-			query.push(`${doubleIndent}${propertyName}${optional}: ${v2value};`);
+				const optional = V2.required !== true ? '?' : '';
+				const propertyName = formatPropertyName(V2.name);
+				query.push(`${doubleIndent}${propertyName}${optional}: ${v2value};`);
 
 				if (this.contentBody.payload._query) {
 					this.contentBody.payload._query[V2.name] = v2value;
 				} else {
 					this.contentBody.payload._query = { [V2.name]: v2value };
 				}
-		} else if (V2.in === 'header') {
-			const comments = this.generateParamComment(V2, doubleIndent);
-			comments.forEach((comment) => header.push(comment));
+			} else if (V2.in === 'header') {
+				const comments = this.generateParamComment(V2, doubleIndent);
+				comments.forEach((comment) => header.push(comment));
 
-			const optional = V2.required !== true ? '?' : '';
-			const propertyName = formatPropertyName(V2.name);
-			header.push(`${doubleIndent}${propertyName}${optional}: ${v2value};`);
+				const optional = V2.required !== true ? '?' : '';
+				const propertyName = formatPropertyName(V2.name);
+				header.push(`${doubleIndent}${propertyName}${optional}: ${v2value};`);
 
 				if (this.contentBody.payload._header) {
 					this.contentBody.payload._header[V2.name] = v2value;
@@ -408,13 +408,25 @@ export class PathParse {
 		}
 
 		if (referenceObject) {
-			const typeName = this.schemaResolver.referenceObjectParse(referenceObject);
+			let typeName = this.schemaResolver.referenceObjectParse(referenceObject);
+
+			// 应用响应模型转换
+			if (this.config.responseModelTransform) {
+				typeName = this.schemaResolver.transformResponseModel(typeName, this.config.responseModelTransform) as string;
+			}
+
 			this.contentBody.response = `type Response = ${typeName}`;
 			this.contentBody._response = typeName;
 		}
 
 		if (responseObject) {
-			const responsess = this.schemaResolver.responseObjectParse(responseObject);
+			let responsess = this.schemaResolver.responseObjectParse(responseObject);
+
+			// 应用响应模型转换
+			if (this.config.responseModelTransform) {
+				responsess = this.schemaResolver.transformResponseModel(responsess, this.config.responseModelTransform);
+			}
+
 			if (Array.isArray(responsess)) {
 				if (responsess.length === 1 && responsess[0] === 'unknown') {
 					this.contentBody.response = `type Response = ${responsess.join('\n')};`;
