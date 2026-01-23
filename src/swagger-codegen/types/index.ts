@@ -26,6 +26,18 @@ export type ParseError = {
 
 type TDatalevel = 'data' | 'serve' | 'axios';
 
+/** 响应模型转换配置 */
+export interface IResponseModelTransform {
+	/** 转换类型：unwrap-剔除响应模型，wrap-添加响应模型，replace-替换响应模型 */
+	type: 'unwrap' | 'wrap' | 'replace';
+	/** 当 type 为 unwrap 时，指定要提取的字段名，默认为 'data' */
+	dataField?: string;
+	/** 当 type 为 wrap 或 replace 时，指定响应模型的类型定义 */
+	wrapperType?: string;
+	/** 响应模型中的字段映射关系，key为字段名，value为字段类型 */
+	wrapperFields?: Record<string, string>;
+}
+
 export interface IIncludeInterface {
 	path: string;
 	method: string;
@@ -51,6 +63,8 @@ export interface IConfigSwaggerServer {
 	excludeInterface?: Omit<IIncludeInterface, 'dataLevel'>[];
 	/** path 前缀 */
 	modulePrefix?: string;
+	/** 响应模型转换配置 */
+	responseModelTransform?: IResponseModelTransform;
 }
 
 export interface ConfigType {
@@ -85,6 +99,8 @@ export interface ConfigType {
 	excludeInterface?: Omit<IIncludeInterface, 'dataLevel'>[];
 	/** path 前缀（服务级配置注入） */
 	modulePrefix?: string;
+	/** 响应模型转换配置（服务级配置注入） */
+	responseModelTransform?: IResponseModelTransform;
 	/** 格式化 */
 	formatting?: {
 		/** 缩进 */

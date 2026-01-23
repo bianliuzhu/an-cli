@@ -1,6 +1,6 @@
 import fs from 'fs';
 import { OpenAPIV3 } from 'openapi-types';
-import { clearDir, writeFileRecursive } from '../utils';
+import { clearDir, clearDirExcept, writeFileRecursive } from '../utils';
 import Components from './components/index';
 import { getSwaggerJson } from './get-data';
 import PathParse from './path/index';
@@ -44,7 +44,7 @@ const configContent: ConfigType = {
 	},
 };
 
-type NormalizedSwaggerServer = Required<IConfigSwaggerServer>;
+type NormalizedSwaggerServer = Required<Omit<IConfigSwaggerServer, 'responseModelTransform'>> & Pick<IConfigSwaggerServer, 'responseModelTransform'>;
 
 export class Main {
 	private schemas: ComponentsSchemas = {};
@@ -230,6 +230,7 @@ export class Main {
 			const includeInterface = server.includeInterface || config.includeInterface || [];
 			const excludeInterface = server.excludeInterface || config.excludeInterface || [];
 			const modulePrefix = server.modulePrefix ?? config.modulePrefix ?? '';
+			const responseModelTransform = server.responseModelTransform ?? config.responseModelTransform;
 
 			return {
 				url,
@@ -241,6 +242,7 @@ export class Main {
 				includeInterface,
 				excludeInterface,
 				modulePrefix,
+				responseModelTransform,
 			};
 		};
 
@@ -282,6 +284,7 @@ export class Main {
 			includeInterface: server.includeInterface,
 			excludeInterface: server.excludeInterface,
 			modulePrefix: server.modulePrefix,
+			responseModelTransform: server.responseModelTransform ?? baseConfig.responseModelTransform,
 			swaggerConfig: server,
 		};
 	}
@@ -298,7 +301,9 @@ export class Main {
 			} catch (parseError) {
 				// JSON 解析失败，配置文件存在但格式错误
 				isConfigFile = true; // 文件存在，不应该创建新文件
-				throw new Error(`配置文件格式错误，请检查 an.config.json 的 JSON 格式是否正确: ${parseError instanceof Error ? parseError.message : String(parseError)}`);
+				throw new Error(
+					`配置文件格式错误，请检查 an.config.json 的 JSON 格式是否正确: ${parseError instanceof Error ? parseError.message : String(parseError)}`,
+				);
 			}
 		} catch (error: unknown) {
 			// 文件不存在的情况
@@ -332,6 +337,8 @@ export class Main {
 			await this.copyAjaxConfigFiles(mergedConfig.saveApiListFolderPath);
 
 			// 清理文件夹
+			// 清理 API 文件夹，但保留配置文件
+			await clearDirExcept(mergedConfig.saveApiListFolderPath, ['api-type.d.ts', 'config.ts', 'error-message.ts', 'fetch.ts']);
 			await clearDir(mergedConfig.saveTypeFolderPath);
 			await clearDir(mergedConfig.saveEnumFolderPath);
 

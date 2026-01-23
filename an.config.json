@@ -17,13 +17,37 @@
 	"swaggerConfig": [
 		{
 			"url": "./data/open-api.json",
-			"apiListFileName": "index.ts",
+			"apiListFileName": "op.ts",
+			"headers": {},
+			"includeInterface": [],
+			"excludeInterface": [],
+			"dataLevel": "serve",
+			"parameterSeparator": "_",
+			"modulePrefix": "/forward",
+			"responseModelTransform": {
+				"type": "unwrap",
+				"dataField": "data"
+			}
+		},
+		{
+			"url": "./data/openapi.json",
+			"apiListFileName": "df.ts",
 			"publicPrefix": "/api",
 			"headers": {},
 			"includeInterface": [],
 			"excludeInterface": [],
 			"dataLevel": "serve",
-			"parameterSeparator": "_"
+			"parameterSeparator": "_",
+			"responseModelTransform": {
+				"type": "wrap",
+				"dataField": "data",
+				"wrapperFields": {
+					"success": "boolean",
+					"code": "number",
+					"message": "string",
+					"data": "T"
+				}
+			}
 		}
 	]
 }

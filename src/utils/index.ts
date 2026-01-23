@@ -91,7 +91,7 @@ export const spinner = {
  * 删除文件夹下所有文件
  * @param {string} path
  */
-function emptyDir(path: string): Promise<boolean> {
+export function emptyDir(path: string): Promise<boolean> {
 	return new Promise((resolve, reject) => {
 		try {
 			if (fs.existsSync(path)) {
@@ -167,6 +167,47 @@ export function clearDir(path: string): Promise<boolean> {
 		} catch (error) {
 			console.error(error);
 			reject(false);
+		}
+	});
+}
+
+/**
+ * 清空指定路径下的文件，但排除指定的文件
+ * @param {string} dirPath 目录路径
+ * @param {string[]} excludeFiles 需要排除的文件名列表
+ */
+export function clearDirExcept(dirPath: string, excludeFiles: string[] = []): Promise<boolean> {
+	return new Promise((resolve, reject) => {
+		try {
+			if (!fs.existsSync(dirPath)) {
+				resolve(true);
+				return;
+			}
+
+			const files = fs.readdirSync(dirPath);
+
+			files.forEach((file) => {
+				// 跳过需要排除的文件
+				if (excludeFiles.includes(file)) {
+					return;
+				}
+
+				const filePath = `${dirPath}/${file}`;
+				const stats = fs.statSync(filePath);
+
+				if (stats.isDirectory()) {
+					// 递归删除子目录
+					exec(`rm -rf ${filePath}`);
+				} else {
+					// 删除文件
+					fs.unlinkSync(filePath);
+				}
+			});
+
+			resolve(true);
+		} catch (error) {
+			console.error(error);
+			reject(error);
 		}
 	});
 }

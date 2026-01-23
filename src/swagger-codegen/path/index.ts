@@ -205,26 +205,26 @@ export class PathParse {
 				} else {
 					this.contentBody.payload._path = { [V2.name]: v2value };
 				}
-		} else if (V2.in === 'query') {
-			const comments = this.generateParamComment(V2, doubleIndent);
-			comments.forEach((comment) => query.push(comment));
+			} else if (V2.in === 'query') {
+				const comments = this.generateParamComment(V2, doubleIndent);
+				comments.forEach((comment) => query.push(comment));
 
-			const optional = V2.required !== true ? '?' : '';
-			const propertyName = formatPropertyName(V2.name);
-			query.push(`${doubleIndent}${propertyName}${optional}: ${v2value};`);
+				const optional = V2.required !== true ? '?' : '';
+				const propertyName = formatPropertyName(V2.name);
+				query.push(`${doubleIndent}${propertyName}${optional}: ${v2value};`);
 
 				if (this.contentBody.payload._query) {
 					this.contentBody.payload._query[V2.name] = v2value;
 				} else {
 					this.contentBody.payload._query = { [V2.name]: v2value };
 				}
-		} else if (V2.in === 'header') {
-			const comments = this.generateParamComment(V2, doubleIndent);
-			comments.forEach((comment) => header.push(comment));
+			} else if (V2.in === 'header') {
+				const comments = this.generateParamComment(V2, doubleIndent);
+				comments.forEach((comment) => header.push(comment));
 
-			const optional = V2.required !== true ? '?' : '';
-			const propertyName = formatPropertyName(V2.name);
-			header.push(`${doubleIndent}${propertyName}${optional}: ${v2value};`);
+				const optional = V2.required !== true ? '?' : '';
+				const propertyName = formatPropertyName(V2.name);
+				header.push(`${doubleIndent}${propertyName}${optional}: ${v2value};`);
 
 				if (this.contentBody.payload._header) {
 					this.contentBody.payload._header[V2.name] = v2value;
@@ -340,7 +340,9 @@ export class PathParse {
 
 		const pathParamsHandle = () => {
 			const arr = [];
-			for (const i in _path) {
+			// 使用 Object.keys() 并排序以确保顺序一致性
+			const pathKeys = Object.keys(_path || {}).sort();
+			for (const i of pathKeys) {
 				arr.push(`${i}: ${typeName}.Path.${i}`);
 			}
 			const str = arr.join(arr.length > 1 ? ',' : '');
@@ -408,13 +410,25 @@ export class PathParse {
 		}
 
 		if (referenceObject) {
-			const typeName = this.schemaResolver.referenceObjectParse(referenceObject);
+			let typeName = this.schemaResolver.referenceObjectParse(referenceObject);
+
+			// 应用响应模型转换
+			if (this.config.responseModelTransform) {
+				typeName = this.schemaResolver.transformResponseModel(typeName, this.config.responseModelTransform) as string;
+			}
+
 			this.contentBody.response = `type Response = ${typeName}`;
 			this.contentBody._response = typeName;
 		}
 
 		if (responseObject) {
-			const responsess = this.schemaResolver.responseObjectParse(responseObject);
+			let responsess = this.schemaResolver.responseObjectParse(responseObject);
+
+			// 应用响应模型转换
+			if (this.config.responseModelTransform) {
+				responsess = this.schemaResolver.transformResponseModel(responsess, this.config.responseModelTransform);
+			}
+
 			if (Array.isArray(responsess)) {
 				if (responsess.length === 1 && responsess[0] === 'unknown') {
 					this.contentBody.response = `type Response = ${responsess.join('\n')};`;
@@ -450,7 +464,9 @@ export class PathParse {
 	private parsePathItemObject(itemObject: PathItemObject, pathKey: string, apiListFileContent: string[]) {
 		if (!itemObject) return;
 
-		for (const method in itemObject) {
+		// 使用 Object.keys() 并排序以确保顺序一致性
+		const methods = Object.keys(itemObject).sort();
+		for (const method of methods) {
 			const methodItems = itemObject[method as HttpMethods];
 			if (methodItems) {
 				let matchedInclude: IIncludeInterface | undefined;
@@ -506,7 +522,9 @@ export class PathParse {
 	}
 
 	private async parseData(): Promise<MapType> {
-		for (const requestPath in this.pathsObject) {
+		// 使用 Object.keys() 并排序以确保顺序一致性
+		const requestPaths = Object.keys(this.pathsObject).sort();
+		for (const requestPath of requestPaths) {
 			const methodObject = this.pathsObject[requestPath];
 			if (methodObject) {
 				this.parsePathItemObject(methodObject, requestPath, this.apiListFileContent);

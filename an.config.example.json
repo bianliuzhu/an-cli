@@ -1,0 +1,103 @@
+{
+	"saveTypeFolderPath": "apps/types",
+	"saveApiListFolderPath": "apps/api/",
+	"saveEnumFolderPath": "apps/enums",
+	"importEnumPath": "../../enums",
+	"requestMethodsImportPath": "./fetch",
+	"formatting": {
+		"indentation": "\t",
+		"lineEnding": "\n"
+	},
+	"headers": {},
+	"enmuConfig": {
+		"erasableSyntaxOnly": false,
+		"varnames": "enum-varnames",
+		"comment": "enum-descriptions"
+	},
+	"swaggerConfig": [
+		{
+			"url": "./data/op.json",
+			"apiListFileName": "op.ts",
+			"publicPrefix": "/forward",
+			"headers": {},
+			"includeInterface": [],
+			"excludeInterface": [],
+			"dataLevel": "serve",
+			"parameterSeparator": "_",
+			"_comment": "剔除响应模型示例：将 ResultMessageBoolean 转换为 boolean",
+			"responseModelTransform": {
+				"type": "unwrap",
+				"dataField": "data"
+			}
+		},
+		{
+			"url": "./data/df.json",
+			"apiListFileName": "df.ts",
+			"publicPrefix": "/api",
+			"headers": {},
+			"includeInterface": [],
+			"excludeInterface": [],
+			"dataLevel": "serve",
+			"parameterSeparator": "_",
+			"_comment": "添加响应模型示例：为没有响应模型的接口添加包装",
+			"responseModelTransform": {
+				"type": "wrap",
+				"dataField": "data",
+				"wrapperFields": {
+					"success": "boolean",
+					"code": "number",
+					"message": "string",
+					"data": "T"
+				}
+			}
+		},
+		{
+			"url": "./data/sau.json",
+			"apiListFileName": "sau.ts",
+			"publicPrefix": "/api",
+			"headers": {},
+			"includeInterface": [],
+			"excludeInterface": [],
+			"dataLevel": "serve",
+			"parameterSeparator": "_",
+			"_comment": "不使用响应模型转换，保持原样"
+		}
+	],
+	"_documentation": {
+		"responseModelTransform": {
+			"description": "响应模型转换配置，支持三种转换类型",
+			"types": {
+				"unwrap": {
+					"description": "剔除响应模型，提取指定字段（默认为 data 字段）",
+					"example": {
+						"type": "unwrap",
+						"dataField": "data"
+					},
+					"result": "ResultMessageBoolean -> boolean, ResultMessageIPageRefundOrderQueryVO -> IPageRefundOrderQueryVO"
+				},
+				"wrap": {
+					"description": "添加响应模型，将原类型包装到指定字段中",
+					"example": {
+						"type": "wrap",
+						"dataField": "data",
+						"wrapperFields": {
+							"success": "boolean",
+							"code": "number",
+							"message": "string",
+							"data": "T"
+						}
+					},
+					"result": "UsersEntityDto -> { success?: boolean; code?: number; message?: string; data?: UsersEntityDto }"
+				},
+				"replace": {
+					"description": "替换响应模型为指定类型",
+					"example": {
+						"type": "replace",
+						"wrapperType": "ResponseModel<T>"
+					},
+					"result": "任何类型 -> ResponseModel<T>"
+				}
+			}
+		}
+	}
+}

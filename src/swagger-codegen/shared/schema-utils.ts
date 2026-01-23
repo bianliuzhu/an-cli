@@ -38,7 +38,9 @@ export function formatObjectProperties(
 	const indent = getIndentation(config);
 	const doubleIndent = indent + indent;
 	const content: string[] = [];
-	for (const key in properties) {
+	// 使用 Object.keys() 并排序以确保顺序一致性
+	const keys = Object.keys(properties).sort();
+	for (const key of keys) {
 		const item = (properties as Record<string, Schema>)[key];
 		const result = parseSchema(item);
 		const propertyName = formatPropertyName(key);

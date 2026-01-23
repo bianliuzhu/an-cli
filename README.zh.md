@@ -187,39 +187,45 @@ $ anl type
 
 #### 配置项说明
 
-| 配置项                             | 类型                                                                            | 必填 | 说明                                                                                                                                                                                                                                                                                                                     |
-| ---------------------------------- | ------------------------------------------------------------------------------- | ---- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| saveTypeFolderPath                 | string                                                                          | 是   | 类型定义文件保存路径                                                                                                                                                                                                                                                                                                     |
-| saveApiListFolderPath              | string                                                                          | 是   | API 请求函数文件保存路径                                                                                                                                                                                                                                                                                                 |
-| saveEnumFolderPath                 | string                                                                          | 是   | 枚举数据文件保存路径                                                                                                                                                                                                                                                                                                     |
-| importEnumPath                     | string                                                                          | 是   | 枚举导入路径(apps/types/models/\*.ts 中 enum 文件的引用的路径)                                                                                                                                                                                                                                                           |
-| swaggerJsonUrl                     | string                                                                          | 否   | Swagger JSON 文档地址（已迁移到 `swaggerConfig.url`，保留用于兼容旧版配置）**后面迭代版本会删除该字段**                                                                                                                                                                                                                  |
-| swaggerConfig                      | object \| Array<object>                                                         | 否   | Swagger 服务器配置。单个服务器可直接填写对象，多个服务器使用数组。每个服务器可配置 `url`、`publicPrefix`、`modulePrefix`、`apiListFileName`、`headers`、`dataLevel`、`parameterSeparator`、`includeInterface`、`excludeInterface`<br />这个字段 对应 单 Swagger 服务器配置 与 多 Swagger 服务器配置 示例，请向上滚动查看 |
-| swaggerConfig[].url                | string                                                                          | 是   | Swagger JSON 文档地址                                                                                                                                                                                                                                                                                                    |
-| swaggerConfig[].publicPrefix       | string                                                                          | 否   | url path 上的公共前缀，例如：api/users、api/users/{id} ,api 就是公共前缀                                                                                                                                                                                                                                                 |
-| swaggerConfig[].modulePrefix       | string                                                                          | 否   | 请求路径前缀（可以理解为模块名），会自动添加到每个 API 请求路径前面。<br />例如：`modulePrefix: "/forward"` 时，<br />`/publicPrefix/modulePrefix/user` ， 会变成 `/publicPrefix/forward/user`                                                                                                                           |
-| swaggerConfig[].apiListFileName    | string                                                                          | 否   | API 列表文件名，默认为 `index.ts`。多个服务器时，每个服务器的API 列表文件名必须唯一                                                                                                                                                                                                                                      |
-| swaggerConfig[].headers            | object                                                                          | 否   | 该服务器的请求头配置                                                                                                                                                                                                                                                                                                     |
-| swaggerConfig[].dataLevel          | 'data' \| 'serve' \| 'axios'                                                    | 否   | 该服务器的接口返回数据层级。若未设置，使用全局 `dataLevel` 配置                                                                                                                                                                                                                                                          |
-| swaggerConfig[].parameterSeparator | '$' \| '\_'                                                                     | 否   | 该服务器生成 API 名称和类型名称时使用的分隔符。若未设置，使用全局 `parameterSeparator` 配置                                                                                                                                                                                                                              |
-| swaggerConfig[].includeInterface   | Array<{path: string, method: string, dataLevel?: 'data' \| 'serve' \| 'axios'}> | 否   | 该服务器包含的接口列表。每个接口可单独配置 `dataLevel`，具有最高优先级。若未设置，使用全局 `includeInterface` 配置                                                                                                                                                                                                       |
-| swaggerConfig[].excludeInterface   | Array<{path: string, method: string}>                                           | 否   | 该服务器排除的接口列表。若未设置，使用全局 `excludeInterface` 配置                                                                                                                                                                                                                                                       |
-| requestMethodsImportPath           | string                                                                          | 是   | 请求方法导入路径                                                                                                                                                                                                                                                                                                         |
-| dataLevel                          | 'data' \| 'serve' \| 'axios'                                                    | 否   | 全局接口返回数据层级配置，默认值：`'serve'`。各服务器可单独配置覆盖                                                                                                                                                                                                                                                      |
-| formatting                         | object                                                                          | 否   | 代码格式化配置                                                                                                                                                                                                                                                                                                           |
-| formatting.indentation             | string                                                                          | 否   | 代码缩进字符，例如：`"\t"` 或 `"  "`（两个空格）                                                                                                                                                                                                                                                                         |
-| formatting.lineEnding              | string                                                                          | 否   | 换行符，例如：`"\n"` (LF) 或 `"\r\n"` (CRLF)                                                                                                                                                                                                                                                                             |
-| headers                            | object                                                                          | 否   | 全局请求头配置（已迁移到 `swaggerConfig`，保留用于兼容旧版配置）                                                                                                                                                                                                                                                         |
-| includeInterface                   | Array<{path: string, method: string}>                                           | 否   | 全局包含的接口：`saveApiListFolderPath`指定的接口列表文件，只会包含列表中的接口，与 `excludeInterface` 字段互斥。各服务器可单独配置覆盖                                                                                                                                                                                  |
-| excludeInterface                   | Array<{path: string, method: string}>                                           | 否   | 全局排除的接口: `saveApiListFolderPath` 指定的接口列表文本，不存在该列表中的接口，与 `includeInterface` 互斥。各服务器可单独配置覆盖                                                                                                                                                                                     |
-| publicPrefix                       | string                                                                          | 否   | 全局 url path 上的公共前缀（已迁移到 `swaggerConfig`，保留用于兼容旧版配置）                                                                                                                                                                                                                                             |
-| modulePrefix                       | string                                                                          | 否   | 全局请求路径前缀（各服务器可单独配置覆盖）                                                                                                                                                                                                                                                                               |
-| apiListFileName                    | string                                                                          | 否   | 全局 API 列表文件名，默认为 `index.ts`（已迁移到 `swaggerConfig`，保留用于兼容旧版配置）                                                                                                                                                                                                                                 |
-| enmuConfig                         | object                                                                          | 是   | 枚举配置对象                                                                                                                                                                                                                                                                                                             |
-| enmuConfig.erasableSyntaxOnly      | boolean                                                                         | 是   | 与 tsconfig.json 的 `compilerOptions.erasableSyntaxOnly` 选项保持一致。为 `true` 时，生成 const 对象而非 enum（仅类型语法）。默认值：`false`                                                                                                                                                                             |
-| enmuConfig.varnames                | string                                                                          | 否   | Swagger schema 中自定义枚举成员名所在的字段名。默认值：`enum-varnames`。                                                                                                                                                                                                                                                 |
-| enmuConfig.comment                 | string                                                                          | 否   | Swagger schema 中自定义枚举描述所在的字段名（用于生成注释）。默认值：`enum-descriptions`。                                                                                                                                                                                                                               |
-| parameterSeparator                 | '$' \| '\_'                                                                     | 否   | 全局生成 API 名称和类型名称时，路径段和参数之间使用的分隔符。例如，`/users/{userId}/posts` 使用分隔符 `'_'` 会生成 `users_userId_posts_GET`。默认值：`'_'`。各服务器可单独配置覆盖                                                                                                                                       |
+| 配置项                                               | 类型                                                                            | 必填 | 说明                                                                                                                                                                                                                                                                                                                                               |
+| ---------------------------------------------------- | ------------------------------------------------------------------------------- | ---- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| saveTypeFolderPath                                   | string                                                                          | 是   | 类型定义文件保存路径                                                                                                                                                                                                                                                                                                                               |
+| saveApiListFolderPath                                | string                                                                          | 是   | API 请求函数文件保存路径                                                                                                                                                                                                                                                                                                                           |
+| saveEnumFolderPath                                   | string                                                                          | 是   | 枚举数据文件保存路径                                                                                                                                                                                                                                                                                                                               |
+| importEnumPath                                       | string                                                                          | 是   | 枚举导入路径(apps/types/models/\*.ts 中 enum 文件的引用的路径)                                                                                                                                                                                                                                                                                     |
+| swaggerJsonUrl                                       | string                                                                          | 否   | Swagger JSON 文档地址（已迁移到 `swaggerConfig.url`，保留用于兼容旧版配置）**后面迭代版本会删除该字段**                                                                                                                                                                                                                                            |
+| swaggerConfig                                        | object \| Array<object>                                                         | 否   | Swagger 服务器配置。单个服务器可直接填写对象，多个服务器使用数组。每个服务器可配置 `url`、`publicPrefix`、`modulePrefix`、`apiListFileName`、`headers`、`dataLevel`、`parameterSeparator`、`includeInterface`、`excludeInterface`、`responseModelTransform`<br />这个字段 对应 单 Swagger 服务器配置 与 多 Swagger 服务器配置 示例，请向上滚动查看 |
+| swaggerConfig[].url                                  | string                                                                          | 是   | Swagger JSON 文档地址                                                                                                                                                                                                                                                                                                                              |
+| swaggerConfig[].publicPrefix                         | string                                                                          | 否   | url path 上的公共前缀，例如：api/users、api/users/{id} ,api 就是公共前缀                                                                                                                                                                                                                                                                           |
+| swaggerConfig[].modulePrefix                         | string                                                                          | 否   | 请求路径前缀（可以理解为模块名），会自动添加到每个 API 请求路径前面。<br />例如：`modulePrefix: "/forward"` 时，<br />`/publicPrefix/modulePrefix/user` ， 会变成 `/publicPrefix/forward/user`。详见[路径前缀](#路径前缀moduleprefix)                                                                                                              |
+| swaggerConfig[].apiListFileName                      | string                                                                          | 否   | API 列表文件名，默认为 `index.ts`。多个服务器时，每个服务器的API 列表文件名必须唯一                                                                                                                                                                                                                                                                |
+| swaggerConfig[].headers                              | object                                                                          | 否   | 该服务器的请求头配置                                                                                                                                                                                                                                                                                                                               |
+| swaggerConfig[].dataLevel                            | 'data' \| 'serve' \| 'axios'                                                    | 否   | 该服务器的接口返回数据层级。若未设置，使用全局 `dataLevel` 配置。详见[数据层级配置](#数据层级配置datalevel)                                                                                                                                                                                                                                        |
+| swaggerConfig[].parameterSeparator                   | '$' \| '\_'                                                                     | 否   | 该服务器生成 API 名称和类型名称时使用的分隔符。若未设置，使用全局 `parameterSeparator` 配置                                                                                                                                                                                                                                                        |
+| swaggerConfig[].includeInterface                     | Array<{path: string, method: string, dataLevel?: 'data' \| 'serve' \| 'axios'}> | 否   | 该服务器包含的接口列表。每个接口可单独配置 `dataLevel`，具有最高优先级。若未设置，使用全局 `includeInterface` 配置。详见[接口过滤](#接口过滤)                                                                                                                                                                                                      |
+| swaggerConfig[].excludeInterface                     | Array<{path: string, method: string}>                                           | 否   | 该服务器排除的接口列表。若未设置，使用全局 `excludeInterface` 配置。详见[接口过滤](#接口过滤)                                                                                                                                                                                                                                                      |
+| swaggerConfig[].responseModelTransform               | object                                                                          | 否   | 该服务器的响应模型转换配置。支持三种模式：`unwrap`（剔除响应模型）、`wrap`（添加响应模型）、`replace`（替换响应模型）。若未设置，使用全局 `responseModelTransform` 配置。详见[响应模型转换](#响应模型转换)                                                                                                                                         |
+| swaggerConfig[].responseModelTransform.type          | `'unwrap'` \| `'wrap'` \| `'replace'`                                           | 是   | 响应模型转换类型。`unwrap`: 提取响应包装器中的 data 字段；`wrap`: 为原始响应添加统一包装结构；`replace`: 使用自定义类型替换响应。详见[场景一](#场景一为没有响应模型的接口添加响应模型wrap)、[场景二](#场景二剔除已有的响应模型unwrap)、[场景三](#场景三替换响应模型replace)                                                                        |
+| swaggerConfig[].responseModelTransform.dataField     | string                                                                          | 否   | 用于 `unwrap` 和 `wrap` 模式的数据字段名，默认为 `"data"`                                                                                                                                                                                                                                                                                          |
+| swaggerConfig[].responseModelTransform.wrapperFields | Record<string, string>                                                          | 否   | 用于 `wrap` 模式的包装器字段定义，key 为字段名，value 为字段类型。例如：`{"success": "boolean", "code": "number", "message": "string", "data": "T"}`                                                                                                                                                                                               |
+| swaggerConfig[].responseModelTransform.wrapperType   | string                                                                          | 否   | 用于 `replace` 模式的替换类型字符串。可以是任何 TypeScript 类型，例如：`"ApiResponse<T>"`                                                                                                                                                                                                                                                          |
+| requestMethodsImportPath                             | string                                                                          | 是   | 请求方法导入路径                                                                                                                                                                                                                                                                                                                                   |
+| dataLevel                                            | 'data' \| 'serve' \| 'axios'                                                    | 否   | 全局接口返回数据层级配置，默认值：`'serve'`。各服务器可单独配置覆盖。详见[数据层级配置](#数据层级配置datalevel)                                                                                                                                                                                                                                    |
+| responseModelTransform                               | object                                                                          | 否   | 全局响应模型转换配置。各服务器可单独配置覆盖。配置项同 `swaggerConfig[].responseModelTransform`。详见[响应模型转换](#响应模型转换)                                                                                                                                                                                                                 |
+| formatting                                           | object                                                                          | 否   | 代码格式化配置。详见[代码格式化](#代码格式化)                                                                                                                                                                                                                                                                                                      |
+| formatting.indentation                               | string                                                                          | 否   | 代码缩进字符，例如：`"\t"` 或 `"  "`（两个空格）                                                                                                                                                                                                                                                                                                   |
+| formatting.lineEnding                                | string                                                                          | 否   | 换行符，例如：`"\n"` (LF) 或 `"\r\n"` (CRLF)                                                                                                                                                                                                                                                                                                       |
+| headers                                              | object                                                                          | 否   | 全局请求头配置（已迁移到 `swaggerConfig`，保留用于兼容旧版配置）                                                                                                                                                                                                                                                                                   |
+| includeInterface                                     | Array<{path: string, method: string}>                                           | 否   | 全局包含的接口：`saveApiListFolderPath`指定的接口列表文件，只会包含列表中的接口，与 `excludeInterface` 字段互斥。各服务器可单独配置覆盖。详见[接口过滤](#接口过滤)                                                                                                                                                                                 |
+| excludeInterface                                     | Array<{path: string, method: string}>                                           | 否   | 全局排除的接口: `saveApiListFolderPath` 指定的接口列表文本，不存在该列表中的接口，与 `includeInterface` 互斥。各服务器可单独配置覆盖。详见[接口过滤](#接口过滤)                                                                                                                                                                                    |
+| publicPrefix                                         | string                                                                          | 否   | 全局 url path 上的公共前缀（已迁移到 `swaggerConfig`，保留用于兼容旧版配置）                                                                                                                                                                                                                                                                       |
+| modulePrefix                                         | string                                                                          | 否   | 全局请求路径前缀（各服务器可单独配置覆盖）。详见[路径前缀](#路径前缀moduleprefix)                                                                                                                                                                                                                                                                  |
+| apiListFileName                                      | string                                                                          | 否   | 全局 API 列表文件名，默认为 `index.ts`（已迁移到 `swaggerConfig`，保留用于兼容旧版配置）                                                                                                                                                                                                                                                           |
+| enmuConfig                                           | object                                                                          | 是   | 枚举配置对象。详见[枚举生成](#枚举生成)                                                                                                                                                                                                                                                                                                            |
+| enmuConfig.erasableSyntaxOnly                        | boolean                                                                         | 是   | 与 tsconfig.json 的 `compilerOptions.erasableSyntaxOnly` 选项保持一致。为 `true` 时，生成 const 对象而非 enum（仅类型语法）。默认值：`false`                                                                                                                                                                                                       |
+| enmuConfig.varnames                                  | string                                                                          | 否   | Swagger schema 中自定义枚举成员名所在的字段名。默认值：`enum-varnames`。                                                                                                                                                                                                                                                                           |
+| enmuConfig.comment                                   | string                                                                          | 否   | Swagger schema 中自定义枚举描述所在的字段名（用于生成注释）。默认值：`enum-descriptions`。                                                                                                                                                                                                                                                         |
+| parameterSeparator                                   | '$' \| '\_'                                                                     | 否   | 全局生成 API 名称和类型名称时，路径段和参数之间使用的分隔符。例如，`/users/{userId}/posts` 使用分隔符 `'_'` 会生成 `users_userId_posts_GET`。默认值：`'_'`。各服务器可单独配置覆盖                                                                                                                                                                 |
 
 #### 配置项与生成的文件对应关系
 
@@ -635,6 +641,535 @@ export const apiUserListGet = (params: ApiUserList_GET.Query) => GET<ApiUserList
 
 所有方法都支持类型安全的参数和响应类型定义。
 
+#### 响应模型转换
+
+响应模型转换功能允许你在生成 TypeScript 类型时，对 Swagger/OpenAPI 的响应类型进行自动转换。支持三种转换模式：
+
+1. **unwrap（剔除响应模型）**：提取响应包装器中的 data 字段
+2. **wrap（添加响应模型）**：为原始响应添加统一的包装结构
+3. **replace（替换响应模型）**：使用自定义类型替换响应
+
+##### 配置位置
+
+在 `an.config.json` 文件的 `swaggerConfig` 中添加 `responseModelTransform` 配置：
+
+```json
+{
+	"swaggerConfig": [
+		{
+			"url": "./data/api.json",
+			"apiListFileName": "api.ts",
+			"responseModelTransform": {
+				// 配置项
+			}
+		}
+	]
+}
+```
+
+##### 场景一：为没有响应模型的接口添加响应模型（wrap）
+
+**适用场景**
+
+当 Swagger 定义中直接返回数据对象，但实际 API 响应包含统一的包装结构时使用。
+
+**问题示例**
+
+Swagger 定义直接返回用户数据：
+
+```json
+{
+	"paths": {
+		"/api/user/current": {
+			"get": {
+				"responses": {
+					"200": {
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/UsersEntityDto"
+								}
+							}
+						}
+					}
+				}
+			}
+		}
+	}
+}
+```
+
+生成的类型（无响应模型）：
+
+```typescript
+declare namespace ApiUserCurrent_GET {
+	type Response = import('../models/users-entity-dto').UsersEntityDto;
+}
+```
+
+实际 API 响应：
+
+```json
+{
+	"success": true,
+	"code": 0,
+	"message": "success",
+	"data": {
+		"uid": "user123",
+		"username": "张三",
+		"email": "zhangsan@example.com"
+	}
+}
+```
+
+**解决方案**
+
+在配置中添加 `wrap` 类型的响应模型转换：
+
+```json
+{
+	"swaggerConfig": [
+		{
+			"url": "./data/df.json",
+			"apiListFileName": "df.ts",
+			"responseModelTransform": {
+				"type": "wrap",
+				"dataField": "data",
+				"wrapperFields": {
+					"success": "boolean",
+					"code": "number",
+					"message": "string",
+					"data": "T"
+				}
+			}
+		}
+	]
+}
+```
+
+**配置说明**
+
+| 字段            | 类型                     | 必填 | 说明                                             |
+| --------------- | ------------------------ | ---- | ------------------------------------------------ |
+| `type`          | `"wrap"`                 | 是   | 转换类型，固定为 `"wrap"`                        |
+| `dataField`     | `string`                 | 否   | 原始数据放置的字段名，默认为 `"data"`            |
+| `wrapperFields` | `Record<string, string>` | 是   | 包装器的字段定义，key 为字段名，value 为字段类型 |
+
+**转换后的类型**
+
+```typescript
+declare namespace ApiUserCurrent_GET {
+	interface Response {
+		success?: boolean;
+		code?: number;
+		message?: string;
+		data?: import('../models/users-entity-dto').UsersEntityDto;
+	}
+}
+```
+
+**使用示例**
+
+```typescript
+import { apiUserCurrent_GET } from './api/df';
+
+const response = await apiUserCurrent_GET();
+// response 类型为：
+// {
+//   success?: boolean;
+//   code?: number;
+//   message?: string;
+//   data?: UsersEntityDto;
+// }
+
+if (response.success && response.data) {
+	console.log(response.data.username);
+}
+```
+
+##### 场景二：剔除已有的响应模型（unwrap）
+
+**适用场景**
+
+当 Swagger 定义包含响应包装器，但你想直接使用内部数据类型时使用。
+
+**问题示例**
+
+Swagger 定义包含 `ResultMessageBoolean` 响应包装器：
+
+```json
+{
+	"paths": {
+		"/op/trade/refund_order/createOrder": {
+			"post": {
+				"responses": {
+					"200": {
+						"content": {
+							"*/*": {
+								"schema": {
+									"$ref": "#/components/schemas/ResultMessageBoolean"
+								}
+							}
+						}
+					}
+				}
+			}
+		}
+	},
+	"components": {
+		"schemas": {
+			"ResultMessageBoolean": {
+				"type": "object",
+				"properties": {
+					"success": { "type": "boolean" },
+					"msg": { "type": "string" },
+					"code": { "type": "integer" },
+					"timestamp": { "type": "integer" },
+					"data": { "type": "boolean" }
+				}
+			}
+		}
+	}
+}
+```
+
+生成的类型（包含响应模型）：
+
+```typescript
+declare namespace OpTradeRefundOrderCreateorder_POST {
+	type Body = import('../models/refund-order-create-dto').RefundOrderCreateDTO;
+	type Response = import('../models/result-message-boolean').ResultMessageBoolean;
+}
+```
+
+你想要的类型（只要 data 字段）：
+
+```typescript
+declare namespace OpTradeRefundOrderCreateorder_POST {
+	type Body = import('../models/refund-order-create-dto').RefundOrderCreateDTO;
+	type Response = boolean;
+}
+```
+
+**解决方案**
+
+在配置中添加 `unwrap` 类型的响应模型转换：
+
+```json
+{
+	"swaggerConfig": [
+		{
+			"url": "./data/op.json",
+			"apiListFileName": "op.ts",
+			"responseModelTransform": {
+				"type": "unwrap",
+				"dataField": "data"
+			}
+		}
+	]
+}
+```
+
+**配置说明**
+
+| 字段        | 类型       | 必填 | 说明                            |
+| ----------- | ---------- | ---- | ------------------------------- |
+| `type`      | `"unwrap"` | 是   | 转换类型，固定为 `"unwrap"`     |
+| `dataField` | `string`   | 否   | 要提取的字段名，默认为 `"data"` |
+
+**转换后的类型**
+
+```typescript
+declare namespace OpTradeRefundOrderCreateorder_POST {
+	type Body = import('../models/refund-order-create-dto').RefundOrderCreateDTO;
+	type Response = boolean;
+}
+```
+
+**更多示例**
+
+示例 1: 提取分页数据
+
+```typescript
+// 原始类型：
+type Response = import('../models/result-message-ipage-refund-order-query-vo').ResultMessageIPageRefundOrderQueryVO
+
+// 配置：
+{
+  "responseModelTransform": {
+    "type": "unwrap",
+    "dataField": "data"
+  }
+}
+
+// 转换后：
+type Response = import('../models/ipage-refund-order-query-vo').IPageRefundOrderQueryVO
+```
+
+示例 2: 提取自定义字段
+
+如果响应模型的数据字段名不是 `data`，而是 `result`：
+
+```json
+{
+	"responseModelTransform": {
+		"type": "unwrap",
+		"dataField": "result"
+	}
+}
+```
+
+##### 场景三：替换响应模型（replace）
+
+**适用场景**
+
+当你想用自定义的泛型类型或其他类型完全替换原有响应类型时使用。
+
+**问题示例**
+
+原始响应类型：
+
+```typescript
+type Response = import('../models/activity-response-dto-ilist-service-response').ActivityResponseDTOIListServiceResponse;
+```
+
+你想要的类型：
+
+```typescript
+type Response = ApiResponse<ActivityData>;
+```
+
+**解决方案**
+
+在配置中添加 `replace` 类型的响应模型转换：
+
+```json
+{
+	"swaggerConfig": [
+		{
+			"url": "./data/sau.json",
+			"apiListFileName": "sau.ts",
+			"responseModelTransform": {
+				"type": "replace",
+				"wrapperType": "ApiResponse<T>"
+			}
+		}
+	]
+}
+```
+
+**配置说明**
+
+| 字段          | 类型        | 必填 | 说明                         |
+| ------------- | ----------- | ---- | ---------------------------- |
+| `type`        | `"replace"` | 是   | 转换类型，固定为 `"replace"` |
+| `wrapperType` | `string`    | 是   | 替换后的类型字符串           |
+
+**转换后的类型**
+
+```typescript
+declare namespace ApiActivityServicevisitServiceVisitId_GET {
+	type Response = ApiResponse<T>;
+}
+```
+
+**注意事项**
+
+- `wrapperType` 可以是任何 TypeScript 类型字符串
+- 如果使用泛型类型（如 `ApiResponse<T>`），需要确保该类型在项目中已定义
+- 通常需要在 `api-type.d.ts` 中定义自定义类型：
+
+```typescript
+// apps/api/api-type.d.ts
+type ApiResponse<T> = {
+	code: number;
+	message: string;
+	data: T;
+	success: boolean;
+};
+```
+
+##### 完整配置示例
+
+```json
+{
+	"saveTypeFolderPath": "apps/types",
+	"saveApiListFolderPath": "apps/api/",
+	"saveEnumFolderPath": "apps/enums",
+	"importEnumPath": "../../enums",
+	"requestMethodsImportPath": "./fetch",
+	"formatting": {
+		"indentation": "\t",
+		"lineEnding": "\n"
+	},
+	"enmuConfig": {
+		"erasableSyntaxOnly": false,
+		"varnames": "enum-varnames",
+		"comment": "enum-descriptions"
+	},
+	"swaggerConfig": [
+		{
+			"url": "./data/op.json",
+			"apiListFileName": "op.ts",
+			"publicPrefix": "/forward",
+			"dataLevel": "serve",
+			"parameterSeparator": "_",
+			"responseModelTransform": {
+				"type": "unwrap",
+				"dataField": "data"
+			}
+		},
+		{
+			"url": "./data/df.json",
+			"apiListFileName": "df.ts",
+			"publicPrefix": "/api",
+			"dataLevel": "serve",
+			"parameterSeparator": "_",
+			"responseModelTransform": {
+				"type": "wrap",
+				"dataField": "data",
+				"wrapperFields": {
+					"success": "boolean",
+					"code": "number",
+					"message": "string",
+					"data": "T"
+				}
+			}
+		},
+		{
+			"url": "./data/sau.json",
+			"apiListFileName": "sau.ts",
+			"publicPrefix": "/api",
+			"dataLevel": "serve",
+			"parameterSeparator": "_",
+			"responseModelTransform": {
+				"type": "replace",
+				"wrapperType": "CustomApiResponse"
+			}
+		}
+	]
+}
+```
+
+##### 常见问题
+
+**Q1: 可以对不同的接口使用不同的转换吗？**
+
+A: 目前转换配置是按 Swagger 服务粒度配置的。如果需要对同一个 Swagger 文件中的不同接口使用不同转换，可以：
+
+1. 将 Swagger 拆分为多个文件
+2. 使用 `includeInterface` 和 `excludeInterface` 配置为不同接口组配置不同的 Swagger 服务
+
+**Q2: unwrap 转换失败怎么办？**
+
+A: unwrap 转换要求：
+
+1. 响应类型必须是 `$ref` 引用类型（不能是内联对象）
+2. 引用的 schema 必须包含指定的 `dataField`（默认为 `data`）
+3. 如果转换失败，会保持原始类型不变，并在日志中输出警告信息
+
+**Q3: wrap 转换时原始类型是对象怎么办？**
+
+A: 如果原始响应类型是内联对象（有多个字段），wrap 转换会将整个对象作为 `data` 字段的值。
+
+**Q4: 不配置 responseModelTransform 会怎样？**
+
+A: 如果不配置，生成的类型将完全按照 Swagger 定义生成，不做任何转换。
+
+**Q5: 可以全局配置默认转换吗？**
+
+A: 可以在根级别的 `swaggerConfig` 外层配置 `responseModelTransform`，所有未配置的服务会继承该配置：
+
+```json
+{
+	"responseModelTransform": {
+		"type": "unwrap",
+		"dataField": "data"
+	},
+	"swaggerConfig": [
+		{
+			"url": "./data/op.json",
+			"apiListFileName": "op.ts"
+			// 会使用全局配置
+		},
+		{
+			"url": "./data/df.json",
+			"apiListFileName": "df.ts",
+			"responseModelTransform": {
+				"type": "wrap",
+				"dataField": "data",
+				"wrapperFields": {
+					"success": "boolean",
+					"data": "T"
+				}
+			}
+			// 会覆盖全局配置
+		}
+	]
+}
+```
+
+##### 最佳实践
+
+**1. 统一响应模型规范**
+
+如果你的后端 API 使用统一的响应格式，建议：
+
+- 为没有响应模型的 Swagger 使用 `wrap` 转换
+- 为已有不同响应模型的 Swagger 使用 `unwrap` 转换
+- 最终保持所有 API 的响应类型一致
+
+**2. 配合 api-type.d.ts 使用**
+
+在 `apps/api/api-type.d.ts` 中定义统一的响应类型：
+
+```typescript
+type ResponseModel<T> = {
+	code: number;
+	message: string;
+	data: T;
+	success: boolean;
+};
+```
+
+然后在代码中统一使用：
+
+```typescript
+export const apiUserCurrent_GET = (params?: IRequestFnParams) => GET<ResponseModel<UsersEntityDto>>(`/api/user/current`, { ...params }, 'serve');
+```
+
+**3. 渐进式迁移**
+
+如果项目已经在使用旧的类型定义，建议：
+
+1. 先为新的 Swagger 服务配置响应模型转换
+2. 逐步迁移旧的服务
+3. 使用版本控制工具确保变更可回滚
+
+##### 技术细节
+
+**转换时机**
+
+响应模型转换在类型生成阶段进行，具体流程：
+
+1. 解析 Swagger/OpenAPI 文档
+2. 解析响应类型（Response Type）
+3. 应用 `responseModelTransform` 配置
+4. 生成最终的 TypeScript 类型定义文件
+
+**支持的响应类型**
+
+- ✅ `$ref` 引用类型（如 `#/components/schemas/ResultMessageBoolean`）
+- ✅ 内联对象类型（如 `{ type: 'object', properties: {...} }`）
+- ✅ 基础类型（如 `string`, `number`, `boolean`）
+- ✅ 数组类型（如 `Array<T>`）
+- ✅ 联合类型（如 `string | number`）
+
+**不支持的场景**
+
+- ❌ 内联对象类型的 unwrap 转换（因为无法从 schema 中提取字段）
+- ❌ 动态字段提取（必须明确指定 `dataField`）
+
 ### 注意事项
 
 1. 确保 Swagger JSON 文档地址可访问
@@ -643,8 +1178,10 @@ export const apiUserListGet = (params: ApiUserList_GET.Query) => GET<ApiUserList
 4. 建议将生成的文件加入版本控制
 5. 使用多 Swagger 服务器时，确保每个服务器的 `apiListFileName` 唯一，避免文件覆盖
 6. 多个服务器配置时，类型定义和枚举会合并，如果不同服务器有同名类型，可能会产生冲突
-7. 服务器级别的配置（`dataLevel`、`parameterSeparator`、`includeInterface`、`excludeInterface`、`modulePrefix`）会覆盖全局配置
+7. 服务器级别的配置（`dataLevel`、`parameterSeparator`、`includeInterface`、`excludeInterface`、`modulePrefix`、`responseModelTransform`）会覆盖全局配置
 8. `includeInterface` 和 `excludeInterface` 不能同时配置，如果同时配置，会优先使用 `includeInterface`
+9. 使用 `responseModelTransform` 时，确保配置正确，否则可能导致类型生成错误
+10. `unwrap` 转换要求响应类型必须是 `$ref` 引用类型，并且包含指定的 `dataField`
 
 ### 常见问题
 
@@ -741,6 +1278,24 @@ export const apiUserListGet = (params: ApiUserList_GET.Query) => GET<ApiUserList
    - `config.ts`、`error-message.ts`、`fetch.ts`、`api-type.d.ts` 这些文件只会在首次不存在时生成
    - API 列表文件和类型文件每次都会重新生成
    - 建议将生成的文件纳入版本控制，便于查看变更
+
+9. **如何使用响应模型转换？**
+   - 详见[响应模型转换](#响应模型转换)章节
+   - 支持 `unwrap`（剔除）、`wrap`（添加）、`replace`（替换）三种转换模式
+   - 可全局配置或为每个服务器单独配置
+
+10. **响应模型转换失败怎么办？**
+    - 检查配置项是否正确，特别是 `type` 字段
+    - `unwrap` 模式要求响应类型必须是 `$ref` 引用类型
+    - `wrap` 模式要求配置 `wrapperFields` 字段
+    - `replace` 模式要求配置 `wrapperType` 字段
+    - 查看控制台日志，通常会输出详细的错误信息
+
+11. **可以对不同的接口使用不同的响应模型转换吗？**
+    - 目前转换配置是按 Swagger 服务粒度配置的
+    - 如需对同一 Swagger 文件中的不同接口使用不同转换，可以：
+      1. 将 Swagger 拆分为多个文件
+      2. 使用 `includeInterface` 和 `excludeInterface` 为不同接口组配置不同的 Swagger 服务
 
 # `anl lint` 命令使用说明
 

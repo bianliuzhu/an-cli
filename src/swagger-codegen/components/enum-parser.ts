@@ -62,11 +62,14 @@ export class EnumParser {
 			const rawComments = schemaValue[enmuConfig.comment];
 			if (rawComments && typeof rawComments === 'object' && !Array.isArray(rawComments)) {
 				const descriptionMap: Record<string, string> = {};
-				Object.entries(rawComments as Record<string, unknown>).forEach(([key, desc]) => {
-					if (typeof desc === 'string') {
-						descriptionMap[key] = desc;
-					}
-				});
+				// 使用排序后的键以确保顺序一致性
+				Object.entries(rawComments as Record<string, unknown>)
+					.sort((a, b) => a[0].localeCompare(b[0]))
+					.forEach(([key, desc]) => {
+						if (typeof desc === 'string') {
+							descriptionMap[key] = desc;
+						}
+					});
 
 				if (Object.keys(descriptionMap).length) {
 					metadata.descriptionMap = descriptionMap;
@@ -111,12 +114,16 @@ export class EnumParser {
 			const jsonObj = JSON.parse(jsonStr);
 
 			if (this.config.enmuConfig.erasableSyntaxOnly) {
+				// 使用排序后的键以确保顺序一致性
 				const enumValues = Object.entries(jsonObj)
+					.sort((a, b) => a[0].localeCompare(b[0]))
 					.map(([key, value]) => `${getIndentation(this.config)}${key}: '${value}'`)
 					.join(',\n');
 				return `export const ${enumName} = {\n${enumValues}\n} as const;\n\nexport type ${getEnumTypeName(this.config, enumName)} = typeof ${enumName}[keyof typeof ${enumName}];`;
 			} else {
+				// 使用排序后的键以确保顺序一致性
 				const enumValues = Object.entries(jsonObj)
+					.sort((a, b) => a[0].localeCompare(b[0]))
 					.map(([key, value]) => `${getIndentation(this.config)}${key} = '${value}'`)
 					.join(',\n');
 				return `export enum ${enumName} {\n${enumValues}\n}`;
