@@ -44,12 +44,17 @@ export class PathWriter {
 				}
 			});
 
-		for (const [key, value] of map) {
+		// 将 Map 转换为数组并按 key 排序以确保顺序一致性
+		const sortedEntries = Array.from(map.entries()).sort((a, b) => a[0].localeCompare(b[0]));
+		
+		for (const [key, value] of sortedEntries) {
 			Plist.push(taskFactory(key, value));
 		}
 
 		await Promise.all(Plist);
 
+		// 对 methodList 排序以确保顺序一致性
+		methodList.sort();
 		apiListFileContent.unshift(`import { ${methodList.join(', ')} } from '${this.config.requestMethodsImportPath || './api'}';`, '\n');
 
 		const apiListFileName = this.config.apiListFileName || 'index.ts';

@@ -340,7 +340,9 @@ export class PathParse {
 
 		const pathParamsHandle = () => {
 			const arr = [];
-			for (const i in _path) {
+			// 使用 Object.keys() 并排序以确保顺序一致性
+			const pathKeys = Object.keys(_path || {}).sort();
+			for (const i of pathKeys) {
 				arr.push(`${i}: ${typeName}.Path.${i}`);
 			}
 			const str = arr.join(arr.length > 1 ? ',' : '');
@@ -462,7 +464,9 @@ export class PathParse {
 	private parsePathItemObject(itemObject: PathItemObject, pathKey: string, apiListFileContent: string[]) {
 		if (!itemObject) return;
 
-		for (const method in itemObject) {
+		// 使用 Object.keys() 并排序以确保顺序一致性
+		const methods = Object.keys(itemObject).sort();
+		for (const method of methods) {
 			const methodItems = itemObject[method as HttpMethods];
 			if (methodItems) {
 				let matchedInclude: IIncludeInterface | undefined;
@@ -518,7 +522,9 @@ export class PathParse {
 	}
 
 	private async parseData(): Promise<MapType> {
-		for (const requestPath in this.pathsObject) {
+		// 使用 Object.keys() 并排序以确保顺序一致性
+		const requestPaths = Object.keys(this.pathsObject).sort();
+		for (const requestPath of requestPaths) {
 			const methodObject = this.pathsObject[requestPath];
 			if (methodObject) {
 				this.parsePathItemObject(methodObject, requestPath, this.apiListFileContent);

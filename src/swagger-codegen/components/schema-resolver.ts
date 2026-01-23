@@ -276,7 +276,17 @@ export class ComponentSchemaResolver {
 		const content: string[] = [];
 		const headerRef: string[] = [];
 
-		for (const name in properties) {
+		// 提前处理 undefined 情况
+		if (!properties) {
+			return {
+				headerRef: '',
+				renderStr: `export interface ${interfaceKey} {}`,
+			};
+		}
+
+		// 使用 Object.keys() 并排序以确保顺序一致性
+		const propertyNames = Object.keys(properties).sort();
+		for (const name of propertyNames) {
 			const schemaSource = properties[name];
 
 			if ((schemaSource as ReferenceObject)?.$ref) {
@@ -428,7 +438,10 @@ export class ComponentSchemaResolver {
 			return { enumsMap: this.enumParser.enumsMap, schemasMap: this.schemasMap };
 		}
 
-		for (const [key, schema] of Object.entries(this.schemas)) {
+		// 使用排序后的键以确保顺序一致性
+		const schemaKeys = Object.keys(this.schemas).sort();
+		for (const key of schemaKeys) {
+			const schema = this.schemas[key];
 			if ('$ref' in schema) {
 				console.warn(`跳过 ReferenceObject: ${key}`);
 				continue;
