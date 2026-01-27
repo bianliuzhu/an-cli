@@ -1,67 +1,4 @@
-# an-cli
-
-# 功能概述
-
-> an-cli 是前端命令行工具，包含以下命令:
->
-> - `anl type` 命令：基于 Swagger JSON 自动生成 TypeScript 类型定义和 API 请求函数的命令行工具。
-> - `anl lint` 命令: 生成 react 或 vue 项目 eslint、stylelint、prettier、commitLint、VSCode相关配置
-> - `anl git` 命令: 生成 git 本地配置，并设有可选功能： gitflow 标准分支创建、git commit messages 主题、git 自定义命令配置
-
-# 功能特点
-
-- `anl type`
-  - 🚀 自动解析 Swagger JSON 文档
-  - 📦 生成 TypeScript 类型定义文件
-  - 🔄 生成类型安全的 API 请求函数
-  - 🎯 支持路径参数、查询参数和请求体
-  - 📝 自动生成枚举类型定义
-  - 🎨 支持代码格式化
-  - ⚡️ 支持文件上传
-  - 🛠 可配置的代码生成选项
-  - 🌐 支持多 Swagger 服务器配置
-  - 🔧 支持 OPTIONS、HEAD、SEARCH 等 HTTP 方法
-
-- `anl lint`
-  - 🔍 一键配置各种 lint 工具
-  - 🎨 ESLint 配置自动化
-  - 🎯Prettier 格式化配置
-  - 🔄 CommitLint 提交规范
-  - 📦 VSCode 编辑器配置
-
-- `anl git`
-  - 🔍 多种功能可选安装
-  - 🎨 标准 git flow 分支创建
-  - 🎯 符合 CommitLint 提交规范的主题自动设置
-  - 🔄 提供 git 自定义命令配置以及入口
-  - 📦 自动化生成 0 配置
-
-# 安装
-
-> [!NOTE]
-> 需要全局安装
-
-```bash
-$ npm install anl -g
-```
-
-```bash
-$ yarn global add anl
-```
-
-```bash
-$ pnpm add -g anl
-```
-
-# 使用说明
-
-> [!TIP]
->
-> 1. 如果初次使用，不清楚会产生什么结果，建议先执行命令，观察会在项目中发生什么变化，然后在结合文档，进一步修改配置，再次生成，最终达到自己理想中的样子
-> 2. 或者跟着下面步骤 一步一步做，就会有收获
-> 3. 请在项目根目录执行 `anl type`、`anl lint`、 `anl git` 命令
-
-## `anl type` 命令使用说明
+# `anl type` 命令使用说明
 
 - **首次**执行 `anl type`, 命令，会在*项目根目录下*, _自动创建_ 以 `an.config.json` 为名的配置文件（手动创建也可以）初始化配置模板。
 
@@ -79,8 +16,6 @@ $ pnpm add -g anl
 - 按照自己的需要更新配置文件，然后再次执行 `anl type` 命令，会依照配置文件中的指定配置信息生成，生成对应的类型信息
 
 - 如果 'config.ts', 'error-message.ts', 'fetch.ts', 'api-type.d.ts' 这些文件存在的话将不再重复生成
-
--
 
 > [!NOTE]
 >
@@ -195,10 +130,10 @@ $ anl type
 | swaggerConfig                                        | object \| Array<object>                                                         | 否   | Swagger 服务器配置。单个服务器可直接填写对象，多个服务器使用数组。每个服务器可配置 `url`、`publicPrefix`、`modulePrefix`、`apiListFileName`、`headers`、`dataLevel`、`parameterSeparator`、`includeInterface`、`excludeInterface`、`responseModelTransform`<br />这个字段 对应 单 Swagger 服务器配置 与 多 Swagger 服务器配置 示例，请向上滚动查看 |
 | swaggerConfig[].url                                  | string                                                                          | 是   | Swagger JSON 文档地址                                                                                                                                                                                                                                                                                                                              |
 | swaggerConfig[].publicPrefix                         | string                                                                          | 否   | url path 上的公共前缀，例如：api/users、api/users/{id} ,api 就是公共前缀                                                                                                                                                                                                                                                                           |
-| swaggerConfig[].modulePrefix                         | string                                                                          | 否   | 请求路径前缀（可以理解为模块名），会自动添加到每个 API 请求路径前面。<br />例如：`modulePrefix: "/forward"` 时，<br />`/publicPrefix/modulePrefix/user` ， 会变成 `/publicPrefix/forward/user`。详见[路径前缀](#路径前缀moduleprefix)                                                                                                              |
+| swaggerConfig[].modulePrefix                         | string                                                                          | 否   | 请求路径前缀（可以理解为模块名），会自动添加到每个 API 请求路径前面。<br />例如：`modulePrefix: "/forward"` 时，<br />`/publicPrefix/modulePrefix/user` ， 会变成 `/publicPrefix/forward/user`。详见[路径前缀](#路径前缀-moduleprefix)                                                                                                             |
 | swaggerConfig[].apiListFileName                      | string                                                                          | 否   | API 列表文件名，默认为 `index.ts`。多个服务器时，每个服务器的API 列表文件名必须唯一                                                                                                                                                                                                                                                                |
 | swaggerConfig[].headers                              | object                                                                          | 否   | 该服务器的请求头配置                                                                                                                                                                                                                                                                                                                               |
-| swaggerConfig[].dataLevel                            | 'data' \| 'serve' \| 'axios'                                                    | 否   | 该服务器的接口返回数据层级。若未设置，使用全局 `dataLevel` 配置。详见[数据层级配置](#数据层级配置datalevel)                                                                                                                                                                                                                                        |
+| swaggerConfig[].dataLevel                            | 'data' \| 'serve' \| 'axios'                                                    | 否   | 该服务器的接口返回数据层级。若未设置，使用全局 `dataLevel` 配置。详见[数据层级配置](#数据层级配置-datalevel)                                                                                                                                                                                                                                       |
 | swaggerConfig[].parameterSeparator                   | '$' \| '\_'                                                                     | 否   | 该服务器生成 API 名称和类型名称时使用的分隔符。若未设置，使用全局 `parameterSeparator` 配置                                                                                                                                                                                                                                                        |
 | swaggerConfig[].includeInterface                     | Array<{path: string, method: string, dataLevel?: 'data' \| 'serve' \| 'axios'}> | 否   | 该服务器包含的接口列表。每个接口可单独配置 `dataLevel`，具有最高优先级。若未设置，使用全局 `includeInterface` 配置。详见[接口过滤](#接口过滤)                                                                                                                                                                                                      |
 | swaggerConfig[].excludeInterface                     | Array<{path: string, method: string}>                                           | 否   | 该服务器排除的接口列表。若未设置，使用全局 `excludeInterface` 配置。详见[接口过滤](#接口过滤)                                                                                                                                                                                                                                                      |
@@ -208,7 +143,7 @@ $ anl type
 | swaggerConfig[].responseModelTransform.wrapperFields | Record<string, string>                                                          | 否   | 用于 `wrap` 模式的包装器字段定义，key 为字段名，value 为字段类型。例如：`{"success": "boolean", "code": "number", "message": "string", "data": "T"}`                                                                                                                                                                                               |
 | swaggerConfig[].responseModelTransform.wrapperType   | string                                                                          | 否   | 用于 `replace` 模式的替换类型字符串。可以是任何 TypeScript 类型，例如：`"ApiResponse<T>"`                                                                                                                                                                                                                                                          |
 | requestMethodsImportPath                             | string                                                                          | 是   | 请求方法导入路径                                                                                                                                                                                                                                                                                                                                   |
-| dataLevel                                            | 'data' \| 'serve' \| 'axios'                                                    | 否   | 全局接口返回数据层级配置，默认值：`'serve'`。各服务器可单独配置覆盖。详见[数据层级配置](#数据层级配置datalevel)                                                                                                                                                                                                                                    |
+| dataLevel                                            | 'data' \| 'serve' \| 'axios'                                                    | 否   | 全局接口返回数据层级配置，默认值：`'serve'`。各服务器可单独配置覆盖。详见[数据层级配置](#数据层级配置-datalevel)                                                                                                                                                                                                                                   |
 | responseModelTransform                               | object                                                                          | 否   | 全局响应模型转换配置。各服务器可单独配置覆盖。配置项同 `swaggerConfig[].responseModelTransform`。详见[响应模型转换](#响应模型转换)                                                                                                                                                                                                                 |
 | formatting                                           | object                                                                          | 否   | 代码格式化配置。详见[代码格式化](#代码格式化)                                                                                                                                                                                                                                                                                                      |
 | formatting.indentation                               | string                                                                          | 否   | 代码缩进字符，例如：`"\t"` 或 `"  "`（两个空格）                                                                                                                                                                                                                                                                                                   |
@@ -217,7 +152,7 @@ $ anl type
 | includeInterface                                     | Array<{path: string, method: string}>                                           | 否   | 全局包含的接口：`saveApiListFolderPath`指定的接口列表文件，只会包含列表中的接口，与 `excludeInterface` 字段互斥。各服务器可单独配置覆盖。详见[接口过滤](#接口过滤)                                                                                                                                                                                 |
 | excludeInterface                                     | Array<{path: string, method: string}>                                           | 否   | 全局排除的接口: `saveApiListFolderPath` 指定的接口列表文本，不存在该列表中的接口，与 `includeInterface` 互斥。各服务器可单独配置覆盖。详见[接口过滤](#接口过滤)                                                                                                                                                                                    |
 | publicPrefix                                         | string                                                                          | 否   | 全局 url path 上的公共前缀（已迁移到 `swaggerConfig`，保留用于兼容旧版配置）                                                                                                                                                                                                                                                                       |
-| modulePrefix                                         | string                                                                          | 否   | 全局请求路径前缀（各服务器可单独配置覆盖）。详见[路径前缀](#路径前缀moduleprefix)                                                                                                                                                                                                                                                                  |
+| modulePrefix                                         | string                                                                          | 否   | 全局请求路径前缀（各服务器可单独配置覆盖）。详见[路径前缀](#路径前缀-moduleprefix)                                                                                                                                                                                                                                                                 |
 | apiListFileName                                      | string                                                                          | 否   | 全局 API 列表文件名，默认为 `index.ts`（已迁移到 `swaggerConfig`，保留用于兼容旧版配置）                                                                                                                                                                                                                                                           |
 | enmuConfig                                           | object                                                                          | 是   | 枚举配置对象。详见[枚举生成](#枚举生成)                                                                                                                                                                                                                                                                                                            |
 | enmuConfig.erasableSyntaxOnly                        | boolean                                                                         | 是   | 与 tsconfig.json 的 `compilerOptions.erasableSyntaxOnly` 选项保持一致。为 `true` 时，生成 const 对象而非 enum（仅类型语法）。默认值：`false`                                                                                                                                                                                                       |
@@ -373,7 +308,7 @@ interface User {
 }
 ```
 
-#### 数据层级配置（dataLevel）
+#### 数据层级配置-dataLevel
 
 `dataLevel` 用于配置接口返回数据的提取层级，支持三个选项：
 
@@ -548,7 +483,7 @@ export const uploadFile = (params: UploadFile.Body) =>
 - `excludeInterface` - 排除的接口列表
 - `modulePrefix` - 请求路径前缀
 
-#### 路径前缀（modulePrefix）
+#### 路径前缀-modulePrefix
 
 `modulePrefix` 用于在所有 API 请求路径前自动添加前缀，这在以下场景特别有用：
 
@@ -1294,126 +1229,3 @@ export const apiUserCurrent_GET = (params?: IRequestFnParams) => GET<ResponseMod
     - 如需对同一 Swagger 文件中的不同接口使用不同转换，可以：
       1. 将 Swagger 拆分为多个文件
       2. 使用 `includeInterface` 和 `excludeInterface` 为不同接口组配置不同的 Swagger 服务
-
-# `anl lint` 命令使用说明
-
-> 提供**交互式多选**配置前端项目各种 lint 工具的功能，包括：
->
-> - ESLint - JavaScript/TypeScript 代码检查
-> - Stylelint - CSS/SCSS/Less 样式检查
-> - Prettier - 代码格式化
-> - CommitLint - Git 提交信息规范
-> - VSCode - 编辑器配置
-
-### 使用方法
-
-```bash
-$ anl lint
-```
-
-执行命令后，会出现交互式多选界面，你可以选择需要安装的工具：
-
-```
-? Select the linting tools to install (multi-select):
-❯◯ ESLint - JavaScript/TypeScript linter
- ◯ Stylelint - CSS/SCSS/Less linter
- ◯ Commitlint - Git commit message linter
- ◯ Prettier - Code formatter
- ◯ VSCode - Editor settings
-```
-
-使用 **空格键** 选择/取消选择，**回车键** 确认。
-
-### 配置详情
-
-#### 1. ESLint 配置
-
-- 自动安装所需依赖
-- 支持 React/Vue 框架（选择后会提示选择框架）
-- 自动生成 `.eslintrc.js` 和 `.eslintignore`
-- 集成 TypeScript 支持
-
-#### 2. Stylelint 配置
-
-- 自动安装 stylelint 相关依赖
-- 支持 Less/Sass 预处理器（选择后会提示选择预处理器）
-- 生成 `.stylelintrc.js` 配置文件
-- 集成 Prettier 支持
-
-#### 3. Prettier 配置
-
-- 自动安装 prettier 相关依赖
-- 生成 `.prettierrc.js` 配置文件
-- 默认配置包括：
-  - 行宽：80
-  - Tab 缩进
-  - 使用单引号
-  - 箭头函数括号
-  - 其他代码风格规范
-
-#### 4. CommitLint 配置
-
-- 安装 commitlint 相关依赖
-- 配置 husky git hooks
-- 生成 `commitlint.config.js`
-- 规范化 git commit message
-
-#### 5. VSCode 配置
-
-- 创建 `.vscode/settings.json`
-- 配置编辑器自动格式化
-- 设置默认格式化工具
-- 支持已有配置文件更新
-
-### 使用示例
-
-1. **只安装 ESLint 和 Prettier**
-   - 选择 ESLint 和 Prettier
-   - 如果选择了 ESLint，会提示选择框架（React/Vue）
-   - 安装完成后项目中会有 `.eslintrc.js` 和 `.prettierrc.js`
-
-2. **完整配置**
-   - 选择所有选项
-   - 依次完成框架和预处理器的选择
-   - 项目将配置完整的代码规范体系
-
-# `anl git` 命令
-
-### 功能概述
-
-- 通过交互式多选，为当前仓库应用以下 Git 能力：
-  - gitflow 标准分支创建
-    - 将 `.gitscripts/`、`.gitconfig`、`.commit-type.cjs` 复制到项目（仅在缺失时）
-    - 为 `.gitscripts/random-branch.sh` 添加可执行权限
-    - 执行 `git config --local include.path ../.gitconfig`
-  - 自动设置 commit subject
-    - 复制 `.githooks/commit-msg` 并设置为可执行
-    - 执行 `git config core.hooksPath .githooks`
-  - 自定义 git 命令
-    - 向项目添加 `.gitattributes`（仅在缺失时）
-
-### 使用方法
-
-```bash
-$ anl git
-```
-
-在提示中选择一个或多个功能。文件仅在不存在时创建；已有文件会被保留。
-
-### 注意事项
-
-- 请在 Git 仓库内运行。
-- 若自动执行的 git config 失败，请手动执行：
-
-```bash
-git config --local include.path ../.gitconfig
-git config core.hooksPath .githooks
-```
-
-# 许可证
-
-ISC License
-
-# 贡献指南
-
-欢迎提交 [Issue](https://github.com/bianliuzhu/an-cli/issues) 和 [Pull Request](https://github.com/bianliuzhu/an-cli/pulls)！
