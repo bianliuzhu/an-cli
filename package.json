@@ -12,7 +12,14 @@
 		"pub": "bash publish.sh",
 		"ts": "tsc ./src/int.ts --noEmit --watch",
 		"blink": "npm run build && npm link",
-		"sync-docs": "node scripts/sync-docs.js"
+		"sync-docs": "node scripts/sync-docs.js",
+		"docs:check": "node scripts/docs-manager.js check",
+		"docs:copy": "node scripts/docs-manager.js copy",
+		"docs:sync": "node scripts/docs-manager.js sync",
+		"docs:validate": "node scripts/docs-manager.js validate",
+		"docs:stats": "node scripts/docs-manager.js stats",
+		"docs:setup": "npm run docs:copy && npm run docs:sync",
+		"docs:serve": "cd docs && (python3 -m http.server 3000 || npx http-server -p 3000)"
 	},
 	"bin": {
 		"anl": "bin/an-cli.js"
