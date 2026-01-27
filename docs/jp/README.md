@@ -1,7 +1,5 @@
 # an-cli
 
-[简体中文](./README.zh.md) | [English](./README.md) | [Español](./README.es.md) | [العربية](./README.ar.md) | [Français](./README.fr.md) | [Русский](./README.ru.md) | 日本語
-
 # 機能概要
 
 > an-cli はフロントエンド開発用コマンドラインツールで、以下のコマンドを含みます：

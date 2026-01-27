@@ -1,7 +1,5 @@
 # an-cli
 
-[简体中文](./README.zh.md) | [English](./README.md) | [Español](./README.es.md) | العربية | [Français](./README.fr.md) | [Русский](./README.ru.md) | [日本語](./README.jp.md)
-
 # نظرة عامة على الوظائف
 
 > an-cli هو أداة سطر أوامر للواجهة الأمامية، يتضمن الأوامر التالية:

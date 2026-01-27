@@ -1,8 +1,5 @@
 # an-cli
 
-简体中文 | [English](./README.md) | [Español](./README.es.md) | [العربية](./README.ar.md) | [Français](./README.fr.md) | [Русский](./README.ru.md) | [日本語](./README.jp.md)
-
-
 # 功能概述
 
 > an-cli 是前端命令行工具，包含以下命令:
