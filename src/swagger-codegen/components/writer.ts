@@ -18,7 +18,7 @@ export class ComponentWriter {
 
 		// 将 Map 转换为数组并按 fileName 排序以确保顺序一致性
 		const sortedEntries = Array.from(schemasMap.values()).sort((a, b) => a.fileName.localeCompare(b.fileName));
-		
+
 		for (const value of sortedEntries) {
 			const task = async ({ fileName, content }: RenderEntry) => {
 				exportFileContent.push(`export * from './${fileName}';`);
@@ -39,10 +39,10 @@ export class ComponentWriter {
 	async writeEnums(enumsMap: Map<string, RenderEntry>): Promise<void> {
 		const tasks = [];
 		const exportFileContent: string[] = [];
-		
+
 		// 将 Map 转换为数组并按 fileName 排序以确保顺序一致性
 		const sortedEntries = Array.from(enumsMap.values()).sort((a, b) => a.fileName.localeCompare(b.fileName));
-		
+
 		for (const value of sortedEntries) {
 			const task = async ({ fileName, content }: RenderEntry) => {
 				exportFileContent.push(`export * from './${fileName}';`);
