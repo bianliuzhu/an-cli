@@ -1,8 +1,5 @@
 # an-cli
 
-[简体中文](./README.zh.md) | [English](./README.md) | [Español](./README.es.md) | [العربية](./README.ar.md) | [Français](./README.fr.md) | Русский | [日本語](./README.jp.md)
-
-
 # Обзор функций
 
 > an-cli — это CLI-инструмент для фронтенда, включающий следующие команды:

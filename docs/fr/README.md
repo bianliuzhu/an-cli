@@ -1,8 +1,5 @@
 # an-cli
 
-[简体中文](./README.zh.md) | [English](./README.md) | [Español](./README.es.md) | [العربية](./README.ar.md) | Français | [Русский](./README.ru.md) | [日本語](./README.jp.md)
-
-
 # Aperçu des fonctionnalités
 
 > an-cli est un outil de ligne de commande frontend qui inclut les commandes suivantes :
