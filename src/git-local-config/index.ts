@@ -2,8 +2,9 @@ export type GitFeatureOption = 'gitflow' | 'commitSubject' | 'customGitCommand';
 import path from 'path';
 import fs from 'fs';
 import { execSync } from 'child_process';
-import { log } from '../utils';
 import { pathExists, copyDirectoryRecursive, copyFileIfMissing } from './utils';
+import { log } from '../utils';
+
 /**
  * 复制 git 配置文件
  */
