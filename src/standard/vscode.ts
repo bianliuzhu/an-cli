@@ -1,4 +1,5 @@
 import { existsSync, mkdirSync, readFileSync, writeFileSync } from 'fs';
+
 import { spinner } from '../utils';
 
 const defaultSettings = {
@@ -19,12 +20,12 @@ const defaultSettings = {
 	},
 };
 
-const vscodeHandle = async () => {
+const vscodeHandle = (): Promise<void> => {
 	const setting_path = `${process.cwd()}/.vscode/settings.json`;
 	try {
 		if (existsSync(setting_path)) {
 			const readData = readFileSync(setting_path, 'utf-8');
-			const parsedData = JSON.parse(readData);
+			const parsedData = JSON.parse(readData) as Record<string, unknown>;
 			parsedData['editor.formatOnSave'] = true;
 			parsedData['editor.defaultFormatter'] = 'esbenp.prettier-vscode';
 			const writeData = JSON.stringify(parsedData, null, '\t');
@@ -40,6 +41,7 @@ const vscodeHandle = async () => {
 		spinner.error('VSCode settings file creation failed!');
 		console.error(error);
 	}
+	return Promise.resolve();
 };
 
 export default vscodeHandle;

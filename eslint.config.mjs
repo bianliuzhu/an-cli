@@ -18,10 +18,14 @@ const OFF = 0;
 export default defineConfig([
 	globalIgnores([
 		'dist',
+		'lib',
+		'postbuild-assets',
 		'src/types/**/*.ts',
 		'src/types/**/*.d.ts',
 		'node_modules',
-		"apps/**/*.ts",
+		// 生成/拷贝产物：避免对大批量生成代码做 lint（且通常不在 tsconfig project 内）
+		'apps/**',
+		'axios.d.ts'
 	]),
 
 	{
@@ -48,7 +52,8 @@ export default defineConfig([
 			},
 			parser: tseslint.parser,
 			parserOptions: {
-				project: ['./tsconfig.json', './tsconfig.node.json', './tsconfig.app.json'],
+				// 只引用仓库中真实存在的 tsconfig，避免 ESLint type-aware 解析失败
+				project: ['./tsconfig.json'],
 				tsconfigRootDir: import.meta.dirname,
 			},
 		},
@@ -124,3 +129,4 @@ export default defineConfig([
 		},
 	},
 ]);
+

@@ -69,10 +69,10 @@
 	"gitlens.defaultDateShortFormat": "YYYY/MM/DD",
 	"gitlens.defaultDateStyle": "absolute",
 	"workbench.activityBar.orientation": "vertical",
-	"workbench.iconTheme": "vscode-great-icons",
+	"workbench.iconTheme": "vscode-icons",
 	"explorer.fileNesting.enabled": true,
 	"explorer.fileNesting.patterns": {
-		"tsconfig.json": "tsconfig.*.json, env.d.ts",
+		"tsconfig.json": "tsconfig.*.json, env.d.ts, axios.d.ts, vite-env.d.ts",
 		"package.json": "package-lock.json, pnpm*, .yarnrc*, yarn*, .eslint*, eslint*, .oxlint*, oxlint*, .prettier*, prettier*, .editorconfig, commitlint.config.mjs",
 		".gitconfig": ".gitignore,.gitattributes, .commit-type.cjs"
 	},

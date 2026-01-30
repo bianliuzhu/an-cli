@@ -1,10 +1,10 @@
+import { writeFileSync } from 'fs';
 import { join } from 'path';
 import createLogger from 'progress-estimator';
-import { ADD_COMMIT_MSG, COMMIT_CONFIG_CONTENT, COMMIT_VERIFY, HUSKY_INSTALL, NPM_HUSK } from './const';
-
-import { writeFileSync } from 'fs';
 import { exec, exit, which } from 'shelljs';
+
 import { log, spinner } from '../utils';
+import { ADD_COMMIT_MSG, COMMIT_CONFIG_CONTENT, COMMIT_VERIFY, HUSKY_INSTALL, NPM_HUSK } from './const';
 
 const _logger = createLogger({
 	storagePath: join(__dirname, '.progress-estimator'),
@@ -20,7 +20,7 @@ export const commitlintHanlde = async () => {
 			exec(COMMIT_VERIFY, { silent: true }); // 5
 			resolve({ success: true });
 		} catch (error) {
-			reject(error);
+			reject(new Error(String(error)));
 		}
 	});
 	const toggle = true;
@@ -36,7 +36,7 @@ export const commitlintHanlde = async () => {
 			resolve({ success: true });
 		} catch (error) {
 			spinner.error('Commitlint installation failed!');
-			reject(error);
+			reject(new Error(String(error)));
 		}
 	});
 	try {

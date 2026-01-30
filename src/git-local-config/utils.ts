@@ -1,5 +1,6 @@
-import path from 'path';
 import fs from 'fs';
+import path from 'path';
+
 import { log } from '../utils';
 /**
  * 确保目录存在

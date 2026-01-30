@@ -1,6 +1,4 @@
-import { OpenAPIV3 } from 'openapi-types';
-import { log } from '../../utils';
-import {
+import type {
 	ArraySchemaObject,
 	ContentBody,
 	IContentType,
@@ -17,12 +15,15 @@ import {
 	ResponseObject,
 	SchemaObject,
 } from '../types';
-import { SchemaResolver } from './schema-resolver';
-import { convertEndpointString } from './naming';
-import { PathWriter } from './writer';
-import { formatPropertyName } from '../shared/naming';
+import type { OpenAPIV3 } from 'openapi-types';
+
+import { log } from '../../utils';
 import { applyFormattingDefaults, getIndentation } from '../shared/format';
 import { SUPPORTED_REQUEST_TYPES_ALL, SUPPORTED_REQUEST_UPLOAD_TYPES } from '../shared/http';
+import { formatPropertyName } from '../shared/naming';
+import { convertEndpointString } from './naming';
+import { SchemaResolver } from './schema-resolver';
+import { PathWriter } from './writer';
 
 enum HttpMethods {
 	GET = 'get',
@@ -86,12 +87,7 @@ export class PathParse {
 	private writer: PathWriter;
 	private apiListFileContent: string[] = [];
 
-	constructor(
-		pathsObject: OpenAPIV3.PathsObject,
-		parameters: OpenAPIV3.ComponentsObject['parameters'],
-		schemas: OpenAPIV3.ComponentsObject['schemas'],
-		config: PathParseConfig,
-	) {
+	constructor(pathsObject: OpenAPIV3.PathsObject, parameters: OpenAPIV3.ComponentsObject['parameters'], schemas: OpenAPIV3.ComponentsObject['schemas'], config: PathParseConfig) {
 		this.pathsObject = pathsObject;
 		this.parameters = parameters ?? {};
 		this.schemas = schemas ?? {};
@@ -99,7 +95,7 @@ export class PathParse {
 		const normalized = applyFormattingDefaults({
 			...defaultConfig,
 			...config,
-			typeMapping: new Map([...(defaultConfig.typeMapping || []), ...(config.typeMapping || [])]),
+			typeMapping: new Map([...(defaultConfig.typeMapping ?? []), ...(config.typeMapping ?? [])]),
 		} as PathParseConfig);
 
 		this.config = normalized;
@@ -139,13 +135,13 @@ export class PathParse {
 		}
 
 		if (param.schema && typeof param.schema === 'object' && 'example' in param.schema) {
-			const example = param.schema.example;
+			const example = param.schema.example as string;
 			const exampleStr = typeof example === 'string' ? example : JSON.stringify(example);
 			commentLines.push(`@example ${exampleStr}`);
 		}
 
 		if (param.schema && typeof param.schema === 'object' && 'default' in param.schema) {
-			const defaultValue = param.schema.default;
+			const defaultValue = param.schema.default as string;
 			const defaultStr = typeof defaultValue === 'string' ? defaultValue : JSON.stringify(defaultValue);
 			commentLines.push(`@default ${defaultStr}`);
 		}
@@ -173,10 +169,10 @@ export class PathParse {
 
 	private parametersItemHandle(item: ReferenceObject | ParameterObject, path: string[], query: string[], header: string[]) {
 		const doubleIndent = this.getDoubleIndentation();
-		const V1 = '$ref' in item ? (item as ReferenceObject) : null;
-		const V2 = 'name' in item ? (item as ParameterObject) : null;
+		const V1 = '$ref' in item ? item : null;
+		const V2 = 'name' in item ? item : null;
 
-		if (V1 && V1.$ref && V1.$ref.startsWith('#/components/parameters/') && this.parameters) {
+		if (V1?.$ref && V1.$ref.startsWith('#/components/parameters/') && this.parameters) {
 			const typeName = V1.$ref.replace('#/components/parameters/', '');
 			const value = this.parameters[typeName];
 			this.parametersItemHandle(value, path, query, header);
@@ -241,9 +237,9 @@ export class PathParse {
 
 	private requestParametersParse(parameters: OperationObject['parameters']) {
 		const indent = this.getIndentation();
-		const path: Array<string> = [];
-		const query: Array<string> = [];
-		const header: Array<string> = [];
+		const path: string[] = [];
+		const query: string[] = [];
+		const header: string[] = [];
 
 		parameters?.map((item) => this.parametersItemHandle(item, path, query, header));
 
@@ -274,7 +270,7 @@ export class PathParse {
 
 		if (schema) {
 			const type = (schema as SchemaObject)?.type;
-			const referenceObject = '$ref' in schema ? (schema as ReferenceObject) : null;
+			const referenceObject = '$ref' in schema ? schema : null;
 			const arraySchemaObject = type === 'array' ? (schema as ArraySchemaObject) : null;
 			const nonArraySchemaObject = type && this.nonArrayType.includes(type) ? (schema as NonArraySchemaObject) : null;
 
@@ -305,13 +301,13 @@ export class PathParse {
 
 	private requestBodyParse(requestBody: OperationObject['requestBody']) {
 		if (!requestBody) return '{}';
-		const referenceObject = '$ref' in requestBody ? (requestBody as ReferenceObject) : null;
-		const requestBodyObject = 'content' in requestBody ? (requestBody as RequestBodyObject) : null;
+		const referenceObject = '$ref' in requestBody ? requestBody : null;
+		const requestBodyObject = 'content' in requestBody ? requestBody : null;
 		if (referenceObject) {
 			const typeName = this.schemaResolver.referenceObjectParse(referenceObject);
 			return `${this.getIndentation()}type Body = ${typeName}`;
 		}
-		if (requestBodyObject && String(requestBody) === '[object Object]' && Reflect.ownKeys(requestBody).length !== 0) {
+		if (requestBodyObject && Object.keys(requestBody).length !== 0) {
 			return this.requestBodyObjectParse(requestBodyObject);
 		}
 		return '{}';
@@ -335,13 +331,13 @@ export class PathParse {
 	private apiRequestItemHandle(content: ContentBody) {
 		const { payload, requestPath, _response, method, typeName, apiName, contentType } = content;
 		const { _path, _query, body } = payload;
-		const dataLevel = content.dataLevel || this.config.dataLevel || 'serve';
+		const dataLevel = content.dataLevel ?? this.config.dataLevel ?? 'serve';
 		const modulePrefix = this.normalizemodulePrefix(this.config.modulePrefix);
 
 		const pathParamsHandle = () => {
 			const arr = [];
 			// 使用 Object.keys() 并排序以确保顺序一致性
-			const pathKeys = Object.keys(_path || {}).sort();
+			const pathKeys = Object.keys(_path ?? {}).sort();
 			for (const i of pathKeys) {
 				arr.push(`${i}: ${typeName}.Path.${i}`);
 			}
@@ -365,21 +361,14 @@ export class PathParse {
 		const apiParamsBody = bodyParamsHandle();
 
 		const objParamsHandle = () => {
-			const _config = SUPPORTED_REQUEST_UPLOAD_TYPES.includes(contentType as any) ? `headers: { 'Content-Type': '${contentType}' }` : undefined;
-			const param = [
-				`{`,
-				_config ? `${_config},` : '',
-				'...params, ',
-				apiParamsQuery === '' ? '' : 'query,',
-				apiParamsBody === '' ? '' : 'body,',
-				`},`,
-			];
+			const _config = SUPPORTED_REQUEST_UPLOAD_TYPES.includes(contentType) ? `headers: { 'Content-Type': '${contentType}' }` : undefined;
+			const param = [`{`, _config ? `${_config},` : '', '...params, ', apiParamsQuery === '' ? '' : 'query,', apiParamsBody === '' ? '' : 'body,', `},`];
 			return param.join('');
 		};
 
 		const parameter = (apiParamsPath + apiParamsQuery + apiParamsBody).replace(/,$/, '');
 
-		const contentList: Array<string> = [
+		const contentList: string[] = [
 			`export const ${apiName} = `,
 			'(',
 			parameter,
@@ -506,22 +495,33 @@ export class PathParse {
 				this.responseHandle(methodItems.responses);
 
 				if (methodItems.summary) {
-					apiListFileContent.push(
-						['/**', '\n', methodItems.deprecated ? ` * @deprecated ${methodItems.summary}` : ` * ${methodItems.summary}`, '\n', ' */'].join(''),
-					);
+					apiListFileContent.push(['/**', '\n', methodItems.deprecated ? ` * @deprecated ${methodItems.summary}` : ` * ${methodItems.summary}`, '\n', ' */'].join(''));
 				}
 
 				const apistr = this.apiRequestItemHandle(this.contentBody);
 				apiListFileContent.push(apistr, '');
 
 				if (!this.Map.has(mapKey)) {
-					this.Map.set(mapKey, JSON.parse(JSON.stringify(this.contentBody)));
+					// 深拷贝 contentBody，避免直接引用同一对象
+					const { payload } = this.contentBody;
+					const clonedContentBody: ContentBody = {
+						...this.contentBody,
+						payload: {
+							...payload,
+							path: [...payload.path],
+							query: [...payload.query],
+							header: [...payload.header],
+							body: [...payload.body],
+						},
+					};
+
+					this.Map.set(mapKey, clonedContentBody);
 				}
 			}
 		}
 	}
 
-	private async parseData(): Promise<MapType> {
+	private parseData(): MapType {
 		// 使用 Object.keys() 并排序以确保顺序一致性
 		const requestPaths = Object.keys(this.pathsObject).sort();
 		for (const requestPath of requestPaths) {
@@ -534,7 +534,7 @@ export class PathParse {
 	}
 
 	private async writeFile() {
-		const methodList: Array<string> = [];
+		const methodList: string[] = [];
 		await this.writer.write(this.Map, this.apiListFileContent, methodList);
 		this.Map = new Map();
 
@@ -545,7 +545,7 @@ export class PathParse {
 
 	async handle() {
 		try {
-			await this.parseData();
+			this.parseData();
 			await this.writeFile();
 		} catch (error) {
 			this.handleError({

@@ -2,6 +2,7 @@ import { exec } from 'child_process';
 import fs from 'fs';
 import { join } from 'path';
 import createLogger from 'progress-estimator';
+
 import { spinner } from '../utils';
 import { REACT_ESLINT, VUE_ESLINT } from './const';
 
@@ -61,7 +62,7 @@ export const eslintHandle = async (framework: Tframework) => {
 
 		child.stderr?.on('data', () => {
 			spinner.error('ESLint installation failed!');
-			reject({ success: false });
+			reject(new Error('ESLint installation failed!'));
 		});
 	});
 
@@ -75,7 +76,7 @@ export const eslintHandle = async (framework: Tframework) => {
 			resolve({ success: !0 });
 		} catch (error) {
 			spinner.error('.eslintrc file creation failed!');
-			reject(error);
+			reject(new Error(String(error)));
 		}
 	});
 

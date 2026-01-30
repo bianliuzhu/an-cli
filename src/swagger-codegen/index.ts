@@ -1,14 +1,16 @@
+import type { ComponentsSchemas, ConfigType, IConfigSwaggerServer, PathsObject } from './types';
+import type { OpenAPIV3 } from 'openapi-types';
+
+import chalk from 'chalk';
 import fs from 'fs';
-import { OpenAPIV3 } from 'openapi-types';
+import path from 'path';
+import { exec } from 'shelljs';
+
 import { clearDir, clearDirExcept, writeFileRecursive } from '../utils';
+import { log } from '../utils';
 import Components from './components/index';
 import { getSwaggerJson } from './get-data';
 import PathParse from './path/index';
-import { ComponentsSchemas, ConfigType, IConfigSwaggerServer, PathsObject } from './types';
-import { exec } from 'shelljs';
-import { log } from '../utils';
-import chalk from 'chalk';
-import path from 'path';
 
 let isConfigFile: boolean;
 
@@ -17,6 +19,9 @@ interface ExecResult {
 	stderr: string;
 }
 const isDebug = process.env.NODE_ENV === 'debug';
+
+console.log(isDebug);
+console.log(process.env.NODE_ENV);
 
 const configContent: ConfigType = {
 	saveTypeFolderPath: isDebug ? 'apps/types' : 'src/api/types',
@@ -64,8 +69,8 @@ export class Main {
 				throw new Error('无法获取 Swagger 数据');
 			}
 
-			this.schemas = response.components?.schemas || {};
-			this.paths = response.paths || {};
+			this.schemas = response.components?.schemas ?? {};
+			this.paths = response.paths ?? {};
 
 			const components = new Components(this.schemas, config, { appendMode });
 			const paths = new PathParse(this.paths, response.components?.parameters, this.schemas, config);
@@ -93,7 +98,7 @@ export class Main {
 
 			const { stderr } = await new Promise<ExecResult>((resolve, reject) => {
 				exec(formatCommand, (error, stdout, stderr) => {
-					if (error) reject(error);
+					if (error) reject(new Error(String(error)));
 					else resolve({ stdout, stderr });
 				});
 			});
@@ -136,8 +141,11 @@ export class Main {
 						await fs.promises.copyFile(sourceFile, destFile);
 						log.success(`${file} create done.`);
 					}
-				} catch (error) {
-					log.error(`Source file ${sourceFile} does not exist`);
+				} catch (error: unknown) {
+					if (error instanceof Error) {
+						log.error(`Source file ${sourceFile} does not exist`);
+						throw new Error(`Source file ${sourceFile} does not exist: ${error.message}`);
+					}
 					continue;
 				}
 			}
@@ -156,7 +164,7 @@ export class Main {
 			return locale.toLowerCase();
 		} catch {
 			// 回退到环境变量
-			const lang = process.env.LANG || process.env.LC_ALL || process.env.LC_MESSAGES || '';
+			const lang = process.env.LANG ?? process.env.LC_ALL ?? process.env.LC_MESSAGES ?? '';
 			return lang.toLowerCase();
 		}
 	}
@@ -166,10 +174,10 @@ export class Main {
 	 */
 	private showLegacyConfigHint(config: ConfigType) {
 		const exampleServer = {
-			url: config.swaggerJsonUrl || 'https://your.swagger.json',
-			publicPrefix: config.publicPrefix || '',
-			apiListFileName: config.apiListFileName || 'index.ts',
-			headers: config.headers || {},
+			url: config.swaggerJsonUrl ?? 'https://your.swagger.json',
+			publicPrefix: config.publicPrefix ?? '',
+			apiListFileName: config.apiListFileName ?? 'index.ts',
+			headers: config.headers ?? {},
 		};
 
 		const locale = this.getSystemLocale();
@@ -202,10 +210,10 @@ export class Main {
 		if (!serversInput) {
 			legacyDetected = true;
 			serversInput = {
-				url: config.swaggerJsonUrl || '',
-				publicPrefix: config.publicPrefix || '',
-				apiListFileName: config.apiListFileName || 'index.ts',
-				headers: config.headers || {},
+				url: config.swaggerJsonUrl ?? '',
+				publicPrefix: config.publicPrefix ?? '',
+				apiListFileName: config.apiListFileName ?? 'index.ts',
+				headers: config.headers ?? {},
 				modulePrefix: config.modulePrefix,
 			};
 		}
@@ -222,13 +230,13 @@ export class Main {
 				legacyDetected = true;
 			}
 
-			const apiListFileNameRaw = server.apiListFileName || config.apiListFileName || 'index.ts';
+			const apiListFileNameRaw = server.apiListFileName ?? config.apiListFileName ?? 'index.ts';
 			const apiListFileName = apiListFileNameRaw.trim() || 'index.ts';
-			const headers = server.headers || config.headers || {};
-			const dataLevel = server.dataLevel || config.dataLevel || 'serve';
-			const parameterSeparator = server.parameterSeparator || config.parameterSeparator || '_';
-			const includeInterface = server.includeInterface || config.includeInterface || [];
-			const excludeInterface = server.excludeInterface || config.excludeInterface || [];
+			const headers = server.headers ?? config.headers ?? {};
+			const dataLevel = server.dataLevel ?? config.dataLevel ?? 'serve';
+			const parameterSeparator = server.parameterSeparator ?? config.parameterSeparator ?? '_';
+			const includeInterface = server.includeInterface ?? config.includeInterface ?? [];
+			const excludeInterface = server.excludeInterface ?? config.excludeInterface ?? [];
 			const modulePrefix = server.modulePrefix ?? config.modulePrefix ?? '';
 			const responseModelTransform = server.responseModelTransform ?? config.responseModelTransform;
 
@@ -301,9 +309,7 @@ export class Main {
 			} catch (parseError) {
 				// JSON 解析失败，配置文件存在但格式错误
 				isConfigFile = true; // 文件存在，不应该创建新文件
-				throw new Error(
-					`配置文件格式错误，请检查 an.config.json 的 JSON 格式是否正确: ${parseError instanceof Error ? parseError.message : String(parseError)}`,
-				);
+				throw new Error(`配置文件格式错误，请检查 an.config.json 的 JSON 格式是否正确: ${parseError instanceof Error ? parseError.message : String(parseError)}`);
 			}
 		} catch (error: unknown) {
 			// 文件不存在的情况
@@ -319,7 +325,7 @@ export class Main {
 		}
 	}
 
-	async initialize() {
+	async initialize(): Promise<void> {
 		const configFilePath = process.cwd() + '/an.config.json';
 
 		try {
@@ -362,6 +368,8 @@ export class Main {
 }
 
 if (isDebug) {
-	const int = new Main();
-	int.initialize();
+	const instance = new Main();
+	instance.initialize().catch((error) => {
+		console.error(error);
+	});
 }

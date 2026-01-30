@@ -1,17 +1,18 @@
-import { OpenAPIV3 } from 'openapi-types';
+import type { ConfigType, RenderEntry } from '../types';
+import type { OpenAPIV3 } from 'openapi-types';
+
 import { isValidJSON } from '../../utils';
-import { ConfigType, RenderEntry } from '../types';
-import { getEnumTypeName, typeNameToFileName } from '../shared/naming';
 import { getIndentation } from '../shared/format';
+import { getEnumTypeName, typeNameToFileName } from '../shared/naming';
 import { nullableSuffix } from '../shared/schema-utils';
 
 type NonArraySchemaObject = OpenAPIV3.NonArraySchemaObject;
 
-type EnumMetadata = {
+interface EnumMetadata {
 	customNames?: string[];
 	descriptionMap?: Record<string, string>;
 	rawEnumJson?: string;
-};
+}
 
 type EnumParseResult = {
 	headerRef: string;
@@ -26,7 +27,7 @@ type EnumParseResult = {
  */
 export class EnumParser {
 	private config: ConfigType;
-	enumsMap: Map<string, RenderEntry> = new Map();
+	enumsMap = new Map<string, RenderEntry>();
 
 	constructor(config: ConfigType) {
 		this.config = config;
@@ -47,7 +48,7 @@ export class EnumParser {
 		const { enmuConfig } = this.config;
 		const schemaValue = value as Record<string, unknown>;
 
-		if (value.example && isValidJSON(value.example)) {
+		if (value.example && isValidJSON(value.example as string)) {
 			metadata.rawEnumJson = value.example as string;
 		}
 
@@ -83,11 +84,7 @@ export class EnumParser {
 	/**
 	 * 解析枚举成员名称
 	 */
-	private resolveEnumMemberName(
-		enumValue: string | number,
-		index: number,
-		options: { customNames?: string[]; isNumericEnum: boolean; treatStringAsNumeric: boolean },
-	): string {
+	private resolveEnumMemberName(enumValue: string | number, index: number, options: { customNames?: string[]; isNumericEnum: boolean; treatStringAsNumeric: boolean }): string {
 		const { customNames, isNumericEnum, treatStringAsNumeric } = options;
 		const customName = customNames?.[index];
 
@@ -111,20 +108,20 @@ export class EnumParser {
 	 */
 	convertJsonToEnumString(jsonStr: string, enumName: string): string {
 		try {
-			const jsonObj = JSON.parse(jsonStr);
+			const jsonObj = JSON.parse(jsonStr) as Record<string, unknown>;
 
 			if (this.config.enmuConfig.erasableSyntaxOnly) {
 				// 使用排序后的键以确保顺序一致性
 				const enumValues = Object.entries(jsonObj)
 					.sort((a, b) => a[0].localeCompare(b[0]))
-					.map(([key, value]) => `${getIndentation(this.config)}${key}: '${value}'`)
+					.map(([key, value]) => `${getIndentation(this.config)}${key}: '${String(value)}'`)
 					.join(',\n');
 				return `export const ${enumName} = {\n${enumValues}\n} as const;\n\nexport type ${getEnumTypeName(this.config, enumName)} = typeof ${enumName}[keyof typeof ${enumName}];`;
 			} else {
 				// 使用排序后的键以确保顺序一致性
 				const enumValues = Object.entries(jsonObj)
 					.sort((a, b) => a[0].localeCompare(b[0]))
-					.map(([key, value]) => `${getIndentation(this.config)}${key} = '${value}'`)
+					.map(([key, value]) => `${getIndentation(this.config)}${key} = '${String(value)}'`)
 					.join(',\n');
 				return `export enum ${enumName} {\n${enumValues}\n}`;
 			}
@@ -134,7 +131,7 @@ export class EnumParser {
 		}
 	}
 
-	private normalizeEnumValues(enumValues: Array<unknown>): Array<string | number> {
+	private normalizeEnumValues(enumValues: unknown[]): (string | number)[] {
 		return enumValues.map((item, index) => {
 			if (typeof item === 'string' || typeof item === 'number') return item;
 			if (item && typeof item === 'object') {
@@ -232,7 +229,7 @@ export class EnumParser {
 		const fileName = typeNameToFileName(enumName);
 
 		// 如果有 example 且为有效 JSON
-		if (isValidJSON(value.example)) {
+		if (isValidJSON(value.example as string)) {
 			const enumContent = this.convertJsonToEnumString(value.example as string, enumName);
 			if (!this.enumsMap.has(fileName)) {
 				this.enumsMap.set(fileName, { fileName, content: enumContent });

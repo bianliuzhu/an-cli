@@ -1,17 +1,18 @@
-import inquirer from 'inquirer';
 import chalk from 'chalk';
-import { eslintHandle } from './install-eslint';
-import { prettierHanlde } from './prettier';
+import inquirer from 'inquirer';
+
 import { commitlintHanlde } from './install-commitlint';
-import vscodeHandle from './vscode';
+import { eslintHandle } from './install-eslint';
 import { styleLintHandle } from './install-stylelint';
+import { prettierHanlde } from './prettier';
+import vscodeHandle from './vscode';
 
 export type LintFeature = 'eslint' | 'stylelint' | 'commitlint' | 'prettier' | 'vscode';
 type Tframework = 'react' | 'vue';
 type Tcss = 'less' | 'sass';
 
 export function lintHandle(): void {
-	inquirer
+	void inquirer
 		.prompt<{ features: LintFeature[] }>([
 			{
 				type: 'checkbox',
