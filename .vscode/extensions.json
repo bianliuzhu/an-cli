@@ -1,0 +1,37 @@
+{
+	"recommendations": [
+		/**
+		 * 核心开发工具（必需）
+		 */
+		"dbaeumer.vscode-eslint",
+		"esbenp.prettier-vscode",
+		"EditorConfig.EditorConfig",
+		/**
+		* 代码编辑增强（非常有用）
+		*/
+		"shardulm94.trailing-spaces", // 高亮和删除尾随空格
+		"steoates.autoimport", // 自动导入模块
+		"wix.vscode-import-cost", // 显示导入包的大小
+		"oderwat.indent-rainbow", // 彩虹缩进
+		/**
+		 * 导航和搜索
+		 */
+		"jasonnutter.search-node-modules", // 搜索 node_modules
+		"christian-kohler.path-intellisense", // 路径自动补全
+		"irongeek.vscode-env", // 环境变量管理 .env 文件支持
+		"spywhere.guides", // 缩进辅助线
+		/**
+		 * 任务管理
+		 */
+		"gruntfuggly.todo-tree", //  TODO 注释管理
+		/**
+		 * Git 工具（强烈推荐
+		 */
+		"eamodio.gitlens", // 强大的 Git 历史查看
+		"waderyan.gitblame", //  Git blame 信息 Git 行级注释
+		/**
+		 * 主题
+		 */
+		"emmanuelbeziat.vscode-great-icons" // 图标主题
+	]
+}

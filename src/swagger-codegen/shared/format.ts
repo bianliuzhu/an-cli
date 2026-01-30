@@ -1,4 +1,4 @@
-import { ConfigType } from '../types';
+import type { ConfigType } from '../types';
 
 export const DEFAULT_INDENT = '\t';
 export const DEFAULT_LINE_ENDING = '\n';

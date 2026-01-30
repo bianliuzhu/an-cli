@@ -1,4 +1,4 @@
-import { ConfigType } from '../types';
+import type { ConfigType } from '../types';
 
 export function typeNameToFileName(str: string): string {
 	return str

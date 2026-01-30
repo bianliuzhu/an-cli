@@ -1,5 +1,6 @@
+import type { ConfigType, RenderEntry } from '../types';
+
 import { log, writeFileRecursive } from '../../utils';
-import { ConfigType, RenderEntry } from '../types';
 import { writeIndexFileWithDedup } from '../shared/writer';
 
 export class ComponentWriter {
@@ -29,7 +30,7 @@ export class ComponentWriter {
 			tasks.push(task(value));
 		}
 
-		await Promise.all(tasks);
+		await Promise.allSettled(tasks);
 		// exportFileContent 也需要排序以确保 index.ts 中的导出顺序一致
 		exportFileContent.sort();
 		await writeIndexFileWithDedup(`${saveTypeFolderPath}index.ts`, exportFileContent, { appendMode: this.appendMode });

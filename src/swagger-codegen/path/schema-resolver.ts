@@ -1,18 +1,10 @@
-import { OpenAPIV3 } from 'openapi-types';
-import { getEnumTypeName, typeNameToFileName } from '../shared/naming';
+import type { ArraySchemaObject, IResponseModelTransform, NonArraySchemaObject, ParseError, PathParseConfig, ReferenceObject, Schema, SchemaObject } from '../types';
+import type { OpenAPIV3 } from 'openapi-types';
+
 import { getIndentation, getLineEnding } from '../shared/format';
 import { SUPPORTED_REQUEST_TYPES_ALL } from '../shared/http';
-import { applyTypeMapping, nullableSuffix, stringifyArrayType, formatObjectProperties } from '../shared/schema-utils';
-import {
-	ArraySchemaObject,
-	NonArraySchemaObject,
-	ParseError,
-	PathParseConfig,
-	ReferenceObject,
-	Schema,
-	SchemaObject,
-	IResponseModelTransform,
-} from '../types';
+import { getEnumTypeName, typeNameToFileName } from '../shared/naming';
+import { applyTypeMapping, formatObjectProperties, nullableSuffix, stringifyArrayType } from '../shared/schema-utils';
 
 const componentsPathEnum = {
 	schemas: '#/components/schemas/',
@@ -29,12 +21,7 @@ export class SchemaResolver {
 	private referenceCache = new Map<string, string>();
 	private handleError: HandleErrorFn;
 
-	constructor(
-		config: PathParseConfig,
-		schemas: OpenAPIV3.ComponentsObject['schemas'],
-		parameters: OpenAPIV3.ComponentsObject['parameters'],
-		onError: HandleErrorFn,
-	) {
+	constructor(config: PathParseConfig, schemas: OpenAPIV3.ComponentsObject['schemas'], parameters: OpenAPIV3.ComponentsObject['parameters'], onError: HandleErrorFn) {
 		this.config = config;
 		this.schemas = schemas ?? {};
 		this.parameters = parameters ?? {};
@@ -124,9 +111,7 @@ export class SchemaResolver {
 
 			const finalTypeName = isEnum ? getEnumTypeName(this.config, typeName) : typeName;
 
-			const importStatement = isEnum
-				? `import('${this.config.importEnumPath}/${fileName}').${finalTypeName}`
-				: `import('../models/${fileName}').${typeName}`;
+			const importStatement = isEnum ? `import('${this.config.importEnumPath}/${fileName}').${finalTypeName}` : `import('../models/${fileName}').${typeName}`;
 
 			this.referenceCache.set(refKey, importStatement);
 
@@ -212,7 +197,7 @@ export class SchemaResolver {
 			switch (transform.type) {
 				case 'unwrap': {
 					// 剔除响应模型，提取 data 字段
-					const dataField = transform.dataField || 'data';
+					const dataField = transform.dataField ?? 'data';
 
 					// 如果响应类型是数组（内联对象类型），尝试提取字段
 					if (Array.isArray(responseType)) {
@@ -224,15 +209,15 @@ export class SchemaResolver {
 					}
 
 					// 检查是否是导入类型（例如: import('../models/result-message-boolean').ResultMessageBoolean）
-					const importMatch = responseType.match(/^import\('([^']+)'\)\.(\w+)$/);
+					const importMatch = /^import\('([^']+)'\)\.(\w+)$/.exec(responseType);
 					if (importMatch) {
-						const [, importPath, typeName] = importMatch;
+						const [, _importPath, typeName] = importMatch;
 						// 查找对应的 schema
 						const schema = this.schemas?.[typeName];
 						if (schema && !('$ref' in schema)) {
 							const schemaObj = schema as SchemaObject;
 							// 如果有 properties 并且包含指定的 data 字段
-							if (schemaObj.properties && schemaObj.properties[dataField]) {
+							if (schemaObj.properties?.[dataField]) {
 								const dataFieldSchema = schemaObj.properties[dataField];
 								// 解析 data 字段的类型
 								const dataType = this.main(dataFieldSchema as Schema);
@@ -268,7 +253,7 @@ export class SchemaResolver {
 					const indent = getIndentation(this.config);
 					const doubleIndent = indent + indent;
 					const fields: string[] = [];
-					const dataFieldName = transform.dataField || 'data';
+					const dataFieldName = transform.dataField ?? 'data';
 
 					for (const [fieldName, fieldType] of Object.entries(transform.wrapperFields)) {
 						if (fieldName === dataFieldName) {
@@ -348,14 +333,14 @@ export class SchemaResolver {
 			if (!schema) return 'unknown';
 
 			if ('oneOf' in schema || 'allOf' in schema || 'anyOf' in schema || 'enum' in schema) {
-				return this.handleComplexType(schema as SchemaObject);
+				return this.handleComplexType(schema);
 			}
 
 			if ('$ref' in schema) {
 				return this.referenceObjectParse(schema);
 			}
 
-			const schemaObj = schema as SchemaObject;
+			const schemaObj = schema;
 			const type = schemaObj.type;
 			const nullableStr = nullableSuffix(schemaObj.nullable);
 
@@ -378,7 +363,7 @@ export class SchemaResolver {
 					return 'Record<string, unknown>' + nullableStr;
 				}
 				if (typeof schemaObj.additionalProperties === 'object') {
-					const valueType = this.main(schemaObj.additionalProperties as Schema);
+					const valueType = this.main(schemaObj.additionalProperties as Schema) as string;
 					return `Record<string, ${valueType}>` + nullableStr;
 				}
 			}

@@ -16,10 +16,10 @@
 	"include": [
 		"src",
 		"data/install-stylelint.ts",
-		"apps",
-		"data/files-get.d.ts"
+		"data/files-get.d.ts",
+		"apps"
 	],
 	"exclude": [
-		"lib"
+		"lib",
 	]
 }

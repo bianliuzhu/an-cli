@@ -1,9 +1,11 @@
 export type GitFeatureOption = 'gitflow' | 'commitSubject' | 'customGitCommand';
-import path from 'path';
-import fs from 'fs';
 import { execSync } from 'child_process';
+import fs from 'fs';
+import path from 'path';
+
 import { log } from '../utils';
-import { pathExists, copyDirectoryRecursive, copyFileIfMissing } from './utils';
+import { copyDirectoryRecursive, copyFileIfMissing, pathExists } from './utils';
+
 /**
  * 复制 git 配置文件
  */
@@ -41,7 +43,7 @@ const copyGitConfigFiles = async () => {
 		log.success(`random-branch.sh Raise power`);
 	} catch (e) {
 		console.log(e);
-		log.error(`Set .githooks/commit-msg executable permission failed: ${e instanceof Error ? e.message : e}`);
+		log.error(`Set .githooks/commit-msg executable permission failed: ${e instanceof Error ? e.message : String(e)}`);
 	}
 
 	// git config --local include.path ../.gitconfig
@@ -77,7 +79,7 @@ const copyCommitSubjectFiles = async () => {
 	} catch (e) {
 		console.log(e);
 		// 翻译成英文
-		log.error(`Set .githooks/commit-msg executable permission failed: ${e instanceof Error ? e.message : e}`);
+		log.error(`Set .githooks/commit-msg executable permission failed: ${e instanceof Error ? e.message : String(e)}`);
 	}
 
 	// 设置 git hooks 路径到 .githooks
@@ -106,18 +108,18 @@ const copyCustomGitCommandFiles = async () => {
 	await copyFileIfMissing(sourceFilePath, targetFilePath);
 };
 
-export const gitHandle = (options: GitFeatureOption[] = []) => {
+export const gitHandle = async (options: GitFeatureOption[] = []) => {
 	// 使用 switch 语句
 	if (options.includes('gitflow')) {
-		copyGitConfigFiles();
+		await copyGitConfigFiles();
 	}
 
 	if (options.includes('commitSubject')) {
-		copyCommitSubjectFiles();
+		await copyCommitSubjectFiles();
 	}
 
 	if (options.includes('customGitCommand')) {
-		copyCustomGitCommandFiles();
+		await copyCustomGitCommandFiles();
 	}
 
 	console.log('\n');

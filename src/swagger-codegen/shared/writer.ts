@@ -1,9 +1,10 @@
 import fs from 'fs';
+
 import { writeFileRecursive } from '../../utils';
 
-type WriteIndexOptions = {
+interface WriteIndexOptions {
 	appendMode?: boolean;
-};
+}
 
 export async function writeIndexFileWithDedup(indexPath: string, newExports: string[], options: WriteIndexOptions = {}): Promise<void> {
 	const { appendMode = false } = options;

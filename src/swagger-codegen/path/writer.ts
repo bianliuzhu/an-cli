@@ -1,5 +1,6 @@
-import { log, writeFileRecursive, clearDir } from '../../utils';
-import { ContentBody, MapType, PathParseConfig } from '../types';
+import type { ContentBody, MapType, PathParseConfig } from '../types';
+
+import { clearDir, log, writeFileRecursive } from '../../utils';
 import { getIndentation } from '../shared/format';
 
 export class PathWriter {
@@ -18,7 +19,7 @@ export class PathWriter {
 				try {
 					const { payload, response, fileName } = content;
 					const [, method] = key.split('|');
-					!methodList.includes(method) && methodList.push(method);
+					if (!methodList.includes(method)) methodList.push(method);
 
 					const contentArray = [
 						`declare namespace ${content.typeName} {`,
@@ -37,16 +38,16 @@ export class PathWriter {
 							resolve(1);
 						})
 						.catch((err) => {
-							reject(err);
+							reject(new Error(String(err)));
 						});
 				} catch (error) {
-					reject(error);
+					reject(new Error(String(error)));
 				}
 			});
 
 		// 将 Map 转换为数组并按 key 排序以确保顺序一致性
 		const sortedEntries = Array.from(map.entries()).sort((a, b) => a[0].localeCompare(b[0]));
-		
+
 		for (const [key, value] of sortedEntries) {
 			Plist.push(taskFactory(key, value));
 		}
@@ -57,7 +58,7 @@ export class PathWriter {
 		methodList.sort();
 		apiListFileContent.unshift(`import { ${methodList.join(', ')} } from '${this.config.requestMethodsImportPath || './api'}';`, '\n');
 
-		const apiListFileName = this.config.apiListFileName || 'index.ts';
+		const apiListFileName = this.config.apiListFileName ?? 'index.ts';
 		const apiListFilePath = `${this.config.saveApiListFolderPath}/${apiListFileName}`;
 
 		await clearDir(apiListFilePath);

@@ -1,4 +1,4 @@
-import { OpenAPIV3 } from 'openapi-types';
+import type { OpenAPIV3 } from 'openapi-types';
 
 export type ComponentsSchemas = OpenAPIV3.ComponentsObject['schemas'];
 
@@ -17,12 +17,12 @@ export type Schema = ReferenceObject | SchemaObject;
 export type ResponseObject = OpenAPIV3.ResponseObject;
 
 // 修改错误类型定义，添加新的错误类型
-export type ParseError = {
+export interface ParseError {
 	type: 'SCHEMA' | 'PATH' | 'REFERENCE' | 'FILE_WRITE' | 'RESPONSE' | 'PARAMETERS' | 'REQUEST_BODY' | 'API';
 	message: string;
 	path?: string;
 	details?: unknown;
-};
+}
 
 type TDatalevel = 'data' | 'serve' | 'axios';
 
@@ -151,15 +151,15 @@ export type IContentType =
 	| 'application/octet-stream'
 	| 'multipart/form-data';
 
-export type ContentBody = {
+export interface ContentBody {
 	payload: {
-		path: Array<string>;
-		_path?: { [key: string]: string };
-		query: Array<string>;
-		_query?: { [key: string]: string };
-		header: Array<string>;
-		_header?: { [key: string]: string };
-		body: Array<string>;
+		path: string[];
+		_path?: Record<string, string>;
+		query: string[];
+		_query?: Record<string, string>;
+		header: string[];
+		_header?: Record<string, string>;
+		body: string[];
 	};
 	response: string;
 	_response: string;
@@ -173,9 +173,12 @@ export type ContentBody = {
 	contentType: IContentType;
 	/** 接口级别的 dataLevel 配置，优先级最高 */
 	dataLevel?: TDatalevel;
-};
+}
 
 export type MapType = Map<string, ContentBody>;
 
 // 渲染条目类型，用于组件和枚举的文件生成
-export type RenderEntry = { fileName: string; content: string };
+export interface RenderEntry {
+	fileName: string;
+	content: string;
+}

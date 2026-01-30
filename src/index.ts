@@ -1,9 +1,10 @@
 import { program } from 'commander';
-import data from '../package.json';
-import { Main } from './swagger-codegen';
-import { lintHandle } from './standard/lint-init';
-import { gitHandle, type GitFeatureOption } from './git-local-config';
 import inquirer from 'inquirer';
+
+import data from '../package.json';
+import { type GitFeatureOption, gitHandle } from './git-local-config';
+import { lintHandle } from './standard/lint-init';
+import { Main } from './swagger-codegen';
 
 program.version(`${data.version}`, '-v --version').usage('<command> [options]');
 
@@ -12,7 +13,9 @@ program
 	.description('auto interface')
 	.action(() => {
 		const Instance = new Main();
-		Instance.initialize();
+		Instance.initialize().catch((error) => {
+			console.error(error);
+		});
 	});
 
 program
@@ -40,7 +43,9 @@ program
 			},
 		]);
 
-		gitHandle(features);
+		gitHandle(features).catch((error) => {
+			console.error(error);
+		});
 	});
 
 program.parse(process.argv);

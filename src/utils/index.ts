@@ -1,5 +1,6 @@
 import chalk from 'chalk';
 import fs from 'fs';
+import { createRequire } from 'module';
 import ora from 'ora';
 import path from 'path';
 import { exec } from 'shelljs';
@@ -11,7 +12,7 @@ export function isFileExisted(path_way: string) {
 				/**
 				 * 文件不存在
 				 */
-				reject(false); // "不存在"
+				reject(new Error('文件不存在')); // "不存在"
 			} else {
 				/**
 				 * 文件存在
@@ -29,8 +30,8 @@ export function isFileExisted(path_way: string) {
 export async function mkdirPath(pathStr: string): Promise<string> {
 	let projectPath = path.join(process.cwd());
 	const tempDirArray = pathStr.split('\\');
-	for (let i = 0; i < tempDirArray.length; i++) {
-		projectPath = projectPath + '/' + tempDirArray[i];
+	for (const dir of tempDirArray) {
+		projectPath = `${projectPath}/${dir}`;
 		if (await isFileExisted(projectPath)) {
 			const tempstats = fs.statSync(projectPath);
 			if (!tempstats.isDirectory()) {
@@ -49,15 +50,15 @@ export const writeFileRecursive = function (path: string, buffer: string): Promi
 		try {
 			const lastPath = path.substring(0, path.lastIndexOf('/'));
 			fs.mkdir(lastPath, { recursive: true }, (err) => {
-				if (err) return reject(false);
+				if (err) return reject(new Error('创建目录失败'));
 				fs.writeFile(path, buffer, function (err) {
-					if (err) return reject(false);
+					if (err) return reject(new Error('写入文件失败'));
 					resolve(true);
 				});
 			});
 		} catch (error) {
 			console.error(error);
-			reject(error);
+			reject(new Error(String(error)));
 		}
 	});
 };
@@ -91,58 +92,54 @@ export const spinner = {
  * 删除文件夹下所有文件
  * @param {string} path
  */
-export function emptyDir(path: string): Promise<boolean> {
-	return new Promise((resolve, reject) => {
-		try {
-			if (fs.existsSync(path)) {
-				const files = fs.readdirSync(path);
-				files.forEach((file) => {
-					const filePath = `${path}/${file}`;
-					const stats = fs.statSync(filePath);
-					if (stats.isDirectory()) {
-						emptyDir(filePath);
-					} else {
-						fs.unlinkSync(filePath);
-						// console.log(`删除${file}文件成功`);
-					}
-				});
+export async function emptyDir(path: string): Promise<boolean> {
+	try {
+		if (fs.existsSync(path)) {
+			const files = fs.readdirSync(path);
+			for (const file of files) {
+				const filePath = `${path}/${file}`;
+				const stats = fs.statSync(filePath);
+				if (stats.isDirectory()) {
+					await emptyDir(filePath);
+				} else {
+					fs.unlinkSync(filePath);
+					// console.log(`删除${file}文件成功`);
+				}
 			}
-			resolve(true);
-		} catch (error) {
-			console.error(error);
-			reject(error);
 		}
-	});
+		return true;
+	} catch (error) {
+		console.error(error);
+		throw new Error(String(error));
+	}
 }
 
 /**
  * 删除指定路径下的所有空文件夹
  * @param {*} path
  */
-export function rmEmptyDir(path: string, level = 0): Promise<boolean> {
-	return new Promise((resolve, reject) => {
-		try {
-			if (fs.existsSync(path)) {
-				const files = fs.readdirSync(path);
-				if (files.length > 0) {
-					let tempFile = 0;
-					files.forEach((file) => {
-						tempFile++;
-						rmEmptyDir(`${path}/${file}`, 1);
-					});
-					if (tempFile === files.length && level !== 0) {
-						fs.rmdirSync(path);
-					}
-				} else {
-					level !== 0 && fs.rmdirSync(path);
+export async function rmEmptyDir(path: string, level = 0): Promise<boolean> {
+	try {
+		if (fs.existsSync(path)) {
+			const files = fs.readdirSync(path);
+			if (files.length > 0) {
+				let tempFile = 0;
+				for (const file of files) {
+					tempFile++;
+					await rmEmptyDir(`${path}/${file}`, 1);
 				}
+				if (tempFile === files.length && level !== 0) {
+					fs.rmdirSync(path);
+				}
+			} else if (level !== 0) {
+				fs.rmdirSync(path);
 			}
-			resolve(true);
-		} catch (error) {
-			console.error(error);
-			reject(error);
 		}
-	});
+		return true;
+	} catch (error) {
+		console.error(error);
+		throw error;
+	}
 }
 
 /**
@@ -166,7 +163,7 @@ export function clearDir(path: string): Promise<boolean> {
 			resolve(true);
 		} catch (error) {
 			console.error(error);
-			reject(false);
+			reject(new Error(String(error)));
 		}
 	});
 }
@@ -207,7 +204,7 @@ export function clearDirExcept(dirPath: string, excludeFiles: string[] = []): Pr
 			resolve(true);
 		} catch (error) {
 			console.error(error);
-			reject(error);
+			reject(new Error(String(error)));
 		}
 	});
 }
@@ -218,36 +215,32 @@ export function clearDirExcept(dirPath: string, excludeFiles: string[] = []): Pr
  * @param  {string} name 需要删除的文件名称
  * @return {Promise<boolean>} 删除结果
  */
-export function deleteFile(url: string, name: string): Promise<boolean> {
-	return new Promise((resolve, reject) => {
-		try {
-			let files = [];
-			// 判断给定的路径是否存在
-			if (fs.existsSync(url)) {
-				files = fs.readdirSync(url); // 返回文件和子目录的数组
-				files.forEach(function (file) {
-					const curPath = path.join(url, file);
-					if (fs.statSync(curPath).isDirectory()) {
-						// 同步读取文件夹文件，如果是文件夹，则函数回调
-						deleteFile(curPath, name);
-					} else {
-						if (file.indexOf(name) > -1) {
-							// 是指定文件，则删除
-							fs.unlinkSync(curPath);
-							console.log('删除文件：' + curPath);
-							resolve(true);
-						}
-					}
-				});
-			} else {
-				reject('给定的路径不存在！');
-				console.log('给定的路径不存在！');
-			}
-		} catch (error) {
-			console.error(error);
-			reject(error);
+export async function deleteFile(url: string, name: string): Promise<boolean> {
+	try {
+		// 判断给定的路径是否存在
+		if (!fs.existsSync(url)) {
+			console.log('给定的路径不存在！');
+			throw new Error('给定的路径不存在！');
 		}
-	});
+
+		const files = fs.readdirSync(url); // 返回文件和子目录的数组
+		for (const file of files) {
+			const curPath = path.join(url, file);
+			if (fs.statSync(curPath).isDirectory()) {
+				// 同步读取文件夹文件，如果是文件夹，则函数回调
+				await deleteFile(curPath, name);
+			} else if (file.includes(name)) {
+				// 是指定文件，则删除
+				fs.unlinkSync(curPath);
+				console.log('删除文件：' + curPath);
+			}
+		}
+
+		return true;
+	} catch (error) {
+		console.error(error);
+		throw error;
+	}
 }
 
 export function isValidJSON(str: string) {
@@ -257,7 +250,7 @@ export function isValidJSON(str: string) {
 	try {
 		JSON.parse(str);
 		return true;
-	} catch (e) {
+	} catch {
 		return false;
 	}
 }
@@ -267,13 +260,14 @@ export function isValidJSON(str: string) {
  * @param modulePath 要导入的文件路径
  * @param clearCache 是否清除缓存
  */
-export function requireModule(modulePath: string, clearCache = true) {
+export function requireModule(modulePath: string, clearCache = true): unknown {
+	const nodeRequire = createRequire(__filename);
 	try {
-		// eslint-disable-next-line @typescript-eslint/no-var-requires
-		const m = require(modulePath);
+		const m: unknown = nodeRequire(modulePath);
 		if (clearCache) {
-			setTimeout(() => {
-				delete require.cache[require.resolve(modulePath)];
+			const timeout = setTimeout(() => {
+				delete nodeRequire.cache[nodeRequire.resolve(modulePath)];
+				clearTimeout(timeout);
 			}, 200);
 		}
 		return m;

@@ -8,42 +8,42 @@
 			"name": "debug",
 			"type": "node",
 			"request": "launch",
-			"args": [
-				"${workspaceFolder}/src/swagger-codegen/index.ts"
-			],
+			"program": "${workspaceFolder}/src/swagger-codegen/index.ts",
 			"runtimeArgs": [
 				"--nolazy",
 				"-r",
 				"ts-node/register"
 			],
+			"args": [],
 			"sourceMaps": true,
-			"cwd": "${workspaceRoot}",
+			"cwd": "${workspaceFolder}",
 			"protocol": "inspector",
 			"console": "integratedTerminal",
 			"internalConsoleOptions": "neverOpen",
 			"env": {
-				"NODE_ENV": "debug"
+				"NODE_ENV": "debug",
+				"TS_NODE_TRANSPILE_ONLY": "true"
 			}
 		},
 		{
 			"name": "dev",
 			"type": "node",
 			"request": "launch",
-			"args": [
-				"${workspaceFolder}/src/swagger-codegen/index.ts"
-			],
+			"program": "${workspaceFolder}/src/swagger-codegen/index.ts",
 			"runtimeArgs": [
 				"--nolazy",
 				"-r",
 				"ts-node/register"
 			],
+			"args": [],
 			"sourceMaps": true,
-			"cwd": "${workspaceRoot}",
+			"cwd": "${workspaceFolder}",
 			"protocol": "inspector",
 			"console": "integratedTerminal",
 			"internalConsoleOptions": "neverOpen",
 			"env": {
-				"NODE_ENV": "development"
+				"NODE_ENV": "development",
+				"TS_NODE_TRANSPILE_ONLY": "true"
 			}
 		}
 	]

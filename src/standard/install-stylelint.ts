@@ -1,9 +1,10 @@
+import { exec } from 'child_process';
 import fs from 'fs';
 import { join } from 'path';
-import { exec } from 'child_process';
+import createLogger from 'progress-estimator';
+
 import { spinner } from '../utils';
 import { StyleLint } from './const';
-import createLogger from 'progress-estimator';
 
 const logger = createLogger({
 	storagePath: join(__dirname, '.progress-estimator'),
@@ -26,8 +27,8 @@ export const styleLintHandle = async (css: Tcss) => {
 		});
 
 		child.stderr?.on('data', function (data) {
-			spinner.error(data);
-			reject({ success: false });
+			spinner.error(String(data));
+			reject(new Error(String(data)));
 		});
 	});
 

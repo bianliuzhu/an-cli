@@ -1,26 +1,87 @@
 {
 	"editor.formatOnSave": true,
+	"editor.fontFamily": "Fira Code",
+	"editor.fontLigatures": true,
+	"editor.tabSize": 2,
+	"editor.insertSpaces": false,
+	"editor.detectIndentation": false,
+	"editor.indentSize": "tabSize",
+	"editor.defaultFormatter": "esbenp.prettier-vscode",
+	"editor.codeActionsOnSave": {
+		"source.fixAll": "explicit",
+		"source.fixAll.eslint": "always",
+		"source.fixAll.stylelint": "explicit",
+		"source.organizeImports": "never"
+	},
+	"typescript.tsdk": "node_modules/typescript/lib",
+	"typescript.enablePromptUseWorkspaceTsdk": true,
+	"typescript.validate.enable": true,
+	"typescript.updateImportsOnFileMove.enabled": "always",
+	"typescript.preferences.importModuleSpecifier": "non-relative",
+	"typescript.tsserver.experimental.enableProjectDiagnostics": true,
+	"typescript.preferences.importModuleSpecifierEnding": "minimal",
+	"javascript.preferences.importModuleSpecifier": "non-relative",
 	"[javascript]": {
-		"editor.defaultFormatter": "vscode.typescript-language-features"
+		"editor.defaultFormatter": "vscode.typescript-language-features",
+		"editor.insertSpaces": false,
+		"editor.tabSize": 2
 	},
 	"[typescript]": {
-		"editor.defaultFormatter": "esbenp.prettier-vscode"
+		"editor.defaultFormatter": "esbenp.prettier-vscode",
+		"editor.insertSpaces": false,
+		"editor.tabSize": 2
+	},
+	"[typescriptreact]": {
+		"editor.defaultFormatter": "esbenp.prettier-vscode",
+		"editor.tabSize": 2,
+		"editor.insertSpaces": false
 	},
 	"[json]": {
 		"editor.quickSuggestions": {
 			"strings": true
 		},
 		"editor.suggest.insertMode": "replace",
-		"gitlens.codeLens.scopes": [
-			"document"
-		],
 		"editor.defaultFormatter": "vscode.json-language-features"
 	},
-	"editor.tabSize": 2,
-	"swaggerToTypes.jsonUrl": [
+	"[jsonc]": {
+		"editor.defaultFormatter": "vscode.json-language-features"
+	},
+	"eslint.useFlatConfig": true,
+	"eslint.workingDirectories": [
 		{
-			"title": "UMF",
-			"url": "http://10.10.77.121/dev-api/api-json"
+			"mode": "auto"
 		}
-	]
+	],
+	"eslint.validate": [
+		"typescript",
+		"typescriptreact",
+		"javascript",
+		"javascriptreact"
+	],
+	"eslint.codeActionsOnSave.mode": "all",
+	"gitlens.currentLine.dateFormat": "YYYY年MM月DD日 HH:mm:ss",
+	"gitlens.currentLine.enabled": true,
+	"gitlens.currentLine.pullRequests.enabled": false,
+	"gitlens.currentLine.format": "${author} • ${date}",
+	"gitlens.blame.heatmap.enabled": true,
+	"gitlens.hovers.currentLine.over": "line",
+	"gitlens.defaultDateFormat": "YYYY/MM/DD HH:mm:ss",
+	"gitlens.defaultDateShortFormat": "YYYY/MM/DD",
+	"gitlens.defaultDateStyle": "absolute",
+	"workbench.activityBar.orientation": "vertical",
+	"workbench.iconTheme": "vscode-icons",
+	"explorer.fileNesting.enabled": true,
+	"explorer.fileNesting.patterns": {
+		"tsconfig.json": "tsconfig.*.json, env.d.ts, axios.d.ts, vite-env.d.ts",
+		"package.json": "package-lock.json, pnpm*, .yarnrc*, yarn*, .eslint*, eslint*, .oxlint*, oxlint*, .prettier*, prettier*, .editorconfig, commitlint.config.mjs",
+		".gitconfig": ".gitignore,.gitattributes, .commit-type.cjs"
+	},
+	"path-intellisense.mappings": {
+		"@": "${workspaceRoot}/src"
+	},
+	"files.associations": {
+		"*.json": "jsonc"
+	},
+	"fileheader.autoAdd": false,
+	"fileheader.updateTimestamp": false
 }

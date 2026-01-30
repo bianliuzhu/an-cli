@@ -1,8 +1,9 @@
-import { OpenAPIV3 } from 'openapi-types';
+import type { ComponentsSchemas, ConfigType, RenderEntry } from '../types';
+import type { OpenAPIV3 } from 'openapi-types';
+
 import { isValidJSON } from '../../utils';
-import { ComponentsSchemas, ConfigType, RenderEntry } from '../types';
-import { getEnumTypeName, typeNameToFileName } from '../shared/naming';
 import { getIndentation } from '../shared/format';
+import { getEnumTypeName, typeNameToFileName } from '../shared/naming';
 import { nullableSuffix } from '../shared/schema-utils';
 import { EnumParser } from './enum-parser';
 
@@ -21,11 +22,11 @@ type TReturnType = {
 export class ComponentSchemaResolver {
 	private schemas: ComponentsSchemas;
 	private config: ConfigType;
-	private requiredFieldSet: Set<string> = new Set();
+	private requiredFieldSet = new Set<string>();
 	private readonly defaultReturn = { headerRef: '', renderStr: '', comment: '', typeName: '' };
 	private enumParser: EnumParser;
 
-	schemasMap: Map<string, RenderEntry> = new Map();
+	schemasMap = new Map<string, RenderEntry>();
 
 	constructor(schemas: ComponentsSchemas, config: ConfigType) {
 		this.schemas = schemas;
@@ -50,7 +51,7 @@ export class ComponentSchemaResolver {
 		}
 	}
 
-	private buildDocComment(schemaSource: NonArraySchemaObject | ArraySchemaObject, fieldName?: string): string {
+	private buildDocComment(schemaSource: NonArraySchemaObject | ArraySchemaObject, _fieldName?: string): string {
 		const indent = getIndentation(this.config);
 		const lines: string[] = [];
 
@@ -74,7 +75,7 @@ export class ComponentSchemaResolver {
 			lines.push(`@format ${schemaSource.format}`);
 		}
 
-		const constraints: Array<[keyof OpenAPIV3.SchemaObject, string]> = [
+		const constraints: [keyof OpenAPIV3.SchemaObject, string][] = [
 			['pattern', '@pattern'],
 			['minimum', '@minimum'],
 			['maximum', '@maximum'],
@@ -148,13 +149,14 @@ export class ComponentSchemaResolver {
 
 	private parseArray(schemaSource: OpenAPIV3.SchemaObject, name: string): TReturnType {
 		const arraySchema = schemaSource as OpenAPIV3.ArraySchemaObject;
-		const { items = {}, nullable, example } = arraySchema;
+		const { items = {}, nullable } = arraySchema;
 		const ref = (items as ReferenceObject)?.$ref;
 
 		if (ref) {
 			const { headerRefStr, typeName, dataType } = this.parseRef(ref);
-			if (dataType === 'enum' && isValidJSON(example)) {
-				const enumContent = this.enumParser.convertJsonToEnumString(example as string, typeName);
+			const rawExample: unknown = arraySchema.example;
+			if (dataType === 'enum' && typeof rawExample === 'string' && isValidJSON(rawExample)) {
+				const enumContent = this.enumParser.convertJsonToEnumString(rawExample, typeName);
 				this.enumParser.addEnumByName(typeName, enumContent);
 			}
 
@@ -180,9 +182,7 @@ export class ComponentSchemaResolver {
 	}
 
 	private parseBoolean(schemaObject: NonArraySchemaObject, key: string): string {
-		return schemaObject.type === 'boolean'
-			? `${getIndentation(this.config)}${key}${this.isRequired(key) ? '' : '?'}: boolean${this.nullable(schemaObject.nullable)};`
-			: '';
+		return schemaObject.type === 'boolean' ? `${getIndentation(this.config)}${key}${this.isRequired(key) ? '' : '?'}: boolean${this.nullable(schemaObject.nullable)};` : '';
 	}
 
 	private parseInteger(value: NonArraySchemaObject, key: string): string {
@@ -256,7 +256,7 @@ export class ComponentSchemaResolver {
 		let renderStr = '';
 
 		if (obj.type === 'object') {
-			const nonArraySchema = obj as NonArraySchemaObject;
+			const nonArraySchema = obj;
 			if (typeof nonArraySchema.additionalProperties === 'object') {
 				const value = this.parseArray(nonArraySchema.additionalProperties as ArraySchemaObject, key) ?? this.defaultReturn;
 				headerRef = value?.headerRef ?? '';
@@ -295,34 +295,36 @@ export class ComponentSchemaResolver {
 
 				const schema = schemaSource as SchemaObject;
 				const comment = this.buildDocComment(schema as NonArraySchemaObject, name);
-				comment !== '' && content.push(comment);
+				if (comment !== '') {
+					content.push(comment);
+				}
 
 				const finalTypeName = dataType === 'enum' ? getEnumTypeName(this.config, typeName) : typeName;
 				content.push(`${getIndentation(this.config)}${name}${this.isRequired(name) ? '' : '?'}: ${finalTypeName};`);
 
-				const example = (schemaSource as SchemaObject).example;
+				const example = (schemaSource as SchemaObject).example as string;
 				if (dataType === 'enum' && example && isValidJSON(example)) {
-					const enumContent = this.enumParser.convertJsonToEnumString(example as string, typeName);
+					const enumContent = this.enumParser.convertJsonToEnumString(example, typeName);
 					this.enumParser.addEnumByName(typeName, enumContent);
 				}
 				continue;
 			}
 
 			if ('allOf' in schemaSource) {
-				const V1 = schemaSource['allOf']?.[0] as ReferenceObject;
+				const V1 = schemaSource.allOf?.[0] as ReferenceObject;
 				if (V1?.$ref) {
 					const { headerRefStr, typeName, dataType } = this.parseRef(V1.$ref);
 					const finalTypeName = dataType === 'enum' ? getEnumTypeName(this.config, typeName) : typeName;
 
 					if (!headerRef.includes(headerRefStr) && typeName !== interfaceKey) headerRef.push(headerRefStr);
 
-					const schema = schemaSource as SchemaObject;
+					const schema = schemaSource;
 					const comment = this.buildDocComment(schema as NonArraySchemaObject, name);
-					comment !== '' && content.push(comment);
+					if (comment !== '') {
+						content.push(comment);
+					}
 
-					content.push(
-						`${getIndentation(this.config)}${name}${this.isRequired(name) ? '' : '?'}: ${finalTypeName}${this.nullable(schemaSource.nullable)};`,
-					);
+					content.push(`${getIndentation(this.config)}${name}${this.isRequired(name) ? '' : '?'}: ${finalTypeName}${this.nullable(schemaSource.nullable)};`);
 
 					continue;
 				}
@@ -330,7 +332,9 @@ export class ComponentSchemaResolver {
 
 			const schema = schemaSource as OpenAPIV3.SchemaObject;
 			const comment = this.buildDocComment(schema as NonArraySchemaObject, name);
-			comment !== '' && content.push(comment);
+			if (comment !== '') {
+				content.push(comment);
+			}
 
 			switch (schema.type) {
 				case 'array':
@@ -342,16 +346,16 @@ export class ComponentSchemaResolver {
 					break;
 
 				case 'boolean':
-					content.push(this.parseBoolean(schema as NonArraySchemaObject, name));
+					content.push(this.parseBoolean(schema, name));
 					break;
 
 				case 'integer':
-					content.push(this.parseInteger(schema as NonArraySchemaObject, name));
+					content.push(this.parseInteger(schema, name));
 					break;
 
 				case 'number':
 					{
-						const numberResult = this.parseNumber(schema as NonArraySchemaObject, name);
+						const numberResult = this.parseNumber(schema, name);
 						if (numberResult) {
 							if (numberResult.headerRef && !headerRef.includes(numberResult.headerRef)) headerRef.push(numberResult.headerRef);
 							content.push(numberResult.renderStr);
@@ -362,7 +366,7 @@ export class ComponentSchemaResolver {
 				case 'string':
 					{
 						if (schema.enum) {
-							const enumResult = this.enumParser.handleEnum(schema as NonArraySchemaObject, name, this.isRequired(name));
+							const enumResult = this.enumParser.handleEnum(schema, name, this.isRequired(name));
 							if (enumResult) {
 								if (enumResult.headerRef && !headerRef.includes(enumResult.headerRef)) {
 									headerRef.push(enumResult.headerRef);
@@ -372,7 +376,7 @@ export class ComponentSchemaResolver {
 								}
 							}
 						} else {
-							content.push(this.parseString(schema as NonArraySchemaObject, name)?.renderStr ?? '');
+							content.push(this.parseString(schema, name)?.renderStr ?? '');
 						}
 					}
 					break;
@@ -403,8 +407,7 @@ export class ComponentSchemaResolver {
 		};
 	}
 
-
-	private async generateContent(schemaObject: NonArraySchemaObject | ArraySchemaObject, key: string): Promise<string> {
+	private generateContent(schemaObject: NonArraySchemaObject | ArraySchemaObject, key: string): string {
 		if ('items' in schemaObject) {
 			console.warn(`数组类型未处理: ${key}`, schemaObject.items);
 			return '';
@@ -432,7 +435,7 @@ export class ComponentSchemaResolver {
 		}
 	}
 
-	async main(): Promise<{ enumsMap: Map<string, RenderEntry>; schemasMap: Map<string, RenderEntry> }> {
+	main(): { enumsMap: Map<string, RenderEntry>; schemasMap: Map<string, RenderEntry> } {
 		if (!this.schemas) {
 			console.warn('schemas 为空');
 			return { enumsMap: this.enumParser.enumsMap, schemasMap: this.schemasMap };
@@ -447,7 +450,7 @@ export class ComponentSchemaResolver {
 				continue;
 			}
 
-			const schemaObject = ('type' in schema ? schema : null) as NonArraySchemaObject | ArraySchemaObject;
+			const schemaObject = ('type' in schema ? schema : null)!;
 			if (!schemaObject?.type) {
 				console.warn(`无效的 schema 对象: ${key}`);
 				continue;
@@ -464,7 +467,7 @@ export class ComponentSchemaResolver {
 			this.requiredFieldSet = new Set(schema.required ?? []);
 
 			const fileName = typeNameToFileName(key);
-			const content = await this.generateContent(schemaObject, key);
+			const content = this.generateContent(schemaObject, key);
 			if (content) {
 				const isEnum = content.includes('export enum ') || (content.includes('export const ') && content.includes('as const'));
 

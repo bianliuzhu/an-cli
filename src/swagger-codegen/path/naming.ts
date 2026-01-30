@@ -1,17 +1,17 @@
-import { PathParseConfig } from '../types';
+import type { PathParseConfig } from '../types';
 
-type PathPart = {
+interface PathPart {
 	type: 'normal' | 'param';
 	original: string;
 	normalized: string;
-};
+}
 
-export type EndpointNamingResult = {
+export interface EndpointNamingResult {
 	apiName: string;
 	fileName: string;
 	typeName: string;
 	path: string;
-};
+}
 
 const DEFAULT_SEPARATOR = '_';
 
@@ -73,7 +73,7 @@ function deduplicateParts(parts: PathPart[]): PathPart[] {
 		const current = parts[i];
 		const next = parts[i + 1];
 
-		if (current.type === 'normal' && next && next.type === 'param') {
+		if (current.type === 'normal' && next?.type === 'param') {
 			const currentNorm = cleanSegment(current.normalized).toLowerCase().replace(/[-_.]/g, '');
 			const nextNorm = cleanSegment(next.normalized).toLowerCase().replace(/[-_.]/g, '');
 			if (currentNorm === nextNorm) {
@@ -102,7 +102,7 @@ export function convertEndpointString(apiString: string, config: PathParseConfig
 	});
 
 	const deduplicatedParts = deduplicateParts(parts);
-	const paramSeparator = config.parameterSeparator || DEFAULT_SEPARATOR;
+	const paramSeparator = config.parameterSeparator ?? DEFAULT_SEPARATOR;
 
 	let apiName = '';
 	let camelBuffer: string[] = [];
@@ -115,8 +115,7 @@ export function convertEndpointString(apiString: string, config: PathParseConfig
 		}
 	};
 
-	for (let i = 0; i < deduplicatedParts.length; i++) {
-		const part = deduplicatedParts[i];
+	for (const part of deduplicatedParts) {
 		if (part.type === 'normal') {
 			camelBuffer.push(part.normalized);
 		} else {
@@ -138,8 +137,7 @@ export function convertEndpointString(apiString: string, config: PathParseConfig
 		}
 	};
 
-	for (let i = 0; i < deduplicatedParts.length; i++) {
-		const part = deduplicatedParts[i];
+	for (const part of deduplicatedParts) {
 		if (part.type === 'normal') {
 			camelBuffer.push(part.normalized);
 		} else {

@@ -1,4 +1,5 @@
-import { ComponentsSchemas, ConfigType } from '../types';
+import type { ComponentsSchemas, ConfigType } from '../types';
+
 import { applyFormattingDefaults } from '../shared/format';
 import { ComponentSchemaResolver } from './schema-resolver';
 import { ComponentWriter } from './writer';
@@ -14,7 +15,7 @@ class Components {
 	}
 
 	async handle(): Promise<void> {
-		const { enumsMap, schemasMap } = await this.parser.main();
+		const { enumsMap, schemasMap } = this.parser.main();
 		await this.writer.writeSchemas(schemasMap);
 		await this.writer.writeEnums(enumsMap);
 	}

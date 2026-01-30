@@ -2,6 +2,7 @@ import { exec } from 'child_process';
 import { writeFileSync } from 'fs';
 import { join } from 'path';
 import createLogger from 'progress-estimator';
+
 import { spinner } from '../utils';
 import { Prettier } from './const';
 
@@ -23,8 +24,8 @@ export const prettierHanlde = async () => {
 		});
 
 		child.stderr?.on('data', function (data) {
-			spinner.error(data);
-			reject({ success: false });
+			spinner.error(String(data));
+			reject(new Error(String(data)));
 		});
 	});
 
@@ -52,7 +53,7 @@ export const prettierHanlde = async () => {
 			resolve({ success: true });
 		} catch (error) {
 			spinner.error('.prettierrc file write failed!');
-			reject(error);
+			reject(new Error(String(error)));
 		}
 	});
 
