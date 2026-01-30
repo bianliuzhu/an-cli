@@ -92,6 +92,6 @@ if "%BRANCH_TYPE%"=="release" (
 :: 创建并切换到新分支
 git checkout -b "%BRANCH_NAME%"
 
-echo 已创建并切换到新分支: %BRANCH_NAME%
+echo Created and switched to a new branch: %BRANCH_NAME%
 
 endlocal
