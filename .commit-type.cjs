@@ -27,7 +27,7 @@ const types = {
 	config: {
 		description: 'Configuration changes',
 		title: 'Configuration',
-		emoji: '🛠️ ',
+		emoji: '🔧',
 		subject: 'config',
 	},
 	style: {
@@ -63,7 +63,7 @@ const types = {
 	test: {
 		description: 'Add missing tests or correct existing tests (test code)',
 		title: 'Tests',
-		emoji: '🪤 ',
+		emoji: '🧪',
 		subject: 'test',
 	},
 	cicd: {

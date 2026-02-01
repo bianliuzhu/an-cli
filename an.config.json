@@ -16,10 +16,95 @@
 	},
 	"swaggerConfig": [
 		{
-			"url": "./data/open-api.json",
+			"url": "./data/op.json",
 			"apiListFileName": "op.ts",
 			"headers": {},
-			"includeInterface": [],
+			"includeInterface": [
+				{
+					"path": "/op/trade/order/queryPage",
+					"method": "post"
+				},
+				{
+					"path": "/op/trade/order/getOrderEnums",
+					"method": "get"
+				},
+				{
+					"path": "/op/trade/order/createOrder",
+					"method": "post"
+				},
+				{
+					"path": "/op/trade/refund_order/deductBenefit",
+					"method": "get"
+				},
+				{
+					"path": "/op/trade/refund_order/queryPage",
+					"method": "post"
+				},
+				{
+					"path": "/op/trade/event/getMessageEventEnums",
+					"method": "get"
+				},
+				{
+					"path": "/op/trade/event/queryPage",
+					"method": "post"
+				},
+				{
+					"path": "/op/trade/event/processEvent",
+					"method": "get"
+				},
+				{
+					"path": "/op/trade/refund_order/createOrder",
+					"method": "post"
+				},
+				{
+					"path": "/app/trade/benefit-config/getAllChannelConfigs",
+					"method": "get"
+				},
+				{
+					"path": "/op/product/pageProduct",
+					"method": "post"
+				},
+				{
+					"path": "/op/product/pageProduct",
+					"method": "get"
+				},
+				{
+					"path": "/op/product/listProduct",
+					"method": "post"
+				},
+				{
+					"path": "/op/product/listProduct",
+					"method": "get"
+				},
+				{
+					"path": "/op/product/updateProductById",
+					"method": "post"
+				},
+				{
+					"path": "/op/product/updateBatchProduct",
+					"method": "post"
+				},
+				{
+					"path": "/op/product/saveProduct",
+					"method": "post"
+				},
+				{
+					"path": "/op/product/saveBatchProduct",
+					"method": "post"
+				},
+				{
+					"path": "/op/product/fileBatchProduct",
+					"method": "post"
+				},
+				{
+					"path": "/op/product/deleteProductById",
+					"method": "get"
+				},
+				{
+					"path": "/op/product/deleteBatchProduct",
+					"method": "post"
+				}
+			],
 			"excludeInterface": [],
 			"dataLevel": "serve",
 			"parameterSeparator": "_",
@@ -30,24 +115,18 @@
 			}
 		},
 		{
-			"url": "./data/openapi.json",
-			"apiListFileName": "df.ts",
+			"url": "./data/bff.json",
+			"apiListFileName": "index.ts",
 			"publicPrefix": "/api",
 			"headers": {},
 			"includeInterface": [],
 			"excludeInterface": [],
 			"dataLevel": "serve",
 			"parameterSeparator": "_",
-			"responseModelTransform": {
-				"type": "wrap",
-				"dataField": "data",
-				"wrapperFields": {
-					"success": "boolean",
-					"code": "number",
-					"message": "string",
-					"data": "T"
-				}
-			}
+			"includeTags": [
+				"文件上传接口"
+			],
+			"excludeTags": []
 		}
 	]
 }

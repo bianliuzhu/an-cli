@@ -49,7 +49,8 @@ const configContent: ConfigType = {
 	},
 };
 
-type NormalizedSwaggerServer = Required<Omit<IConfigSwaggerServer, 'responseModelTransform'>> & Pick<IConfigSwaggerServer, 'responseModelTransform'>;
+type NormalizedSwaggerServer = Required<Omit<IConfigSwaggerServer, 'responseModelTransform' | 'includeTags' | 'excludeTags'>> &
+	Pick<IConfigSwaggerServer, 'responseModelTransform' | 'includeTags' | 'excludeTags'>;
 
 export class Main {
 	private schemas: ComponentsSchemas = {};
@@ -237,10 +238,12 @@ export class Main {
 			const parameterSeparator = server.parameterSeparator ?? config.parameterSeparator ?? '_';
 			const includeInterface = server.includeInterface ?? config.includeInterface ?? [];
 			const excludeInterface = server.excludeInterface ?? config.excludeInterface ?? [];
+			const includeTags = server.includeTags ?? config.includeTags;
+			const excludeTags = server.excludeTags ?? config.excludeTags;
 			const modulePrefix = server.modulePrefix ?? config.modulePrefix ?? '';
 			const responseModelTransform = server.responseModelTransform ?? config.responseModelTransform;
 
-			return {
+			const result: NormalizedSwaggerServer = {
 				url,
 				publicPrefix,
 				apiListFileName,
@@ -252,6 +255,16 @@ export class Main {
 				modulePrefix,
 				responseModelTransform,
 			};
+
+			// 可选字段需要单独处理
+			if (includeTags !== undefined) {
+				result.includeTags = includeTags;
+			}
+			if (excludeTags !== undefined) {
+				result.excludeTags = excludeTags;
+			}
+
+			return result;
 		};
 
 		const normalized = Array.isArray(serversInput) ? serversInput.map((item, index) => fillDefaults(item, index)) : [fillDefaults(serversInput, 0)];
@@ -291,6 +304,8 @@ export class Main {
 			parameterSeparator: server.parameterSeparator,
 			includeInterface: server.includeInterface,
 			excludeInterface: server.excludeInterface,
+			includeTags: server.includeTags,
+			excludeTags: server.excludeTags,
 			modulePrefix: server.modulePrefix,
 			responseModelTransform: server.responseModelTransform ?? baseConfig.responseModelTransform,
 			swaggerConfig: server,

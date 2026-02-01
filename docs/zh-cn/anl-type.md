@@ -132,7 +132,7 @@ $ anl type
 | saveEnumFolderPath                                   | string                                                                          | 是   | 枚举数据文件保存路径                                                                                                                                                                                                                                                                                                                               |
 | importEnumPath                                       | string                                                                          | 是   | 枚举导入路径(apps/types/models/\*.ts 中 enum 文件的引用的路径)                                                                                                                                                                                                                                                                                     |
 | swaggerJsonUrl                                       | string                                                                          | 否   | Swagger JSON 文档地址（已迁移到 `swaggerConfig.url`，保留用于兼容旧版配置）**后面迭代版本会删除该字段**                                                                                                                                                                                                                                            |
-| swaggerConfig                                        | object \| Array<object>                                                         | 否   | Swagger 服务器配置。单个服务器可直接填写对象，多个服务器使用数组。每个服务器可配置 `url`、`publicPrefix`、`modulePrefix`、`apiListFileName`、`headers`、`dataLevel`、`parameterSeparator`、`includeInterface`、`excludeInterface`、`responseModelTransform`<br />这个字段 对应 单 Swagger 服务器配置 与 多 Swagger 服务器配置 示例，请向上滚动查看 |
+| swaggerConfig                                        | object \| Array<object>                                                         | 否   | Swagger 服务器配置。单个服务器可直接填写对象，多个服务器使用数组。每个服务器可配置 `url`、`publicPrefix`、`modulePrefix`、`apiListFileName`、`headers`、`dataLevel`、`parameterSeparator`、`includeInterface`、`excludeInterface`、`includeTags`、`excludeTags`、`responseModelTransform`<br />这个字段 对应 单 Swagger 服务器配置 与 多 Swagger 服务器配置 示例，请向上滚动查看 |
 | swaggerConfig[].url                                  | string                                                                          | 是   | Swagger JSON 文档地址                                                                                                                                                                                                                                                                                                                              |
 | swaggerConfig[].publicPrefix                         | string                                                                          | 否   | url path 上的公共前缀，例如：api/users、api/users/{id} ,api 就是公共前缀                                                                                                                                                                                                                                                                           |
 | swaggerConfig[].modulePrefix                         | string                                                                          | 否   | 请求路径前缀（可以理解为模块名），会自动添加到每个 API 请求路径前面。<br />例如：`modulePrefix: "/forward"` 时，<br />`/publicPrefix/modulePrefix/user` ， 会变成 `/publicPrefix/forward/user`。详见[路径前缀](#路径前缀-moduleprefix)                                                                                                             |
@@ -142,6 +142,8 @@ $ anl type
 | swaggerConfig[].parameterSeparator                   | '$' \| '\_'                                                                     | 否   | 该服务器生成 API 名称和类型名称时使用的分隔符。若未设置，使用全局 `parameterSeparator` 配置                                                                                                                                                                                                                                                        |
 | swaggerConfig[].includeInterface                     | Array<{path: string, method: string, dataLevel?: 'data' \| 'serve' \| 'axios'}> | 否   | 该服务器包含的接口列表。每个接口可单独配置 `dataLevel`，具有最高优先级。若未设置，使用全局 `includeInterface` 配置。详见[接口过滤](#接口过滤)                                                                                                                                                                                                      |
 | swaggerConfig[].excludeInterface                     | Array<{path: string, method: string}>                                           | 否   | 该服务器排除的接口列表。若未设置，使用全局 `excludeInterface` 配置。详见[接口过滤](#接口过滤)                                                                                                                                                                                                                                                      |
+| swaggerConfig[].includeTags                         | string[]                                                                        | 否   | 该服务器按 OpenAPI tag 包含的接口。与 `excludeTags` 互斥，在接口级 `includeInterface`/`excludeInterface` 之后应用。详见[按 Tag 过滤接口](#按-tag-过滤接口)                                                                                                                                                                                          |
+| swaggerConfig[].excludeTags                         | string[]                                                                        | 否   | 该服务器按 OpenAPI tag 排除的接口。与 `includeTags` 互斥，在接口级过滤之后应用。详见[按 Tag 过滤接口](#按-tag-过滤接口)                                                                                                                                                                                                                            |
 | swaggerConfig[].responseModelTransform               | object                                                                          | 否   | 该服务器的响应模型转换配置。支持三种模式：`unwrap`（剔除响应模型）、`wrap`（添加响应模型）、`replace`（替换响应模型）。若未设置，使用全局 `responseModelTransform` 配置。详见[响应模型转换](#响应模型转换)                                                                                                                                         |
 | swaggerConfig[].responseModelTransform.type          | `'unwrap'` \| `'wrap'` \| `'replace'`                                           | 是   | 响应模型转换类型。`unwrap`: 提取响应包装器中的 data 字段；`wrap`: 为原始响应添加统一包装结构；`replace`: 使用自定义类型替换响应。详见[场景一](#场景一为没有响应模型的接口添加响应模型wrap)、[场景二](#场景二剔除已有的响应模型unwrap)、[场景三](#场景三替换响应模型replace)                                                                        |
 | swaggerConfig[].responseModelTransform.dataField     | string                                                                          | 否   | 用于 `unwrap` 和 `wrap` 模式的数据字段名，默认为 `"data"`                                                                                                                                                                                                                                                                                          |
@@ -156,6 +158,8 @@ $ anl type
 | headers                                              | object                                                                          | 否   | 全局请求头配置（已迁移到 `swaggerConfig`，保留用于兼容旧版配置）                                                                                                                                                                                                                                                                                   |
 | includeInterface                                     | Array<{path: string, method: string}>                                           | 否   | 全局包含的接口：`saveApiListFolderPath`指定的接口列表文件，只会包含列表中的接口，与 `excludeInterface` 字段互斥。各服务器可单独配置覆盖。详见[接口过滤](#接口过滤)                                                                                                                                                                                 |
 | excludeInterface                                     | Array<{path: string, method: string}>                                           | 否   | 全局排除的接口: `saveApiListFolderPath` 指定的接口列表文本，不存在该列表中的接口，与 `includeInterface` 互斥。各服务器可单独配置覆盖。详见[接口过滤](#接口过滤)                                                                                                                                                                                    |
+| includeTags                                          | string[]                                                                        | 否   | 全局按 OpenAPI tag 包含的接口。与 `excludeTags` 互斥，在接口级过滤之后应用。各服务器可单独配置覆盖。详见[按 Tag 过滤接口](#按-tag-过滤接口)                                                                                                                                                                                                        |
+| excludeTags                                          | string[]                                                                        | 否   | 全局按 OpenAPI tag 排除的接口。与 `includeTags` 互斥。各服务器可单独配置覆盖。详见[按 Tag 过滤接口](#按-tag-过滤接口)                                                                                                                                                                                                                             |
 | publicPrefix                                         | string                                                                          | 否   | 全局 url path 上的公共前缀（已迁移到 `swaggerConfig`，保留用于兼容旧版配置）                                                                                                                                                                                                                                                                       |
 | modulePrefix                                         | string                                                                          | 否   | 全局请求路径前缀（各服务器可单独配置覆盖）。详见[路径前缀](#路径前缀-moduleprefix)                                                                                                                                                                                                                                                                 |
 | apiListFileName                                      | string                                                                          | 否   | 全局 API 列表文件名，默认为 `index.ts`（已迁移到 `swaggerConfig`，保留用于兼容旧版配置）                                                                                                                                                                                                                                                           |
@@ -465,6 +469,34 @@ export const uploadFile = (params: UploadFile.Body) =>
 
 注意：`includeInterface` 和 `excludeInterface` 不能同时使用，如果同时配置，会优先使用 `includeInterface`。
 
+#### 按 Tag 过滤接口
+
+除按 path/method 精确指定接口外，工具支持按 OpenAPI 的 **tag** 过滤接口，适用于按模块（如「用户模块」「文件上传接口」）批量包含或排除：
+
+- **`includeTags`**：只生成属于指定 tag 的接口（在 `includeInterface`/`excludeInterface` 之后应用）。
+- **`excludeTags`**：排除属于指定 tag 的接口。
+- `includeTags` 与 `excludeTags` 互斥，不能同时配置。
+- 优先级：接口级 `includeInterface`/`excludeInterface` 先于 tag 过滤。
+
+**配置示例（在 `swaggerConfig` 的某一项下）：**
+
+```json
+{
+	"swaggerConfig": [
+		{
+			"url": "https://api.example.com/openapi.json",
+			"apiListFileName": "index.ts",
+			"includeTags": ["文件上传接口"]
+		},
+		{
+			"url": "https://api2.example.com/openapi.json",
+			"apiListFileName": "op.ts",
+			"excludeTags": ["内部调试接口"]
+		}
+	]
+}
+```
+
 #### 多 Swagger 服务器支持
 
 工具支持配置多个 Swagger 服务器，每个服务器可以独立配置：
@@ -486,6 +518,8 @@ export const uploadFile = (params: UploadFile.Body) =>
 - `parameterSeparator` - API 名称和类型名称的分隔符
 - `includeInterface` - 包含的接口列表
 - `excludeInterface` - 排除的接口列表
+- `includeTags` - 按 tag 包含的接口
+- `excludeTags` - 按 tag 排除的接口
 - `modulePrefix` - 请求路径前缀
 
 #### 路径前缀-modulePrefix
