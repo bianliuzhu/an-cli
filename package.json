@@ -94,5 +94,6 @@
 		"type": "git",
 		"url": "git+https://github.com/bianliuzhu/an-cli.git"
 	},
+	"homepage": "https://bianliuzhu.github.io/an-cli/#/",
 	"type": "commonjs"
 }
