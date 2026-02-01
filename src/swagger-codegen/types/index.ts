@@ -61,6 +61,10 @@ export interface IConfigSwaggerServer {
 	includeInterface?: IIncludeInterface[];
 	/** 排除的接口（服务级配置） */
 	excludeInterface?: Omit<IIncludeInterface, 'dataLevel'>[];
+	/** 包含的模块（tag）列表，与 excludeTags 互斥，优先级低于 includeInterface/excludeInterface（在单接口过滤之后应用） */
+	includeTags?: string[];
+	/** 排除的模块（tag）列表，与 includeTags 互斥，优先级低于 includeInterface/excludeInterface（在单接口过滤之后应用） */
+	excludeTags?: string[];
 	/** path 前缀 */
 	modulePrefix?: string;
 	/** 响应模型转换配置 */
@@ -97,6 +101,10 @@ export interface ConfigType {
 	includeInterface?: IIncludeInterface[];
 	/** 排除的接口（服务级配置注入） */
 	excludeInterface?: Omit<IIncludeInterface, 'dataLevel'>[];
+	/** 包含的模块（tag）列表（服务级配置注入），与 excludeTags 互斥，优先级低于 includeInterface/excludeInterface（在单接口过滤之后应用） */
+	includeTags?: string[];
+	/** 排除的模块（tag）列表（服务级配置注入），与 includeTags 互斥，优先级低于 includeInterface/excludeInterface（在单接口过滤之后应用） */
+	excludeTags?: string[];
 	/** path 前缀（服务级配置注入） */
 	modulePrefix?: string;
 	/** 响应模型转换配置（服务级配置注入） */

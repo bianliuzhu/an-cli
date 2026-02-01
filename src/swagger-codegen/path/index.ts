@@ -2,7 +2,6 @@ import type {
 	ArraySchemaObject,
 	ContentBody,
 	IContentType,
-	IIncludeInterface,
 	MapType,
 	NonArraySchemaObject,
 	OperationObject,
@@ -86,6 +85,8 @@ export class PathParse {
 	private schemaResolver: SchemaResolver;
 	private writer: PathWriter;
 	private apiListFileContent: string[] = [];
+	/** 5 步过滤后的允许生成的接口 key 集合，格式为 pathKey|METHOD */
+	private allowedInterfaceKeys = new Set<string>();
 
 	constructor(pathsObject: OpenAPIV3.PathsObject, parameters: OpenAPIV3.ComponentsObject['parameters'], schemas: OpenAPIV3.ComponentsObject['schemas'], config: PathParseConfig) {
 		this.pathsObject = pathsObject;
@@ -450,6 +451,81 @@ export class PathParse {
 		}
 	}
 
+	/**
+	 * 按 5 步流程计算最终要生成的接口 key 集合（pathKey|METHOD）
+	 * 1. 模块排除 → result1
+	 * 2. result1 经单接口排除 → result2
+	 * 3. result2 经模块包含 → result3
+	 * 4. result2 经单接口包含 → result4
+	 * 5. result3 ∪ result4 去重 → result5（最终结果）
+	 */
+	private computeAllowedInterfaceKeys(): Set<string> {
+		interface Entry {
+			key: string;
+			pathKey: string;
+			method: string;
+			tags: string[];
+		}
+		const entries: Entry[] = [];
+
+		const requestPaths = Object.keys(this.pathsObject).sort();
+		for (const pathKey of requestPaths) {
+			const itemObject = this.pathsObject[pathKey];
+			if (!itemObject) continue;
+			const methods = Object.keys(itemObject).sort();
+			for (const method of methods) {
+				const op = itemObject[method as HttpMethods];
+				if (!op || typeof op !== 'object') continue;
+				// 只处理 HTTP 方法
+				if (!Object.values(HttpMethods).includes(method as HttpMethods)) continue;
+				const methodUp = String(method).toUpperCase();
+				const key = `${pathKey}|${methodUp}`;
+				const tags = Array.isArray(op.tags) ? op.tags : [];
+				entries.push({ key, pathKey, method, tags });
+			}
+		}
+
+		// 1. 模块排除 → result1
+		let result1: Set<string>;
+		if (this.config.excludeTags && this.config.excludeTags.length > 0) {
+			result1 = new Set(entries.filter((e) => !e.tags.some((tag) => this.config.excludeTags!.includes(tag))).map((e) => e.key));
+		} else {
+			result1 = new Set(entries.map((e) => e.key));
+		}
+
+		// 2. result1 经单接口排除 → result2
+		let result2: Set<string>;
+		if (this.config.excludeInterface && this.config.excludeInterface.length > 0) {
+			const excludeSet = new Set(this.config.excludeInterface.map((item) => `${item.path}|${item.method.toUpperCase()}`));
+			result2 = new Set([...result1].filter((key) => !excludeSet.has(key)));
+		} else {
+			result2 = new Set(result1);
+		}
+
+		// 3. result2 经模块包含 → result3
+		let result3: Set<string>;
+		if (this.config.includeTags && this.config.includeTags.length > 0) {
+			result3 = new Set(entries.filter((e) => result2.has(e.key) && e.tags.some((tag) => this.config.includeTags!.includes(tag))).map((e) => e.key));
+		} else {
+			result3 = new Set<string>();
+		}
+
+		// 4. result2 经单接口包含 → result4
+		let result4: Set<string>;
+		if (this.config.includeInterface && this.config.includeInterface.length > 0) {
+			const includeSet = new Set(this.config.includeInterface.map((item) => `${item.path}|${item.method.toUpperCase()}`));
+			result4 = new Set([...result2].filter((key) => includeSet.has(key)));
+		} else {
+			result4 = new Set<string>();
+		}
+
+		// 5. result3 ∪ result4 去重；若两者都为空则取 result2
+		if (result3.size === 0 && result4.size === 0) {
+			return new Set(result2);
+		}
+		return new Set([...result3, ...result4]);
+	}
+
 	private parsePathItemObject(itemObject: PathItemObject, pathKey: string, apiListFileContent: string[]) {
 		if (!itemObject) return;
 
@@ -458,19 +534,13 @@ export class PathParse {
 		for (const method of methods) {
 			const methodItems = itemObject[method as HttpMethods];
 			if (methodItems) {
-				let matchedInclude: IIncludeInterface | undefined;
-
-				if (this.config.includeInterface && this.config.includeInterface.length > 0) {
-					const include = this.config.includeInterface?.find((item) => pathKey === item.path && item.method === method);
-					if (!include) return;
-					matchedInclude = include;
-				} else if (this.config.excludeInterface && this.config.excludeInterface.length > 0) {
-					const exclude = this.config.excludeInterface?.find((item) => pathKey === item.path && item.method === method);
-					if (exclude) return;
-				}
-
 				const methodUp = method.toUpperCase();
 				const mapKey = pathKey + '|' + methodUp;
+				if (!this.allowedInterfaceKeys.has(mapKey)) continue;
+
+				// 单接口包含中若配置了 dataLevel，则使用
+				const matchedInclude = this.config.includeInterface?.find((item) => pathKey === item.path && item.method === method);
+
 				const { apiName, typeName, fileName, path } = convertEndpointString(mapKey, this.config);
 
 				const contentType = methodItems.requestBody && 'content' in methodItems.requestBody && methodItems.requestBody.content;
@@ -522,6 +592,9 @@ export class PathParse {
 	}
 
 	private parseData(): MapType {
+		// 先按 5 步流程计算允许生成的接口集合
+		this.allowedInterfaceKeys = this.computeAllowedInterfaceKeys();
+
 		// 使用 Object.keys() 并排序以确保顺序一致性
 		const requestPaths = Object.keys(this.pathsObject).sort();
 		for (const requestPath of requestPaths) {
