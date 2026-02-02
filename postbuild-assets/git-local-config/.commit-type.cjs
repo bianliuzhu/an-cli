@@ -69,7 +69,7 @@ const types = {
 	cicd: {
 		description: 'Change CI / CD configuration files and scripts (example scope: Travis, Circle, BrowserStack, SauceLabs)',
 		title: 'Continuous Integrations',
-		emoji: '💿',
+		emoji: '🚢',
 		subject: 'ci',
 	},
 	build: {
