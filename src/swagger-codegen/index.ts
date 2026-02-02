@@ -20,9 +20,6 @@ interface ExecResult {
 }
 const isDebug = process.env.NODE_ENV === 'debug';
 
-console.log(isDebug);
-console.log(process.env.NODE_ENV);
-
 const configContent: ConfigType = {
 	saveTypeFolderPath: isDebug ? 'apps/types' : 'src/api/types',
 	saveApiListFolderPath: isDebug ? 'apps/types' : 'src/api',
