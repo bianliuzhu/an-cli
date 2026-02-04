@@ -1,5 +1,4 @@
 import type {
-	ArraySchemaObject,
 	ContentBody,
 	IContentType,
 	MapType,
@@ -264,19 +263,34 @@ export class PathParse {
 		this.contentBody.payload.header = header;
 	}
 
+	/** Prefer multipart/form-data or application/x-www-form-urlencoded when present so Body matches form-data API. */
+	private pickRequestBodyContent(requestBodyObject: RequestBodyObject): { schema: SchemaObject | null } {
+		const content = requestBodyObject.content;
+		if (!content || typeof content !== 'object') return { schema: null };
+		const formDataTypes = ['multipart/form-data', 'application/x-www-form-urlencoded'] as const;
+		for (const mediaType of formDataTypes) {
+			const media = content[mediaType];
+			if (media && typeof media === 'object' && media.schema) {
+				return { schema: media.schema as SchemaObject };
+			}
+		}
+		const firstKey = Object.keys(content)[0];
+		const first = firstKey ? content[firstKey] : null;
+		return { schema: first && typeof first === 'object' && first.schema ? (first.schema as SchemaObject) : null };
+	}
+
 	private requestBodyObjectParse(requestBodyObject: RequestBodyObject) {
 		const indent = this.getIndentation();
-		const requestBodyObjectContent = Object.values(requestBodyObject.content);
-		const { schema } = requestBodyObjectContent[0] || { schema: null };
+		const { schema } = this.pickRequestBodyContent(requestBodyObject);
 
 		if (schema) {
-			const type = (schema as SchemaObject)?.type;
+			const type = schema?.type;
 			const referenceObject = '$ref' in schema ? schema : null;
-			const arraySchemaObject = type === 'array' ? (schema as ArraySchemaObject) : null;
+			const arraySchemaObject = type === 'array' ? schema : null;
 			const nonArraySchemaObject = type && this.nonArrayType.includes(type) ? (schema as NonArraySchemaObject) : null;
 
 			if (referenceObject) {
-				const str = this.schemaResolver.referenceObjectParse(referenceObject);
+				const str = this.schemaResolver.referenceObjectParse(referenceObject as ReferenceObject);
 				return `${indent}type Body = ${str}`;
 			}
 
