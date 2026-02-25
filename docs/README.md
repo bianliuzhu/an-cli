@@ -2,6 +2,11 @@
 
 [English](https://bianliuzhu.github.io/an-cli/#/en/) | [简体中文](https://bianliuzhu.github.io/an-cli/#/zh-cn/) | [日本語](https://bianliuzhu.github.io/an-cli/#/jp/) | [Español](https://bianliuzhu.github.io/an-cli/#/es/) | [Français](https://bianliuzhu.github.io/an-cli/#/fr/) | [Русский](https://bianliuzhu.github.io/an-cli/#/ru/) | [العربية](https://bianliuzhu.github.io/an-cli/#/ar/)
 
+> [!NOTE]
+> Starting from version **26.201.0**, all new features will only be documented in **English** and **简体中文**. Documentation for other languages (日本語, Español, Français, Русский, العربية) will no longer be updated.
+>
+> 从 **26.201.0** 版本开始，所有新增功能仅更新 **英文** 和 **简体中文** 文档，其他语言（日本語、Español、Français、Русский、العربية）文档将不再更新。
+
 ---
 
 # Overview
@@ -39,6 +44,12 @@
   - 🎯 Automatic subject setting that complies with CommitLint commit standards
   - 🔄 Provides git custom command configuration and entry points
   - 📦 Automated generation with zero configuration
+
+- `anl skill`
+  - 🤖 Agent Skill file initialization tool for AI-assisted development
+  - 📊 Supports api-report: API change detection report, comparing git diffs and analyzing type changes
+  - 🎭 Supports api-mock: Generates MockJS-compatible mock data files based on API definitions
+  - 🛠 Supports output to multiple AI tool directories such as Cursor and Claude Code
 
 ---
 
@@ -78,9 +89,18 @@
   - 🔄 提供 git 自定义命令配置以及入口
   - 📦 自动化生成 0 配置
 
+- `anl skill`
+  - AI 辅助开发的 Skill 文件初始化工具
+  - 支持 api-report：API 变更检测报告，对比 git 变更、分析类型变化
+  - 支持 api-mock：根据 API 定义生成符合 MockJS 语法的 mock 数据文件
+  - 支持输出到 Cursor、Claude Code 等多种 AI 工具目录
+
 ---
 
 # نظرة عامة على الوظائف
+
+> [!WARNING]
+> بدءًا من الإصدار **26.201.0**، لن يتم تحديث هذه الوثائق بعد الآن. يرجى الرجوع إلى الوثائق باللغة [الإنجليزية](https://bianliuzhu.github.io/an-cli/#/en/) أو [الصينية المبسطة](https://bianliuzhu.github.io/an-cli/#/zh-cn/) للحصول على أحدث المعلومات.
 
 > an-cli هو أداة سطر أوامر للواجهة الأمامية، يتضمن الأوامر التالية:
 >
@@ -120,6 +140,9 @@
 
 # Descripción General de Funciones
 
+> [!WARNING]
+> A partir de la versión **26.201.0**, esta documentación ya no se actualizará. Consulte la documentación en [inglés](https://bianliuzhu.github.io/an-cli/#/en/) o en [chino simplificado](https://bianliuzhu.github.io/an-cli/#/zh-cn/) para obtener la información más reciente.
+
 > an-cli es una herramienta de línea de comandos para frontend que incluye los siguientes comandos:
 >
 > - Comando `anl type`: Herramienta de línea de comandos que genera automáticamente definiciones de tipos TypeScript y funciones de solicitud API basadas en Swagger JSON.
@@ -157,6 +180,9 @@
 ---
 
 # Aperçu des fonctionnalités
+
+> [!WARNING]
+> À partir de la version **26.201.0**, cette documentation ne sera plus mise à jour. Veuillez consulter la documentation en [anglais](https://bianliuzhu.github.io/an-cli/#/en/) ou en [chinois simplifié](https://bianliuzhu.github.io/an-cli/#/zh-cn/) pour les informations les plus récentes.
 
 > an-cli est un outil de ligne de commande frontend qui inclut les commandes suivantes :
 >
@@ -196,6 +222,9 @@
 
 # 機能概要
 
+> [!WARNING]
+> バージョン **26.201.0** 以降、このドキュメントは更新されなくなります。最新情報については、[英語](https://bianliuzhu.github.io/an-cli/#/en/) または [簡体字中国語](https://bianliuzhu.github.io/an-cli/#/zh-cn/) のドキュメントをご参照ください。
+
 > an-cli はフロントエンド開発用コマンドラインツールで、以下のコマンドを含みます：
 >
 > - `anl type` コマンド：Swagger JSON に基づいて TypeScript 型定義と API リクエスト関数を自動生成するコマンドラインツール。
@@ -233,6 +262,9 @@
 ---
 
 # Обзор функций
+
+> [!WARNING]
+> Начиная с версии **26.201.0**, данная документация больше не будет обновляться. Пожалуйста, обращайтесь к документации на [английском](https://bianliuzhu.github.io/an-cli/#/en/) или [упрощённом китайском](https://bianliuzhu.github.io/an-cli/#/zh-cn/) для получения актуальной информации.
 
 > an-cli — это CLI-инструмент для фронтенда, включающий следующие команды:
 >
