@@ -34,6 +34,12 @@
   - 提供 git 自定义命令配置以及入口
   - 自动化生成 0 配置
 
+- `anl skill`
+  - AI 辅助开发的 Skill 文件初始化工具
+  - 支持 api-report：API 变更检测报告，对比 git 变更、分析类型变化
+  - 支持 api-mock：根据 API 定义生成符合 MockJS 语法的 mock 数据文件
+  - 支持输出到 Cursor、Claude Code 等多种 AI 工具目录
+
 > [!TIP]
 >
 > 1. 如果初次使用，不清楚会产生什么结果，建议先执行命令，观察会在项目中发生什么变化，然后再结合文档进一步修改配置，再次生成，最终达到自己理想中的样子
@@ -46,6 +52,7 @@
 - [type 命令](zh-cn/anl-type)
 - [lint 命令](zh-cn/anl-lint)
 - [git 命令](zh-cn/anl-git)
+- [skill 命令](zh-cn/anl-skill)
 
 ## 许可证
 

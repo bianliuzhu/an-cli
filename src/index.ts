@@ -3,6 +3,7 @@ import inquirer from 'inquirer';
 
 import data from '../package.json';
 import { type GitFeatureOption, gitHandle } from './git-local-config';
+import { skillHandle } from './skill-init';
 import { lintHandle } from './standard/lint-init';
 import { Main } from './swagger-codegen';
 
@@ -44,6 +45,15 @@ program
 		]);
 
 		gitHandle(features).catch((error) => {
+			console.error(error);
+		});
+	});
+
+program
+	.command('skill')
+	.description('initialize an agent skill into the current project')
+	.action(() => {
+		skillHandle().catch((error) => {
 			console.error(error);
 		});
 	});

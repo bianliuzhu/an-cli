@@ -10,5 +10,6 @@ export default defineConfig({
 	copy: [
 		{ from: 'postbuild-assets/ajax-config/*', to: 'lib/ajax-config' },
 		{ from: 'postbuild-assets/git-local-config', to: 'lib' },
+		{ from: 'postbuild-assets/skills', to: 'lib' },
 	],
 });
