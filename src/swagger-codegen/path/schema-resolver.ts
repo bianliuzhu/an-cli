@@ -3,7 +3,7 @@ import type { OpenAPIV3 } from 'openapi-types';
 
 import { getIndentation, getLineEnding } from '../shared/format';
 import { SUPPORTED_REQUEST_TYPES_ALL } from '../shared/http';
-import { getEnumTypeName, typeNameToFileName } from '../shared/naming';
+import { containsChinese, getEnumTypeName, resolveSchemaName, typeNameToFileName } from '../shared/naming';
 import { applyTypeMapping, formatObjectProperties, nullableSuffix, stringifyArrayType } from '../shared/schema-utils';
 
 const componentsPathEnum = {
@@ -19,6 +19,8 @@ export class SchemaResolver {
 	private schemas: OpenAPIV3.ComponentsObject['schemas'];
 	private parameters: OpenAPIV3.ComponentsObject['parameters'];
 	private referenceCache = new Map<string, string>();
+	/** 拼音名 → 原始 schema 名的反向映射，用于 transformResponseModel 查找 schemas */
+	private resolvedToOriginalName = new Map<string, string>();
 	private handleError: HandleErrorFn;
 
 	constructor(config: PathParseConfig, schemas: OpenAPIV3.ComponentsObject['schemas'], parameters: OpenAPIV3.ComponentsObject['parameters'], onError: HandleErrorFn) {
@@ -92,8 +94,14 @@ export class SchemaResolver {
 				typeName = refKey.replace(componentsPathEnum.definitions, '');
 			}
 
-			const fileName = typeNameToFileName(typeName);
+			const resolvedName = resolveSchemaName(typeName);
+			const fileName = typeNameToFileName(resolvedName);
 			const schema = this.schemas?.[typeName];
+
+			// 记录拼音名到原始名的映射，供 transformResponseModel 反查
+			if (containsChinese(typeName)) {
+				this.resolvedToOriginalName.set(resolvedName, typeName);
+			}
 			let isEnum = false;
 
 			if (schema && !('$ref' in schema)) {
@@ -109,9 +117,9 @@ export class SchemaResolver {
 				isEnum = regEnum.test(typeName);
 			}
 
-			const finalTypeName = isEnum ? getEnumTypeName(this.config, typeName) : typeName;
+			const finalTypeName = isEnum ? getEnumTypeName(this.config, resolvedName) : resolvedName;
 
-			const importStatement = isEnum ? `import('${this.config.importEnumPath}/${fileName}').${finalTypeName}` : `import('../models/${fileName}').${typeName}`;
+			const importStatement = isEnum ? `import('${this.config.importEnumPath}/${fileName}').${finalTypeName}` : `import('../models/${fileName}').${resolvedName}`;
 
 			this.referenceCache.set(refKey, importStatement);
 
@@ -212,8 +220,9 @@ export class SchemaResolver {
 					const importMatch = /^import\('([^']+)'\)\.(\w+)$/.exec(responseType);
 					if (importMatch) {
 						const [, _importPath, typeName] = importMatch;
-						// 查找对应的 schema
-						const schema = this.schemas?.[typeName];
+						// 查找对应的 schema（优先通过反向映射查找原始中文名称）
+						const originalName = this.resolvedToOriginalName.get(typeName) ?? typeName;
+						const schema = this.schemas?.[originalName];
 						if (schema && !('$ref' in schema)) {
 							const schemaObj = schema as SchemaObject;
 							// 如果有 properties 并且包含指定的 data 字段
