@@ -103,6 +103,10 @@
 				{
 					"path": "/op/product/deleteBatchProduct",
 					"method": "post"
+				},
+				{
+					"path": "/op/third_party_goods/saveThirdPartyGoodsSku",
+					"method": "POST"
 				}
 			],
 			"excludeInterface": [],
@@ -113,20 +117,6 @@
 				"type": "unwrap",
 				"dataField": "data"
 			}
-		},
-		{
-			"url": "./data/bff.json",
-			"apiListFileName": "index.ts",
-			"publicPrefix": "/api",
-			"headers": {},
-			"includeInterface": [],
-			"excludeInterface": [],
-			"dataLevel": "serve",
-			"parameterSeparator": "_",
-			"includeTags": [
-				"文件上传接口"
-			],
-			"excludeTags": []
 		}
 	]
 }

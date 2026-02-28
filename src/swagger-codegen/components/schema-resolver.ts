@@ -55,8 +55,15 @@ export class ComponentSchemaResolver {
 		const indent = getIndentation(this.config);
 		const lines: string[] = [];
 
-		if ('description' in schemaSource && schemaSource.description) {
-			schemaSource.description.split('\n').forEach((line) => lines.push(line));
+		const schemaRecord = schemaSource as Record<string, unknown>;
+		const title = schemaRecord.title as string | undefined;
+		const description = schemaRecord.description as string | undefined;
+
+		if (title) {
+			lines.push(`@title ${title}`);
+		}
+		if (description) {
+			description.split('\n').forEach((line, i) => lines.push(i === 0 ? `@description ${line}` : line));
 		}
 
 		if ('deprecated' in schemaSource && schemaSource.deprecated) {
