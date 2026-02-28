@@ -3,7 +3,7 @@ import type { OpenAPIV3 } from 'openapi-types';
 
 import { isValidJSON } from '../../utils';
 import { getIndentation } from '../shared/format';
-import { getEnumTypeName, typeNameToFileName } from '../shared/naming';
+import { getEnumTypeName, resolveSchemaName, typeNameToFileName } from '../shared/naming';
 import { nullableSuffix } from '../shared/schema-utils';
 import { EnumParser } from './enum-parser';
 
@@ -125,11 +125,12 @@ export class ComponentSchemaResolver {
 	}
 
 	private nameTheHumpCenterStroke(ref: string): { typeName: string; fileName: string; dataType: string | undefined } {
-		const typeName = ref.replace('#/components/schemas/', '');
+		const rawName = ref.replace('#/components/schemas/', '');
+		const typeName = resolveSchemaName(rawName);
 		const fileName = typeNameToFileName(typeName);
 		const returnData: { typeName: string; fileName: string; dataType: string | undefined } = { typeName, fileName, dataType: '' };
 		if (this.schemas) {
-			const data = this.schemas[typeName] as SchemaObject;
+			const data = this.schemas[rawName] as SchemaObject;
 			if (data?.enum) {
 				returnData.dataType = 'enum';
 			} else {
@@ -464,24 +465,26 @@ export class ComponentSchemaResolver {
 			}
 
 			if (Array.isArray((schema as NonArraySchemaObject).enum)) {
-				const enumResult = this.enumParser.parseEnum(schema as NonArraySchemaObject, key);
-				if (enumResult?.renderStr && !this.enumParser.hasEnum(key)) {
-					this.enumParser.addEnumByName(key, enumResult.renderStr);
+				const resolvedEnumKey = resolveSchemaName(key);
+				const enumResult = this.enumParser.parseEnum(schema as NonArraySchemaObject, resolvedEnumKey);
+				if (enumResult?.renderStr && !this.enumParser.hasEnum(resolvedEnumKey)) {
+					this.enumParser.addEnumByName(resolvedEnumKey, enumResult.renderStr);
 				}
 				continue;
 			}
 
 			this.requiredFieldSet = new Set(schema.required ?? []);
 
-			const fileName = typeNameToFileName(key);
-			const content = this.generateContent(schemaObject, key);
+			const resolvedKey = resolveSchemaName(key);
+			const fileName = typeNameToFileName(resolvedKey);
+			const content = this.generateContent(schemaObject, resolvedKey);
 			if (content) {
 				const isEnum = content.includes('export enum ') || (content.includes('export const ') && content.includes('as const'));
 
-				if (isEnum && !this.enumParser.hasEnum(key)) {
-					this.enumParser.addEnumByName(key, content);
+				if (isEnum && !this.enumParser.hasEnum(resolvedKey)) {
+					this.enumParser.addEnumByName(resolvedKey, content);
 				} else {
-					this.schemasMap.set(key, { fileName, content });
+					this.schemasMap.set(resolvedKey, { fileName, content });
 				}
 			}
 		}
