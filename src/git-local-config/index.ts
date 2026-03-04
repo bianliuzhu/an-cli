@@ -10,8 +10,8 @@ import { copyDirectoryRecursive, copyFileIfMissing, pathExists } from './utils';
  * 复制 git 配置文件
  */
 const copyGitConfigFiles = async () => {
-	// 运行时位置在 lib/git-local-config，向上三级到包根目录，再进入 postbuild-assets/git-local-config
-	const sourceRoot = path.join(__dirname, '..', '..', 'git-local-config');
+	// 运行时位置在 lib/git-local-config，资源文件与 index.cjs 同目录
+	const sourceRoot = __dirname;
 	const destRoot = process.cwd(); // 用户工程根目录
 
 	// 复制 .gitscripts 目录（递归）
@@ -58,8 +58,8 @@ const copyGitConfigFiles = async () => {
 };
 
 const copyCommitSubjectFiles = async () => {
-	// 运行时位置在 lib/git-local-config，向上三级到包根目录，再进入 postbuild-assets/git-local-config/.githooks
-	const sourceHooksDir = path.join(__dirname, '..', '..', 'git-local-config', '.githooks');
+	// 运行时位置在 lib/git-local-config，资源文件与 index.cjs 同目录
+	const sourceHooksDir = path.join(__dirname, '.githooks');
 	const destRoot = process.cwd(); // 用户工程根目录
 	const targetHooksDir = path.join(destRoot, '.githooks');
 
@@ -93,8 +93,8 @@ const copyCommitSubjectFiles = async () => {
 };
 
 const copyCustomGitCommandFiles = async () => {
-	// 运行时位置在 lib/git-local-config，向上三级到包根目录，再进入 postbuild-assets/git-local-config
-	const sourceRoot = path.join(__dirname, '..', '..', 'git-local-config');
+	// 运行时位置在 lib/git-local-config，资源文件与 index.cjs 同目录
+	const sourceRoot = __dirname;
 	const destRoot = process.cwd(); // 用户工程根目录
 
 	const sourceFilePath = path.join(sourceRoot, '.gitattributes');
