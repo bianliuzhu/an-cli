@@ -107,10 +107,6 @@ export class ComponentSchemaResolver {
 
 		if (!lines.length) return '';
 
-		if (lines.length === 1 && !lines[0].includes('\n')) {
-			return `${indent}/** ${lines[0]} */`;
-		}
-
 		const rendered = [`${indent}/**`];
 		lines.forEach((line) => {
 			if (!line) return;
