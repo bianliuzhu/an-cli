@@ -1,9 +1,9 @@
 {
 	"saveTypeFolderPath": "apps/types",
-	"saveApiListFolderPath": "apps/api/",
+	"saveApiListFolderPath": "apps/apis/",
 	"saveEnumFolderPath": "apps/enums",
 	"importEnumPath": "../../enums",
-	"requestMethodsImportPath": "./fetch",
+	"requestMethodsImportPath": "./config/fetch",
 	"formatting": {
 		"indentation": "\t",
 		"lineEnding": "\n"
@@ -16,97 +16,13 @@
 	},
 	"swaggerConfig": [
 		{
-			"url": "./data/op.json",
-			"apiListFileName": "op.ts",
+			"url": "./data/common.json",
+			"apiListFileName": "common.ts",
 			"headers": {},
 			"includeInterface": [
 				{
-					"path": "/op/trade/order/queryPage",
+					"path": "/op/file/uploadZipFile",
 					"method": "post"
-				},
-				{
-					"path": "/op/trade/order/getOrderEnums",
-					"method": "get"
-				},
-				{
-					"path": "/op/trade/order/createOrder",
-					"method": "post"
-				},
-				{
-					"path": "/op/trade/refund_order/deductBenefit",
-					"method": "get"
-				},
-				{
-					"path": "/op/trade/refund_order/queryPage",
-					"method": "post"
-				},
-				{
-					"path": "/op/trade/event/getMessageEventEnums",
-					"method": "get"
-				},
-				{
-					"path": "/op/trade/event/queryPage",
-					"method": "post"
-				},
-				{
-					"path": "/op/trade/event/processEvent",
-					"method": "get"
-				},
-				{
-					"path": "/op/trade/refund_order/createOrder",
-					"method": "post"
-				},
-				{
-					"path": "/app/trade/benefit-config/getAllChannelConfigs",
-					"method": "get"
-				},
-				{
-					"path": "/op/product/pageProduct",
-					"method": "post"
-				},
-				{
-					"path": "/op/product/pageProduct",
-					"method": "get"
-				},
-				{
-					"path": "/op/product/listProduct",
-					"method": "post"
-				},
-				{
-					"path": "/op/product/listProduct",
-					"method": "get"
-				},
-				{
-					"path": "/op/product/updateProductById",
-					"method": "post"
-				},
-				{
-					"path": "/op/product/updateBatchProduct",
-					"method": "post"
-				},
-				{
-					"path": "/op/product/saveProduct",
-					"method": "post"
-				},
-				{
-					"path": "/op/product/saveBatchProduct",
-					"method": "post"
-				},
-				{
-					"path": "/op/product/fileBatchProduct",
-					"method": "post"
-				},
-				{
-					"path": "/op/product/deleteProductById",
-					"method": "get"
-				},
-				{
-					"path": "/op/product/deleteBatchProduct",
-					"method": "post"
-				},
-				{
-					"path": "/op/third_party_goods/saveThirdPartyGoodsSku",
-					"method": "POST"
 				}
 			],
 			"excludeInterface": [],

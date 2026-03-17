@@ -15,7 +15,10 @@
 
 - Update the configuration file according to your needs, then execute the `anl type` command again, and it will generate corresponding type information according to the specified configuration information in the configuration file
 
-- If files like 'config.ts', 'error-message.ts', 'fetch.ts', 'api-type.d.ts' exist, they will not be regenerated
+- On first generation, a `config/` directory will be created under `saveApiListFolderPath`, containing axios request wrapper/config files:
+  - `dio.ts`, `error-message.ts`, `fetch.ts`, `api-type.d.ts`
+  - These filenames can be modified(Not recommended modified), can modify the file contents（but not recommended modified）
+  - **Directory-level rule**: if `saveApiListFolderPath/config/` already exists locally, the tool will skip generating this folder and all files inside it; if it doesn't exist, it will recreate the folder and generate the files
 
 > [!NOTE]
 >
@@ -39,7 +42,7 @@ $ anl type
 	"saveApiListFolderPath": "apps/api/",
 	"saveEnumFolderPath": "apps/enums",
 	"importEnumPath": "../../enums",
-	"requestMethodsImportPath": "./fetch",
+	"requestMethodsImportPath": "./config/fetch",
 	"formatting": {
 		"indentation": "\t",
 		"lineEnding": "\n"
@@ -79,7 +82,7 @@ $ anl type
 	"saveApiListFolderPath": "apps/api/",
 	"saveEnumFolderPath": "apps/enums",
 	"importEnumPath": "../../enums",
-	"requestMethodsImportPath": "./fetch",
+	"requestMethodsImportPath": "./config/fetch",
 	"dataLevel": "serve",
 	"formatting": {
 		"indentation": "\t",
@@ -127,7 +130,7 @@ $ anl type
 | saveEnumFolderPath                                   | string                                                                          | Yes      | Enum data file save path                                                                                                                                                                                                                                                                                                                                                                                     |
 | importEnumPath                                       | string                                                                          | Yes      | Enum import path (path referenced by enum files in apps/types/models/\*.ts)                                                                                                                                                                                                                                                                                                                                  |
 | swaggerJsonUrl                                       | string                                                                          | No       | Swagger JSON documentation address (migrated to `swaggerConfig`, retained for backward compatibility) **This field will be removed in future versions**                                                                                                                                                                                                                                                      |
-| swaggerConfig                                        | object \| Array<object>                                                         | No       | Swagger server configuration. Single server can be an object, multiple servers use an array. Each server can configure `url`, `publicPrefix`, `modulePrefix`, `apiListFileName`, `headers`, `dataLevel`, `parameterSeparator`, `includeInterface`, `excludeInterface`, `includeTags`, `excludeTags`, `responseModelTransform`<br />See single and multiple Swagger server configuration examples above                                     |
+| swaggerConfig                                        | object \| Array<object>                                                         | No       | Swagger server configuration. Single server can be an object, multiple servers use an array. Each server can configure `url`, `publicPrefix`, `modulePrefix`, `apiListFileName`, `headers`, `dataLevel`, `parameterSeparator`, `includeInterface`, `excludeInterface`, `includeTags`, `excludeTags`, `responseModelTransform`<br />See single and multiple Swagger server configuration examples above       |
 | swaggerConfig[].url                                  | string                                                                          | Yes      | Swagger JSON documentation address                                                                                                                                                                                                                                                                                                                                                                           |
 | swaggerConfig[].publicPrefix                         | string                                                                          | No       | Common prefix on url path, e.g.: api/users, api/users/{id}, api is the common prefix                                                                                                                                                                                                                                                                                                                         |
 | swaggerConfig[].apiListFileName                      | string                                                                          | No       | API list file name, defaults to `index.ts`. When using multiple servers, each server's file name must be unique                                                                                                                                                                                                                                                                                              |
@@ -137,8 +140,8 @@ $ anl type
 | swaggerConfig[].parameterSeparator                   | '$' \| '\_'                                                                     | No       | Separator used when generating API names and type names for this server. If not set, uses global `parameterSeparator` configuration                                                                                                                                                                                                                                                                          |
 | swaggerConfig[].includeInterface                     | Array<{path: string, method: string, dataLevel?: 'data' \| 'serve' \| 'axios'}> | No       | List of interfaces to include for this server. Each interface can configure `dataLevel` individually with the highest priority. If not set, uses global `includeInterface` configuration                                                                                                                                                                                                                     |
 | swaggerConfig[].excludeInterface                     | Array<{path: string, method: string}>                                           | No       | List of interfaces to exclude for this server. If not set, uses global `excludeInterface` configuration                                                                                                                                                                                                                                                                                                      |
-| swaggerConfig[].includeTags                         | string[]                                                                        | No       | Interfaces to include by OpenAPI tag for this server. Mutually exclusive with `excludeTags`; applied after interface-level `includeInterface`/`excludeInterface`. See [Interface Filtering by Tag](#interface-filtering-by-tag)                                                                                                                                                                                |
-| swaggerConfig[].excludeTags                         | string[]                                                                        | No       | Interfaces to exclude by OpenAPI tag for this server. Mutually exclusive with `includeTags`; applied after interface-level filtering. See [Interface Filtering by Tag](#interface-filtering-by-tag)                                                                                                                                                                                                            |
+| swaggerConfig[].includeTags                          | string[]                                                                        | No       | Interfaces to include by OpenAPI tag for this server. Mutually exclusive with `excludeTags`; applied after interface-level `includeInterface`/`excludeInterface`. See [Interface Filtering by Tag](#interface-filtering-by-tag)                                                                                                                                                                              |
+| swaggerConfig[].excludeTags                          | string[]                                                                        | No       | Interfaces to exclude by OpenAPI tag for this server. Mutually exclusive with `includeTags`; applied after interface-level filtering. See [Interface Filtering by Tag](#interface-filtering-by-tag)                                                                                                                                                                                                          |
 | swaggerConfig[].responseModelTransform               | object                                                                          | No       | Response model transformation configuration for this server. Supports three modes: `unwrap` (extract response model), `wrap` (add response model), `replace` (replace response model). If not set, uses global `responseModelTransform` configuration. See [Response Model Transform](#response-model-transform)                                                                                             |
 | swaggerConfig[].responseModelTransform.type          | `'unwrap'` \| `'wrap'` \| `'replace'`                                           | Yes      | Response model transformation type. `unwrap`: Extract data field from response wrapper; `wrap`: Add unified wrapper structure to original response; `replace`: Replace response with custom type. See [Scenario 1](#scenario-1-add-response-model-to-interfaces-without-one-wrap), [Scenario 2](#scenario-2-remove-existing-response-model-unwrap), [Scenario 3](#scenario-3-replace-response-model-replace) |
 | swaggerConfig[].responseModelTransform.dataField     | string                                                                          | No       | Data field name for `unwrap` and `wrap` modes, defaults to `"data"`                                                                                                                                                                                                                                                                                                                                          |
@@ -154,7 +157,7 @@ $ anl type
 | includeInterface                                     | Array<{path: string, method: string, dataLevel?: 'data' \| 'serve' \| 'axios'}> | No       | Global included interfaces: The interface list file specified by `saveApiListFolderPath` will only include interfaces in the list, mutually exclusive with `excludeInterface` field. Each interface can configure `dataLevel` individually. Each server can override individually                                                                                                                            |
 | excludeInterface                                     | Array<{path: string, method: string}>                                           | No       | Global excluded interfaces: The interface list file specified by `saveApiListFolderPath` will not include interfaces in this list, mutually exclusive with `includeInterface`. Each server can override individually                                                                                                                                                                                         |
 | includeTags                                          | string[]                                                                        | No       | Global interfaces to include by OpenAPI tag. Mutually exclusive with `excludeTags`; applied after interface-level filtering. Each server can override. See [Interface Filtering by Tag](#interface-filtering-by-tag)                                                                                                                                                                                         |
-| excludeTags                                          | string[]                                                                        | No       | Global interfaces to exclude by OpenAPI tag. Mutually exclusive with `includeTags`. Each server can override. See [Interface Filtering by Tag](#interface-filtering-by-tag)                                                                                                                                                                                                  |
+| excludeTags                                          | string[]                                                                        | No       | Global interfaces to exclude by OpenAPI tag. Mutually exclusive with `includeTags`. Each server can override. See [Interface Filtering by Tag](#interface-filtering-by-tag)                                                                                                                                                                                                                                  |
 | publicPrefix                                         | string                                                                          | No       | Global common prefix on url path (migrated to `swaggerConfig`, retained for backward compatibility)                                                                                                                                                                                                                                                                                                          |
 | modulePrefix                                         | string                                                                          | No       | Global request path prefix (each server can override individually)                                                                                                                                                                                                                                                                                                                                           |
 | apiListFileName                                      | string                                                                          | No       | Global API list file name, defaults to `index.ts` (migrated to `swaggerConfig`, retained for backward compatibility)                                                                                                                                                                                                                                                                                         |
@@ -179,10 +182,11 @@ project/
 │   └── api/                 		# Request files: Specified by saveApiListFolderPath configuration item
 │   │    └── index.ts        				# API request function list (single server or first server) uncontrolled
 │   │    └── op.ts           				# Other servers' API list files when using multiple servers uncontrolled
-│   │    └── api-type.d.ts      		# Request type definition file uncontrolled
-│   │    └── config.ts       				# Request, response interceptor, request configuration uncontrolled
-│   │    └── error-message.ts   		# System-level error messages uncontrolled
-│   │    ├── fetch.ts        				# Axios request encapsulation, can be replaced with fetch uncontrolled
+│   │    └── config/         				# axios wrapper config folder (skipped if exists)
+│   │         ├── api-type.d.ts     		# Request type definition file uncontrolled
+│   │         ├── dio.ts           		# Axios instance & interceptors uncontrolled
+│   │         ├── error-message.ts  		# System-level error messages uncontrolled
+│   │         └── fetch.ts         		# Request wrapper, can be replaced with fetch uncontrolled
 │   └── enums/               		# Enum data type definitions: Specified by saveEnumFolderPath configuration item
 ```
 
@@ -951,7 +955,7 @@ declare namespace ApiActivityServicevisitServiceVisitId_GET {
 - Usually need to define custom types in `api-type.d.ts`:
 
 ```typescript
-// apps/api/api-type.d.ts
+// apps/api/config/api-type.d.ts
 type ApiResponse<T> = {
 	code: number;
 	message: string;
@@ -968,7 +972,7 @@ type ApiResponse<T> = {
 	"saveApiListFolderPath": "apps/api/",
 	"saveEnumFolderPath": "apps/enums",
 	"importEnumPath": "../../enums",
-	"requestMethodsImportPath": "./fetch",
+	"requestMethodsImportPath": "./config/fetch",
 	"formatting": {
 		"indentation": "\t",
 		"lineEnding": "\n"
@@ -1092,7 +1096,7 @@ If your backend APIs use a unified response format, it's recommended to:
 
 **2. Use with api-type.d.ts**
 
-Define unified response types in `apps/api/api-type.d.ts`:
+Define unified response types in `apps/api/config/api-type.d.ts`:
 
 ```typescript
 type ResponseModel<T> = {
@@ -1145,7 +1149,7 @@ Response model transformation occurs during the type generation phase, the speci
 
 1. Ensure the Swagger JSON documentation address is accessible
 2. Paths in the configuration file need to be relative to the project root directory
-3. Generated files will overwrite existing files with the same name (but `config.ts`, `error-message.ts`, `fetch.ts`, `api-type.d.ts` will not be overwritten if they already exist)
+3. Generated files will overwrite existing files with the same name (but if `saveApiListFolderPath/config/` already exists, `dio.ts`, `error-message.ts`, `fetch.ts`, `api-type.d.ts` inside it will not be regenerated)
 4. It's recommended to add generated files to version control
 5. When using multiple Swagger servers, ensure each server's `apiListFileName` is unique to avoid file overwriting
 6. When configuring multiple servers, type definitions and enums will be merged. If different servers have types with the same name, conflicts may occur
@@ -1246,7 +1250,7 @@ Response model transformation occurs during the type generation phase, the speci
    - Or use `excludeInterface` to exclude unwanted interfaces
 
 8. **What if generated files are overwritten?**
-   - Files like `config.ts`, `error-message.ts`, `fetch.ts`, `api-type.d.ts` are only generated when they don't exist
+   - The `saveApiListFolderPath/config/` folder is only generated when it doesn't exist (including `dio.ts`, `error-message.ts`, `fetch.ts`, `api-type.d.ts`)
    - API list files and type files are regenerated each time
    - It's recommended to add generated files to version control for easy tracking of changes
 
