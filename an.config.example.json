@@ -1,9 +1,9 @@
 {
 	"saveTypeFolderPath": "apps/types",
-	"saveApiListFolderPath": "apps/api/",
+	"saveApiListFolderPath": "apps/apis/",
 	"saveEnumFolderPath": "apps/enums",
 	"importEnumPath": "../../enums",
-	"requestMethodsImportPath": "./fetch",
+	"requestMethodsImportPath": "./config/fetch",
 	"formatting": {
 		"indentation": "\t",
 		"lineEnding": "\n"

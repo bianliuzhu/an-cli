@@ -21,11 +21,11 @@ interface ExecResult {
 const isDebug = process.env.NODE_ENV === 'debug';
 
 const configContent: ConfigType = {
-	saveTypeFolderPath: isDebug ? 'apps/types' : 'src/api/types',
-	saveApiListFolderPath: isDebug ? 'apps/types' : 'src/api',
-	saveEnumFolderPath: isDebug ? 'apps/types/enums' : 'src/enums',
+	saveTypeFolderPath: isDebug ? 'apps/types' : 'src/types',
+	saveApiListFolderPath: isDebug ? 'apps/types' : 'src/apis',
+	saveEnumFolderPath: isDebug ? 'apps/enums' : 'src/enums',
 	importEnumPath: '../../../enums',
-	requestMethodsImportPath: './fetch',
+	requestMethodsImportPath: './config/fetch',
 	formatting: {
 		indentation: '\t',
 		lineEnding: '\n',
@@ -121,34 +121,34 @@ export class Main {
 	 * 复制 AJAX 配置文件
 	 */
 	private async copyAjaxConfigFiles(saveApiListFolderPath: string) {
+		const filesToCopy = ['dio.ts', 'error-message.ts', 'fetch.ts', 'api-type.d.ts'];
+		const sourceDir = isDebug ? path.join(__dirname, '..', '..', 'postbuild-assets', 'ajax-config') : path.join(__dirname, '..', 'ajax-config');
+		const destDir = path.join(saveApiListFolderPath, 'config');
+
+		// 若用户本地已存在 config 文件夹，则整体跳过生成
 		try {
-			const filesToCopy = ['config.ts', 'error-message.ts', 'fetch.ts', 'api-type.d.ts'];
-			const sourceDir = isDebug ? path.join(__dirname, '..', '..', 'postbuild-assets', 'ajax-config') : path.join(__dirname, '..', 'ajax-config');
-			const destDir = saveApiListFolderPath;
+			await fs.promises.access(destDir);
+			log.info(`config folder already exists at ${destDir}, skipping generation.`);
+			return;
+		} catch {
+			await fs.promises.mkdir(destDir, { recursive: true });
+		}
 
-			for (const file of filesToCopy) {
-				const sourceFile = path.join(sourceDir, file);
-				const destFile = path.join(destDir, file);
+		for (const file of filesToCopy) {
+			const sourceFile = path.join(sourceDir, file);
+			const destFile = path.join(destDir, file);
 
-				try {
-					await fs.promises.access(sourceFile);
-					try {
-						await fs.promises.access(destFile);
-						log.info(`${file} already exists, skipping generation.`);
-					} catch {
-						await fs.promises.copyFile(sourceFile, destFile);
-						log.success(`${file} create done.`);
-					}
-				} catch (error: unknown) {
-					if (error instanceof Error) {
-						log.error(`Source file ${sourceFile} does not exist`);
-						throw new Error(`Source file ${sourceFile} does not exist: ${error.message}`);
-					}
-					continue;
+			try {
+				await fs.promises.access(sourceFile);
+				await fs.promises.copyFile(sourceFile, destFile);
+				log.success(`${file} create done.`);
+			} catch (error: unknown) {
+				if (error instanceof Error) {
+					log.error(`Source file ${sourceFile} does not exist`);
+					throw new Error(`Source file ${sourceFile} does not exist: ${error.message}`);
 				}
+				throw new Error(`Source file ${sourceFile} does not exist: unknown error`);
 			}
-		} catch (error) {
-			return error;
 		}
 	}
 
@@ -356,7 +356,7 @@ export class Main {
 
 			// 清理文件夹
 			// 清理 API 文件夹，但保留配置文件
-			await clearDirExcept(mergedConfig.saveApiListFolderPath, ['api-type.d.ts', 'config.ts', 'error-message.ts', 'fetch.ts']);
+			await clearDirExcept(mergedConfig.saveApiListFolderPath, ['config']);
 			await clearDir(mergedConfig.saveTypeFolderPath);
 			await clearDir(mergedConfig.saveEnumFolderPath);
 

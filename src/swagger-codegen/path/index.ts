@@ -305,7 +305,7 @@ export class PathParse {
 					if (result.length === 0) {
 						return [`${indent}type Body = ${nonArraySchemaObject.type};`];
 					} else {
-						return [`${indent}interface Body {`, ...result.map((item) => item.replace(/: string;/, ': File;')), `}`];
+						return [`${indent}interface Body {`, ...result, `}`];
 					}
 				} else {
 					return [`${indent}type Body = ${result}`];
