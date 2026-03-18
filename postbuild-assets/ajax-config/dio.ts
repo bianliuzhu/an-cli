@@ -1,14 +1,13 @@
-import type { AxiosInstance } from 'axios';
+import type { AxiosInstance } from 'axios'; // 默认 axios 可以替换成 fetch
 
-import axios from 'axios';
+import axios from 'axios'; // 默认 axios 可以替换成 fetch
 
-import { message } from 'antd/message';
+import { message } from 'antd/message'; // 可以替换成项目中现有的提示组件
 
-const { VITE_API_URL, VITE_API_PROXY, VITE_PUBLIC_PATH } = import.meta.env;
+const { VITE_API_URL, VITE_API_PROXY, PROD } = import.meta.env; // import.meta.env 来自环境变量 可以是 process.env.NODE_ENV
 
-const HTTP_PROXY = `${VITE_PUBLIC_PATH}${VITE_API_PROXY}`;
 // 基础URL
-export const BASE_URL = process.env.NODE_ENV === 'production' ? VITE_API_URL : HTTP_PROXY;
+export const BASE_URL = PROD ? VITE_API_URL : VITE_API_PROXY;
 
 export const dio: AxiosInstance = axios.create({
 	// 设置baseUr地址,如果通过proxy跨域可直接填写base地址
@@ -50,7 +49,12 @@ export const dio: AxiosInstance = axios.create({
 		return true;
 	},
 });
-// 请求拦截
+
+/**
+ * 请求拦截
+ * @param config 请求配置
+ * @returns 请求配置
+ */
 dio.interceptors.request.use(
 	(config) => {
 		config.headers['Authorization'] = `Bearer 【auth -> replace】`;
@@ -61,7 +65,11 @@ dio.interceptors.request.use(
 	},
 );
 
-// 响应拦截
+/**
+ * 响应拦截
+ * @param response 响应数据
+ * @returns 响应数据
+ */
 dio.interceptors.response.use(
 	(response) => {
 		// 对响应数据做处理，例如只返回data部分

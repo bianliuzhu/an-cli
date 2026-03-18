@@ -1,3 +1,9 @@
+/**
+ * 只需要 导出 GET DELETE PUT POST PATCH OPTIONS HEAD SEARCH 这些请求方法即可，至于 方法内使用 axios 还是 fetch ，由 dio.ts 中的 dio 实例决定的
+ * 请注意，方法的参数和返回值类型，请参考 dio.ts 中的 dio 实例的类型定义
+ * 请注意实现函数重载，参数和返回值类型需要匹配
+ */
+
 import type { AxiosResponse } from 'axios';
 
 import { dio } from './dio';
