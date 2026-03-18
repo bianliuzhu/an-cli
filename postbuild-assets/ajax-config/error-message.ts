@@ -27,6 +27,8 @@ export const messageTip = ({ data }: AxiosResponse<ResponseModel<unknown>>) => {
 
 	if (skipTipCode.includes(code)) return;
 
+	// 以下的代码是根据 code 码范围来显示不同的提示信息，请根据实际需求修改
+
 	/**
 	 * 信息提示范围
 	 */
