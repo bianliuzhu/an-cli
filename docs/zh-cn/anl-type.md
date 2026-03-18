@@ -32,6 +32,46 @@
 $ anl type
 ```
 
+#### 生成结束后输出接口列表（便于复制配置）
+
+`anl type` 支持在**整个生成流程结束后**，将接口列表输出到控制台，输出格式与 `an.config.json` 中的 `includeInterface` / `excludeInterface` 一致，方便直接复制粘贴。
+
+##### 输出「Swagger 中存在但未生成」的接口（推荐）
+
+```bash
+$ anl type -s miss
+```
+
+- **含义**：Swagger/OpenAPI 中存在，但最终没有被生成到 API 文件中的接口（即「缺失/被过滤」接口）
+- **输出用途**：可直接作为 `excludeInterface` 配置项内容
+
+##### 输出「最终会生成」的接口
+
+```bash
+$ anl type -s gen
+```
+
+- **含义**：最终被生成到 API 文件中的接口（即实际生成集合）
+- **输出用途**：可直接作为 `includeInterface` 配置项内容
+
+##### 参数说明
+
+- **参数**：`-s, --show <what>`
+- **可选值**：
+  - `miss`：输出未生成接口（别名：`missing` / `m` / `exclude` / `x`）
+  - `gen`：输出最终生成接口（别名：`generated` / `g` / `include` / `i`）
+
+##### 输出示例
+
+```json
+[
+  {
+    "path": "/op/file/uploadZipFile",
+    "method": "post"
+  }
+]
+```
+
 ### 配置文件详解
 
 #### 配置文件示例

@@ -56,7 +56,7 @@ export class Main {
 	/**
 	 * 处理 Swagger 数据
 	 */
-	private async handle(config: ConfigType, appendMode: boolean) {
+	private async handle(config: ConfigType, appendMode: boolean, show?: 'miss' | 'gen'): Promise<{ path: string; method: string }[] | null> {
 		try {
 			// 无论是否为调试模式，都优先按配置从 swaggerConfig.url 获取数据
 			// 若需要本地调试示例数据，可以在 an.config.json 中将 swaggerConfig.url
@@ -76,7 +76,9 @@ export class Main {
 			await components.handle();
 			await paths.handle();
 
-			return true;
+			if (show === 'gen') return paths.getGeneratedInterfacesForOutput();
+			if (show === 'miss') return paths.getMissingInterfacesForOutput();
+			return null;
 		} catch (error: unknown) {
 			if (error instanceof Error) {
 				throw new Error(`Handle Swagger data failed: ${error.message}`);
@@ -337,7 +339,7 @@ export class Main {
 		}
 	}
 
-	async initialize(): Promise<void> {
+	async initialize(show?: 'miss' | 'gen'): Promise<void> {
 		const configFilePath = process.cwd() + '/an.config.json';
 
 		try {
@@ -360,11 +362,14 @@ export class Main {
 			await clearDir(mergedConfig.saveTypeFolderPath);
 			await clearDir(mergedConfig.saveEnumFolderPath);
 
+			const showSummary: { serverUrl: string; list: { path: string; method: string }[] }[] = [];
+
 			// 逐个 swagger 服务生成
 			for (let i = 0; i < servers.length; i++) {
 				const serverConfig = this.buildServerConfig(mergedConfig, servers[i]);
 				const appendMode = i > 0;
-				await this.handle(serverConfig, appendMode);
+				const list = await this.handle(serverConfig, appendMode, show);
+				if (show && list) showSummary.push({ serverUrl: servers[i].url, list });
 			}
 
 			// 对生成文件进行格式化
@@ -372,6 +377,16 @@ export class Main {
 
 			log.success('Successfully, all done, see you next time!');
 			console.log('\n');
+
+			if (show && showSummary.length > 0) {
+				const label = show === 'miss' ? 'excludeInterface' : 'includeInterface';
+				for (const { serverUrl, list } of showSummary) {
+					if (servers.length > 1) console.log(chalk.cyan(`\n[${label}] ${serverUrl}`));
+					else console.log(chalk.cyan(`\n[${label}]`));
+					console.log(JSON.stringify(list, null, 2));
+				}
+				console.log('\n');
+			}
 		} catch (error: unknown) {
 			const message = error instanceof Error ? error.message : 'Unknown error';
 			log.error(`Initialization failed: ${message}`);

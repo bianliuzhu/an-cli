@@ -12,9 +12,17 @@ program.version(`${data.version}`, '-v --version').usage('<command> [options]');
 program
 	.command('type')
 	.description('auto interface')
-	.action(() => {
+	.option('-s, --show <what>', 'show interface list after generation: miss | gen')
+	.action((options: { show?: string }) => {
+		const raw = (options.show ?? '').toLowerCase().trim();
+		const show =
+			raw === 'miss' || raw === 'missing' || raw === 'm' || raw === 'exclude' || raw === 'x'
+				? 'miss'
+				: raw === 'gen' || raw === 'generated' || raw === 'g' || raw === 'include' || raw === 'i'
+					? 'gen'
+					: undefined;
 		const Instance = new Main();
-		Instance.initialize().catch((error) => {
+		Instance.initialize(show).catch((error) => {
 			console.error(error);
 		});
 	});
