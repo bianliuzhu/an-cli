@@ -86,6 +86,8 @@ export class PathParse {
 	private apiListFileContent: string[] = [];
 	/** 5 步过滤后的允许生成的接口 key 集合，格式为 pathKey|METHOD */
 	private allowedInterfaceKeys = new Set<string>();
+	/** swagger 中全量接口 key（pathKey|METHOD），用于输出 missing/generated 列表 */
+	private allInterfaceKeys = new Set<string>();
 
 	constructor(pathsObject: OpenAPIV3.PathsObject, parameters: OpenAPIV3.ComponentsObject['parameters'], schemas: OpenAPIV3.ComponentsObject['schemas'], config: PathParseConfig) {
 		this.pathsObject = pathsObject;
@@ -499,6 +501,9 @@ export class PathParse {
 			}
 		}
 
+		// 记录 swagger 全量接口 key，供后续输出差集
+		this.allInterfaceKeys = new Set(entries.map((e) => e.key));
+
 		// 1. 模块排除 → result1
 		let result1: Set<string>;
 		if (this.config.excludeTags && this.config.excludeTags.length > 0) {
@@ -644,6 +649,23 @@ export class PathParse {
 				throw error;
 			}
 		}
+	}
+
+	/** 返回最终生成的接口列表（可粘贴为 includeInterface） */
+	getGeneratedInterfacesForOutput(): { path: string; method: string }[] {
+		return [...this.allowedInterfaceKeys].sort().map((key) => {
+			const sepIndex = key.lastIndexOf('|');
+			return { path: key.slice(0, sepIndex), method: key.slice(sepIndex + 1).toLowerCase() };
+		});
+	}
+
+	/** 返回没有被生成的接口列表（Swagger 有，但最终未生成；可粘贴为 excludeInterface） */
+	getMissingInterfacesForOutput(): { path: string; method: string }[] {
+		const missing = [...this.allInterfaceKeys].filter((key) => !this.allowedInterfaceKeys.has(key)).sort();
+		return missing.map((key) => {
+			const sepIndex = key.lastIndexOf('|');
+			return { path: key.slice(0, sepIndex), method: key.slice(sepIndex + 1).toLowerCase() };
+		});
 	}
 }
 

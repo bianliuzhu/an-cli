@@ -30,6 +30,46 @@
 $ anl type
 ```
 
+#### Print interface list after generation (copy-friendly)
+
+`anl type` can print an interface list **after the whole generation finishes**. The output format matches `includeInterface` / `excludeInterface` in `an.config.json`, so you can copy & paste directly.
+
+##### Print interfaces that exist in Swagger but were NOT generated (recommended)
+
+```bash
+$ anl type -s miss
+```
+
+- **Meaning**: Interfaces that exist in Swagger/OpenAPI but were not generated into API files (missing/filtered)
+- **Use case**: Can be pasted into `excludeInterface`
+
+##### Print interfaces that WILL be generated
+
+```bash
+$ anl type -s gen
+```
+
+- **Meaning**: Interfaces that are actually generated into API files
+- **Use case**: Can be pasted into `includeInterface`
+
+##### Option
+
+- **Option**: `-s, --show <what>`
+- **Values**:
+  - `miss`: print missing interfaces (aliases: `missing` / `m` / `exclude` / `x`)
+  - `gen`: print generated interfaces (aliases: `generated` / `g` / `include` / `i`)
+
+##### Output example
+
+```json
+[
+  {
+    "path": "/op/file/uploadZipFile",
+    "method": "post"
+  }
+]
+```
+
 ### Configuration File Details
 
 #### Configuration File Example
