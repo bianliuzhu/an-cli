@@ -314,23 +314,56 @@ export class ComponentSchemaResolver {
 				continue;
 			}
 
-			if ('allOf' in schemaSource) {
-				const V1 = schemaSource.allOf?.[0] as ReferenceObject;
-				if (V1?.$ref) {
-					const { headerRefStr, typeName, dataType } = this.parseRef(V1.$ref);
-					const finalTypeName = dataType === 'enum' ? getEnumTypeName(this.config, typeName) : typeName;
+			if ('allOf' in schemaSource || 'anyOf' in schemaSource || 'oneOf' in schemaSource) {
+				const compositeKey = schemaSource.allOf?.length ? 'allOf' : schemaSource.anyOf?.length ? 'anyOf' : schemaSource.oneOf?.length ? 'oneOf' : null;
 
-					if (!headerRef.includes(headerRefStr) && typeName !== interfaceKey) headerRef.push(headerRefStr);
+				if (compositeKey) {
+					const separator = compositeKey === 'allOf' ? ' & ' : ' | ';
+					const items = schemaSource[compositeKey]!;
+					const typeNames: string[] = [];
 
-					const schema = schemaSource;
-					const comment = this.buildDocComment(schema as NonArraySchemaObject, name);
-					if (comment !== '') {
-						content.push(comment);
+					for (const item of items) {
+						if ((item as ReferenceObject)?.$ref) {
+							const { headerRefStr, typeName, dataType } = this.parseRef((item as ReferenceObject).$ref);
+							const finalTypeName = dataType === 'enum' ? getEnumTypeName(this.config, typeName) : typeName;
+							if (!headerRef.includes(headerRefStr) && typeName !== interfaceKey) headerRef.push(headerRefStr);
+							typeNames.push(finalTypeName);
+						} else {
+							const inlineSchema = item as SchemaObject;
+							switch (inlineSchema.type) {
+								case 'string':
+									typeNames.push('string');
+									break;
+								case 'number':
+								case 'integer':
+									typeNames.push('number');
+									break;
+								case 'boolean':
+									typeNames.push('boolean');
+									break;
+								case 'array':
+									typeNames.push('unknown[]');
+									break;
+								case 'object':
+									typeNames.push('Record<string, unknown>');
+									break;
+								default:
+									typeNames.push('unknown');
+									break;
+							}
+						}
 					}
 
-					content.push(`${getIndentation(this.config)}${name}${this.isRequired(name) ? '' : '?'}: ${finalTypeName}${this.nullable(schemaSource.nullable)};`);
+					if (typeNames.length > 0) {
+						const comment = this.buildDocComment(schemaSource as NonArraySchemaObject, name);
+						if (comment !== '') content.push(comment);
 
-					continue;
+						const compositeType = typeNames.join(separator);
+						const needsParens = typeNames.length > 1 && schemaSource.nullable;
+						const finalType = needsParens ? `(${compositeType})` : compositeType;
+						content.push(`${getIndentation(this.config)}${name}${this.isRequired(name) ? '' : '?'}: ${finalType}${this.nullable(schemaSource.nullable)};`);
+						continue;
+					}
 				}
 			}
 
