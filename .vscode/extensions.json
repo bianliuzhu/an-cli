@@ -32,6 +32,6 @@
 		/**
 		 * 主题
 		 */
-		"emmanuelbeziat.vscode-great-icons" // 图标主题
+		"emmanuelbeziat.vscode-icons" // 图标主题
 	]
 }
