@@ -6,10 +6,11 @@
   - gitflow standard branch creation
     - Copies `.gitscripts/`, `.gitconfig`, `.commit-type.cjs` to the project (only when missing)
     - Adds executable permissions to `.gitscripts/random-branch.sh`
-    - Executes `git config --local include.path ../.gitconfig`
+    - Executes `git config --local --replace-all include.path <absolute-project-path>/.gitconfig`
   - Automatic commit subject setting
-    - Copies `.githooks/commit-msg` and sets it as executable
-    - Executes `git config core.hooksPath .githooks`
+    - Overwrites `.githooks/commit-msg` and `.githooks/pre-commit` with latest scripts, and sets them as executable
+    - Ensures `.commit-type.cjs` exists (creates it if missing)
+    - Executes `git config --local --replace-all core.hooksPath .githooks`
   - Custom git commands
     - Adds `.gitattributes` to the project (only when missing)
 
@@ -19,7 +20,12 @@
 $ anl git
 ```
 
-Select one or more features in the prompts. Files are only created when they don't exist; existing files are preserved.
+Select one or more features in the prompts. Except scripts under `.githooks` (which are updated to the latest version), files are only created when missing.
+
+When required dependencies are missing, the CLI prints one-command fix hints:
+
+- If `gitflow` is selected and `jq` is missing: install `jq`
+- If `commitSubject` is selected and `commitlint`/`lint-staged` are missing: install command is suggested based on lockfile (`pnpm`/`yarn`/`npm`)
 
 ### `.commit-type.cjs` and Commit Type Customization
 
@@ -55,11 +61,11 @@ module.exports = { types };
 
 **Field descriptions:**
 
-| Field         | Description                                                                 |
-| ------------- | --------------------------------------------------------------------------- |
-| `description` | Short description of the type, used in the interactive type selector.      |
-| `title`       | Display title for the type.                                                 |
-| `emoji`       | Optional emoji associated with the type.                                   |
+| Field         | Description                                                                                 |
+| ------------- | ------------------------------------------------------------------------------------------- |
+| `description` | Short description of the type, used in the interactive type selector.                       |
+| `title`       | Display title for the type.                                                                 |
+| `emoji`       | Optional emoji associated with the type.                                                    |
 | `subject`     | Prefix written into the commit message; must match CommitLint (e.g. `feat`, `fix`, `docs`). |
 
 You can add, remove, or change entries under `types` to match your team's conventions; after saving, the commit type picker will use the updated list.
@@ -70,6 +76,6 @@ You can add, remove, or change entries under `types` to match your team's conven
 - If automatically executed git config fails, please execute manually:
 
 ```bash
-git config --local include.path ../.gitconfig
-git config core.hooksPath .githooks
+git config --local --replace-all include.path "$(pwd)/.gitconfig"
+git config --local --replace-all core.hooksPath .githooks
 ```
