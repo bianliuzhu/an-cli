@@ -59,36 +59,29 @@ fi
 run_commitlint() {
   local msg_file="$1"
   local repo_root="$2"
+  local -a cmd
   
   # 切换到仓库根目录
   cd "$repo_root" || exit 1
-  
-  # 按优先级尝试不同的执行方式
+
+  # 只选择一种可用执行方式，避免同一错误重复输出多次
   if command -v pnpm >/dev/null 2>&1 && [ -f "pnpm-lock.yaml" ]; then
-    # 优先使用 pnpm（如果存在 pnpm-lock.yaml）
-    pnpm exec commitlint --edit "$msg_file" 2>/dev/null && return 0
+    cmd=(pnpm exec commitlint --edit "$msg_file")
+  elif command -v yarn >/dev/null 2>&1 && [ -f "yarn.lock" ]; then
+    cmd=(yarn commitlint --edit "$msg_file")
+  elif command -v npm >/dev/null 2>&1 && [ -f "package-lock.json" ]; then
+    cmd=(npm exec commitlint --edit "$msg_file")
+  elif command -v npx >/dev/null 2>&1; then
+    cmd=(npx --no-install commitlint --edit "$msg_file")
+  elif [ -x "node_modules/.bin/commitlint" ]; then
+    cmd=(node_modules/.bin/commitlint --edit "$msg_file")
+  else
+    echo "错误：无法找到可用的 commitlint 执行方式，请先安装依赖后再提交。"
+    return 1
   fi
-  
-  if command -v yarn >/dev/null 2>&1 && [ -f "yarn.lock" ]; then
-    # 使用 yarn（如果存在 yarn.lock）
-    yarn commitlint --edit "$msg_file" 2>/dev/null && return 0
-  fi
-  
-  if command -v npm >/dev/null 2>&1 && [ -f "package-lock.json" ]; then
-    # 使用 npm（如果存在 package-lock.json）
-    npm exec commitlint --edit "$msg_file" 2>/dev/null && return 0
-  fi
-  
-  # 回退到 npx（通用方案）
-  npx --no-install commitlint --edit "$msg_file" 2>/dev/null && return 0
-  
-  # 最后的回退方案：直接使用 node_modules 中的二进制文件
-  if [ -f "node_modules/.bin/commitlint" ]; then
-    node_modules/.bin/commitlint --edit "$msg_file" 2>/dev/null && return 0
-  fi
-  
-  echo "警告：无法找到可用的 commitlint 执行方式，已跳过校验"
-  return 0
+
+  "${cmd[@]}"
+  return $?
 }
 
 # 执行 commitlint 检查
