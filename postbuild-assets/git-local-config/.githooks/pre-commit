@@ -1,0 +1,40 @@
+#!/bin/sh
+
+# 在提交前执行暂存文件检查和自动修复
+REPO_ROOT=$(git rev-parse --show-toplevel)
+
+run_lint_staged() {
+	local repo_root="$1"
+
+	cd "$repo_root" || exit 1
+
+	if command -v pnpm >/dev/null 2>&1 && [ -f "pnpm-lock.yaml" ]; then
+		pnpm exec lint-staged
+		return $?
+	fi
+
+	if command -v yarn >/dev/null 2>&1 && [ -f "yarn.lock" ]; then
+		yarn lint-staged
+		return $?
+	fi
+
+	if command -v npm >/dev/null 2>&1 && [ -f "package-lock.json" ]; then
+		npm exec lint-staged
+		return $?
+	fi
+
+	if [ -x "node_modules/.bin/lint-staged" ]; then
+		node_modules/.bin/lint-staged
+		return $?
+	fi
+
+	if command -v npx >/dev/null 2>&1; then
+		npx --no-install lint-staged
+		return $?
+	fi
+
+	echo "错误：无法找到可用的 lint-staged 执行方式，请先安装依赖后再提交。"
+	return 1
+}
+
+run_lint_staged "$REPO_ROOT"

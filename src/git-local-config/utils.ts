@@ -42,11 +42,30 @@ export const copyFileIfMissing = async (sourceFilePath: string, targetFilePath: 
 };
 
 /**
+ * 复制文件，可按需覆盖
+ * @param sourceFilePath 源文件路径
+ * @param targetFilePath 目标文件路径
+ * @param overwrite 是否覆盖
+ */
+export const copyFile = async (sourceFilePath: string, targetFilePath: string, overwrite = false) => {
+	const exists = await pathExists(targetFilePath);
+	if (exists && !overwrite) {
+		log.info(`${path.basename(targetFilePath)} Already exists, skip generation.`);
+		return;
+	}
+
+	await ensureDir(path.dirname(targetFilePath));
+	await fs.promises.copyFile(sourceFilePath, targetFilePath);
+	log.success(`${path.basename(targetFilePath)} ${exists ? 'update done.' : 'create done.'}`);
+};
+
+/**
  * 递归复制目录
  * @param sourceDirectoryPath 源目录路径
  * @param targetDirectoryPath 目标目录路径
+ * @param overwrite 是否覆盖文件
  */
-export const copyDirectoryRecursive = async (sourceDirectoryPath: string, targetDirectoryPath: string) => {
+export const copyDirectoryRecursive = async (sourceDirectoryPath: string, targetDirectoryPath: string, overwrite = false) => {
 	const sourceStat = await fs.promises.stat(sourceDirectoryPath);
 	if (!sourceStat.isDirectory()) {
 		throw new Error(`${sourceDirectoryPath} is not a directory`);
@@ -58,9 +77,9 @@ export const copyDirectoryRecursive = async (sourceDirectoryPath: string, target
 		const sourceEntryPath = path.join(sourceDirectoryPath, entry.name);
 		const targetEntryPath = path.join(targetDirectoryPath, entry.name);
 		if (entry.isDirectory()) {
-			await copyDirectoryRecursive(sourceEntryPath, targetEntryPath);
+			await copyDirectoryRecursive(sourceEntryPath, targetEntryPath, overwrite);
 		} else if (entry.isFile()) {
-			await copyFileIfMissing(sourceEntryPath, targetEntryPath);
+			await copyFile(sourceEntryPath, targetEntryPath, overwrite);
 		}
 	}
 };
