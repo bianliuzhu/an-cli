@@ -3,7 +3,7 @@ import type { OpenAPIV3 } from 'openapi-types';
 
 import { isValidJSON } from '../../utils';
 import { getIndentation } from '../shared/format';
-import { getEnumTypeName, typeNameToFileName } from '../shared/naming';
+import { getEnumTypeName, resolveSchemaName, typeNameToFileName, wordsToPascalCase } from '../shared/naming';
 import { nullableSuffix } from '../shared/schema-utils';
 
 type NonArraySchemaObject = OpenAPIV3.NonArraySchemaObject;
@@ -224,7 +224,7 @@ export class EnumParser {
 	 * @returns 枚举处理结果
 	 */
 	handleEnum(value: NonArraySchemaObject, key: string, isRequired = false): EnumParseResult {
-		const enumName = key.charAt(0).toUpperCase() + key.slice(1);
+		const enumName = wordsToPascalCase(resolveSchemaName(key));
 		const typeName = getEnumTypeName(this.config, enumName);
 		const fileName = typeNameToFileName(enumName);
 

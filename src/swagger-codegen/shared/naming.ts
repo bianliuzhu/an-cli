@@ -10,6 +10,29 @@ export function containsChinese(str: string): boolean {
 }
 
 /**
+ * 首字母大写
+ */
+export function capitalize(word: string): string {
+	if (!word) return '';
+	return word.charAt(0).toUpperCase() + word.slice(1);
+}
+
+/**
+ * 按非标识符字符分割字符串，将每个单词首字母大写后拼接（PascalCase）
+ * - "banner VO" -> "BannerVO"
+ * - "(SKU)" -> "SKU"
+ * - "«string»" -> "String"
+ * - "Optional?" -> "Optional"
+ */
+export function wordsToPascalCase(str: string): string {
+	return str
+		.split(/[^a-zA-Z0-9_]+/)
+		.filter(Boolean)
+		.map((word) => capitalize(word))
+		.join('');
+}
+
+/**
  * 将中文名称转换为 PascalCase 拼音命名
  * 保留非中文部分（如 SKU、Result、Message 等）
  *
@@ -29,28 +52,46 @@ export function chineseNameToEnglish(name: string): string {
 			if (containsChinese(segment)) {
 				// 为中文部分生成拼音，每个字首字母大写
 				return pinyin(segment, { toneType: 'none', type: 'array' })
-					.map((p) => p.charAt(0).toUpperCase() + p.slice(1))
+					.map((p) => capitalize(p))
 					.join('');
 			}
-			return segment;
+			return wordsToPascalCase(segment);
 		})
 		.join('');
 }
 
 /**
- * 将 schema 名称标准化：如果包含中文则转为拼音命名
- * 返回 { originalName, resolvedName } 以支持映射查找
+ * 确保名称是合法的 TypeScript 标识符
+ * - 空字符串返回 'Unknown'
+ * - 数字开头加 '_' 前缀
+ */
+function ensureValidIdentifier(name: string): string {
+	if (!name) return 'Unknown';
+	return /^[0-9]/.test(name) ? `_${name}` : name;
+}
+
+/**
+ * 将 schema 名称标准化：如果包含中文则转为拼音命名，处理空格和特殊字符等非法标识符字符
  */
 export function resolveSchemaName(name: string): string {
-	return containsChinese(name) ? chineseNameToEnglish(name) : name;
+	if (!name) return 'Unknown';
+	if (containsChinese(name)) {
+		return ensureValidIdentifier(chineseNameToEnglish(name));
+	}
+	// 检测是否包含非法标识符字符（非字母、数字、下划线、$）
+	if (/[^a-zA-Z0-9_$]/.test(name)) {
+		return ensureValidIdentifier(wordsToPascalCase(name));
+	}
+	return ensureValidIdentifier(name);
 }
 
 export function typeNameToFileName(str: string): string {
 	return str
-		.replace(/_/g, '-')
+		.replace(/[^a-zA-Z0-9]+/g, '-')
 		.replace(/([a-z])([A-Z])/g, '$1-$2')
 		.toLowerCase()
-		.replace(/-+/g, '-');
+		.replace(/-+/g, '-')
+		.replace(/^-|-$/g, '');
 }
 
 export function getEnumTypeName(config: ConfigType, enumName: string): string {

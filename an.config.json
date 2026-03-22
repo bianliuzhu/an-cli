@@ -16,15 +16,10 @@
 	},
 	"swaggerConfig": [
 		{
-			"url": "./data/common.json",
-			"apiListFileName": "common.ts",
+			"url": "./data/open-api.json",
+			"apiListFileName": "index.ts",
 			"headers": {},
-			"includeInterface": [
-				{
-					"path": "/op/file/uploadZipFile",
-					"method": "post"
-				}
-			],
+			"includeInterface": [],
 			"excludeInterface": [],
 			"dataLevel": "serve",
 			"parameterSeparator": "_",
