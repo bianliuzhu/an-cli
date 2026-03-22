@@ -16,8 +16,8 @@
 	},
 	"swaggerConfig": [
 		{
-			"url": "./data/virtualman.json",
-			"apiListFileName": "virtualman.ts",
+			"url": "./data/open-api.json",
+			"apiListFileName": "index.ts",
 			"headers": {},
 			"includeInterface": [],
 			"excludeInterface": [],
