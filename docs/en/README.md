@@ -7,6 +7,11 @@
 > - `anl git` command: Generates git local configuration with optional features: gitflow standard branch creation, git commit messages subject, and git custom command configuration
 > - `anl skill` command: Initializes Agent Skill files for AI-assisted development, supporting api-report and api-mock skills
 
+## 工具介绍
+
+- 命令：`anl`
+- 读音：/ænl/（安偶）
+
 ## Features
 
 - `anl type`

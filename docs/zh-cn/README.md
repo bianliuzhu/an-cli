@@ -6,6 +6,11 @@
 > - `anl lint` 命令: 生成 react 或 vue 项目 eslint、stylelint、prettier、commitLint、VSCode相关配置
 > - `anl git` 命令: 生成 git 本地配置，并设有可选功能： gitflow 标准分支创建、git commit messages 主题、git 自定义命令配置
 
+## 工具介绍
+
+- 命令：`anl`
+- 读音：/ænl/（安偶）
+
 ## 功能特点
 
 - `anl type`
