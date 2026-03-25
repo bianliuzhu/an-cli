@@ -36,6 +36,8 @@ export interface IResponseModelTransform {
 	wrapperType?: string;
 	/** 响应模型中的字段映射关系，key为字段名，value为字段类型 */
 	wrapperFields?: Record<string, string>;
+	/** 响应模型名称匹配正则，只有匹配的类型才会被转换，不匹配则跳过。例如 "^ResultMessage" 只转换 ResultMessage 开头的类型 */
+	modelPattern?: string;
 }
 
 export interface IIncludeInterface {

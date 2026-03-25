@@ -201,6 +201,16 @@ export class SchemaResolver {
 	transformResponseModel(responseType: string | string[], transform?: IResponseModelTransform): string | string[] {
 		if (!transform) return responseType;
 
+		// 如果配置了 modelPattern，只对匹配的类型名进行转换
+		if (transform.modelPattern && typeof responseType === 'string') {
+			const importMatch = /^import\('[^']+'\)\.(\w+)$/.exec(responseType);
+			const typeNameForMatch = importMatch ? importMatch[1] : responseType;
+			const pattern = new RegExp(transform.modelPattern);
+			if (!pattern.test(typeNameForMatch)) {
+				return responseType;
+			}
+		}
+
 		try {
 			switch (transform.type) {
 				case 'unwrap': {

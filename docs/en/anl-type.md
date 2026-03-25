@@ -63,10 +63,10 @@ $ anl type -s gen
 
 ```json
 [
-  {
-    "path": "/op/file/uploadZipFile",
-    "method": "post"
-  }
+	{
+		"path": "/op/file/uploadZipFile",
+		"method": "post"
+	}
 ]
 ```
 
@@ -187,6 +187,7 @@ $ anl type -s gen
 | swaggerConfig[].responseModelTransform.dataField     | string                                                                          | No       | Data field name for `unwrap` and `wrap` modes, defaults to `"data"`                                                                                                                                                                                                                                                                                                                                          |
 | swaggerConfig[].responseModelTransform.wrapperFields | Record<string, string>                                                          | No       | Wrapper field definitions for `wrap` mode, key is field name, value is field type. Example: `{"success": "boolean", "code": "number", "message": "string", "data": "T"}`                                                                                                                                                                                                                                     |
 | swaggerConfig[].responseModelTransform.wrapperType   | string                                                                          | No       | Replacement type string for `replace` mode. Can be any TypeScript type, e.g.: `"ApiResponse<T>"`                                                                                                                                                                                                                                                                                                             |
+| swaggerConfig[].responseModelTransform.modelPattern  | string                                                                          | No       | Regex pattern to match response model type names. Only matching types will be transformed; non-matching types are skipped. Example: `"^ResultMessage"` only transforms types starting with `ResultMessage`                                                                                                                                                                                                   |
 | requestMethodsImportPath                             | string                                                                          | Yes      | Request method import path                                                                                                                                                                                                                                                                                                                                                                                   |
 | dataLevel                                            | 'data' \| 'serve' \| 'axios'                                                    | No       | Global interface return data level configuration, default: `'serve'`. Each server can override individually                                                                                                                                                                                                                                                                                                  |
 | responseModelTransform                               | object                                                                          | No       | Global response model transformation configuration. Each server can override individually. Configuration items same as `swaggerConfig[].responseModelTransform`. See [Response Model Transform](#response-model-transform)                                                                                                                                                                                   |
@@ -887,10 +888,11 @@ Add `unwrap` type response model transformation in configuration:
 
 **Configuration Description**
 
-| Field       | Type       | Required | Description                                 |
-| ----------- | ---------- | -------- | ------------------------------------------- |
-| `type`      | `"unwrap"` | Yes      | Transformation type, fixed as `"unwrap"`    |
-| `dataField` | `string`   | No       | Field name to extract, defaults to `"data"` |
+| Field          | Type       | Required | Description                                                                                                                                                                                            |
+| -------------- | ---------- | -------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| `type`         | `"unwrap"` | Yes      | Transformation type, fixed as `"unwrap"`                                                                                                                                                               |
+| `dataField`    | `string`   | No       | Field name to extract, defaults to `"data"`                                                                                                                                                            |
+| `modelPattern` | `string`   | No       | Regex pattern to match response model type names. Only matching types will be transformed, non-matching types are skipped. E.g. `"^ResultMessage"` only transforms types starting with `ResultMessage` |
 
 **Transformed Type**
 
@@ -1082,6 +1084,19 @@ A: unwrap transformation requires:
 1. Response type must be a `$ref` reference type (not an inline object)
 2. The referenced schema must contain the specified `dataField` (defaults to `data`)
 3. If transformation fails, the original type will be kept unchanged, and a warning will be logged
+4. If you only want to unwrap certain response types (e.g. only types starting with `ResultMessage`), configure `modelPattern` regex filter so non-matching types are skipped
+
+Example: only unwrap types starting with `ResultMessage`:
+
+```json
+{
+	"responseModelTransform": {
+		"type": "unwrap",
+		"dataField": "data",
+		"modelPattern": "^ResultMessage"
+	}
+}
+```
 
 **Q3: What if the original type is an object when using wrap transformation?**
 
@@ -1305,6 +1320,7 @@ Response model transformation occurs during the type generation phase, the speci
     - `wrap` mode requires configuration of `wrapperFields` field
     - `replace` mode requires configuration of `wrapperType` field
     - Check console logs, which usually output detailed error information
+    - If you only need to transform certain types (e.g. only types starting with `ResultMessage`), use `modelPattern` regex filter to avoid unwrapping unrelated types (such as `JSONObject`)
 
 11. **Can different interfaces use different response model transformations?**
     - Currently, transformation configuration is per Swagger service granularity
