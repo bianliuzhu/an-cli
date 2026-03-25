@@ -65,10 +65,10 @@ $ anl type -s gen
 
 ```json
 [
-  {
-    "path": "/op/file/uploadZipFile",
-    "method": "post"
-  }
+	{
+		"path": "/op/file/uploadZipFile",
+		"method": "post"
+	}
 ]
 ```
 
@@ -189,6 +189,7 @@ $ anl type -s gen
 | swaggerConfig[].responseModelTransform.dataField     | string                                                                          | 否   | 用于 `unwrap` 和 `wrap` 模式的数据字段名，默认为 `"data"`                                                                                                                                                                                                                                                                                                                        |
 | swaggerConfig[].responseModelTransform.wrapperFields | Record<string, string>                                                          | 否   | 用于 `wrap` 模式的包装器字段定义，key 为字段名，value 为字段类型。例如：`{"success": "boolean", "code": "number", "message": "string", "data": "T"}`                                                                                                                                                                                                                             |
 | swaggerConfig[].responseModelTransform.wrapperType   | string                                                                          | 否   | 用于 `replace` 模式的替换类型字符串。可以是任何 TypeScript 类型，例如：`"ApiResponse<T>"`                                                                                                                                                                                                                                                                                        |
+| swaggerConfig[].responseModelTransform.modelPattern  | string                                                                          | 否   | 响应模型类型名匹配正则表达式。只有匹配的类型才会被转换，不匹配的类型将跳过转换直接保留原类型。例如：`"^ResultMessage"` 只转换以 `ResultMessage` 开头的类型                                                                                                                                                                                                                       |
 | requestMethodsImportPath                             | string                                                                          | 是   | 请求方法导入路径                                                                                                                                                                                                                                                                                                                                                                 |
 | dataLevel                                            | 'data' \| 'serve' \| 'axios'                                                    | 否   | 全局接口返回数据层级配置，默认值：`'serve'`。各服务器可单独配置覆盖。详见[数据层级配置](#数据层级配置-datalevel)                                                                                                                                                                                                                                                                 |
 | responseModelTransform                               | object                                                                          | 否   | 全局响应模型转换配置。各服务器可单独配置覆盖。配置项同 `swaggerConfig[].responseModelTransform`。详见[响应模型转换](#响应模型转换)                                                                                                                                                                                                                                               |
@@ -885,10 +886,11 @@ declare namespace OpTradeRefundOrderCreateorder_POST {
 
 **配置说明**
 
-| 字段        | 类型       | 必填 | 说明                            |
-| ----------- | ---------- | ---- | ------------------------------- |
-| `type`      | `"unwrap"` | 是   | 转换类型，固定为 `"unwrap"`     |
-| `dataField` | `string`   | 否   | 要提取的字段名，默认为 `"data"` |
+| 字段           | 类型       | 必填 | 说明                                                                                                                    |
+| -------------- | ---------- | ---- | ----------------------------------------------------------------------------------------------------------------------- |
+| `type`         | `"unwrap"` | 是   | 转换类型，固定为 `"unwrap"`                                                                                             |
+| `dataField`    | `string`   | 否   | 要提取的字段名，默认为 `"data"`                                                                                         |
+| `modelPattern` | `string`   | 否   | 响应模型类型名匹配正则，只有匹配的类型才会被转换，不匹配则跳过。例如 `"^ResultMessage"` 只转换 ResultMessage 开头的类型 |
 
 **转换后的类型**
 
@@ -1080,6 +1082,19 @@ A: unwrap 转换要求：
 1. 响应类型必须是 `$ref` 引用类型（不能是内联对象）
 2. 引用的 schema 必须包含指定的 `dataField`（默认为 `data`）
 3. 如果转换失败，会保持原始类型不变，并在日志中输出警告信息
+4. 如果只对部分响应类型做 unwrap（如只处理 `ResultMessage` 开头的类型），可配置 `modelPattern` 正则过滤，不匹配的类型将跳过转换
+
+示例：只 unwrap `ResultMessage` 开头的类型：
+
+```json
+{
+	"responseModelTransform": {
+		"type": "unwrap",
+		"dataField": "data",
+		"modelPattern": "^ResultMessage"
+	}
+}
+```
 
 **Q3: wrap 转换时原始类型是对象怎么办？**
 
@@ -1303,6 +1318,7 @@ export const apiUserCurrent_GET = (params?: IRequestFnParams) => GET<ResponseMod
     - `wrap` 模式要求配置 `wrapperFields` 字段
     - `replace` 模式要求配置 `wrapperType` 字段
     - 查看控制台日志，通常会输出详细的错误信息
+    - 如果只需转换部分类型（如仅 `ResultMessage` 开头的类型），使用 `modelPattern` 正则过滤避免对无关类型（如 `JSONObject`）进行 unwrap
 
 11. **可以对不同的接口使用不同的响应模型转换吗？**
     - 目前转换配置是按 Swagger 服务粒度配置的
