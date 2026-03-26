@@ -17,7 +17,7 @@
 	"logLevel": "info",
 	"swaggerConfig": [
 		{
-			"url": "./data/op.json",
+			"url": "./data/open-api.json",
 			"apiListFileName": "index.ts",
 			"headers": {},
 			"includeInterface": [],
@@ -27,7 +27,8 @@
 			"modulePrefix": "/forward",
 			"responseModelTransform": {
 				"type": "unwrap",
-				"dataField": "data"
+				"dataField": "data",
+				"modelPattern": "^ResultMessage"
 			}
 		}
 	]
