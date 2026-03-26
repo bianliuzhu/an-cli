@@ -14,6 +14,8 @@
 		"varnames": "enum-varnames",
 		"comment": "enum-descriptions"
 	},
+	"_comment_logLevel": "终端日志输出级别：silent-无输出, error-仅错误, warn-警告+错误, info(默认)-常规信息, verbose-详细输出",
+	"logLevel": "info",
 	"swaggerConfig": [
 		{
 			"url": "./data/op.json",
@@ -64,6 +66,16 @@
 		}
 	],
 	"_documentation": {
+		"logLevel": {
+			"description": "终端日志输出级别，控制 swagger-codegen 在终端的信息输出量",
+			"values": {
+				"silent": "无任何输出",
+				"error": "仅显示错误信息",
+				"warn": "显示警告和错误信息",
+				"info": "（默认）显示常规信息，包括成功提示、警告和错误",
+				"verbose": "显示所有详细信息，包括每个文件的写入状态、请求详情等"
+			}
+		},
 		"responseModelTransform": {
 			"description": "响应模型转换配置，支持三种转换类型",
 			"types": {

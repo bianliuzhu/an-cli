@@ -20,11 +20,17 @@ export type ResponseObject = OpenAPIV3.ResponseObject;
 export interface ParseError {
 	type: 'SCHEMA' | 'PATH' | 'REFERENCE' | 'FILE_WRITE' | 'RESPONSE' | 'PARAMETERS' | 'REQUEST_BODY' | 'API';
 	message: string;
+	/** API 路径，如 /api/goods/listGoodsSkuWithBenefits */
 	path?: string;
+	/** HTTP 方法，如 GET、POST */
+	method?: string;
 	details?: unknown;
 }
 
 type TDatalevel = 'data' | 'serve' | 'axios';
+
+/** 终端日志输出级别 */
+export type LogLevel = 'silent' | 'error' | 'warn' | 'info' | 'verbose';
 
 /** 响应模型转换配置 */
 export interface IResponseModelTransform {
@@ -118,6 +124,9 @@ export interface ConfigType {
 		/** 换行符（行结束符） */
 		lineEnding: string;
 	};
+
+	/** 终端日志输出级别，默认 'info'。silent-无输出, error-仅错误, warn-警告+错误, info-常规信息, verbose-详细输出 */
+	logLevel?: LogLevel;
 
 	/** 枚举数据保存路径 */
 	saveEnumFolderPath: string;
