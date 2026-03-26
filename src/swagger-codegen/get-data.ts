@@ -38,7 +38,9 @@ export async function getSwaggerJson(config: ConfigType): TReturnType {
 }
 
 /** 发起请求 */
-export function requestJson({ swaggerJsonUrl: url = '', headers = {} }: ConfigType): TReturnType {
+export function requestJson(config: ConfigType): TReturnType {
+	const { swaggerJsonUrl: url = '', headers = {} } = config;
+	const timeoutMs: number = config.timeout ?? 60000;
 	return new Promise((resolve, reject) => {
 		let TM: ReturnType<typeof setTimeout> | undefined = undefined;
 		const request = url.startsWith('https') ? https.request : http.request;
@@ -85,7 +87,7 @@ export function requestJson({ swaggerJsonUrl: url = '', headers = {} }: ConfigTy
 		);
 
 		req.on('timeout', (err: Error) => {
-			log.error(String(err));
+			log.error('Request Timeout:' + String(err));
 			reject(err);
 		});
 
@@ -94,7 +96,7 @@ export function requestJson({ swaggerJsonUrl: url = '', headers = {} }: ConfigTy
 			err.name = 'Request Timeout';
 			err.message = url;
 			req.emit('timeout', err);
-		}, 15000); // 15秒超时
+		}, timeoutMs);
 
 		req.end();
 	});

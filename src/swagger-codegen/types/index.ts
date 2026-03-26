@@ -77,6 +77,8 @@ export interface IConfigSwaggerServer {
 	modulePrefix?: string;
 	/** 响应模型转换配置 */
 	responseModelTransform?: IResponseModelTransform;
+	/** 请求超时时间（毫秒），默认 60000 */
+	timeout?: number;
 }
 
 export interface ConfigType {
@@ -117,6 +119,8 @@ export interface ConfigType {
 	modulePrefix?: string;
 	/** 响应模型转换配置（服务级配置注入） */
 	responseModelTransform?: IResponseModelTransform;
+	/** 请求超时时间（毫秒），默认 60000 */
+	timeout?: number;
 	/** 格式化 */
 	formatting?: {
 		/** 缩进 */

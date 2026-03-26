@@ -46,8 +46,8 @@ const configContent: ConfigType = {
 	},
 };
 
-type NormalizedSwaggerServer = Required<Omit<IConfigSwaggerServer, 'responseModelTransform' | 'includeTags' | 'excludeTags'>> &
-	Pick<IConfigSwaggerServer, 'responseModelTransform' | 'includeTags' | 'excludeTags'>;
+type NormalizedSwaggerServer = Required<Omit<IConfigSwaggerServer, 'responseModelTransform' | 'includeTags' | 'excludeTags' | 'timeout'>> &
+	Pick<IConfigSwaggerServer, 'responseModelTransform' | 'includeTags' | 'excludeTags' | 'timeout'>;
 
 export class Main {
 	private schemas: ComponentsSchemas = {};
@@ -93,14 +93,119 @@ export class Main {
 	}
 
 	/**
-	 * 执行格式化命令
+	 * 解析要使用的 prettier 可执行文件路径
+	 * 优先使用项目本地安装的 prettier，其次回退到 npx prettier
 	 */
-	private async formatGeneratedFiles(config: ConfigType) {
-		const formatCommand = `npx prettier --write "${config.saveTypeFolderPath}/**/*.{ts,d.ts}"`;
+	private async resolvePrettierExecutable(): Promise<string> {
+		const isWindows = process.platform === 'win32';
+		const localBin = path.join(process.cwd(), 'node_modules', '.bin', isWindows ? 'prettier.cmd' : 'prettier');
+		try {
+			await fs.promises.access(localBin, fs.constants.X_OK);
+			log.info(`Using local prettier: ${localBin}`);
+			return `"${localBin}"`;
+		} catch {
+			return 'npx prettier';
+		}
+	}
+
+	/**
+	 * 自动检测项目根目录下的 prettier 配置文件
+	 * 按优先级依次查找，找到第一个即返回其路径
+	 */
+	private async detectPrettierConfig(): Promise<string | null> {
+		const configFileNames = [
+			'.prettierrc',
+			'.prettierrc.json',
+			'.prettierrc.json5',
+			'.prettierrc.yaml',
+			'.prettierrc.yml',
+			'.prettierrc.js',
+			'.prettierrc.cjs',
+			'.prettierrc.mjs',
+			'.prettierrc.ts',
+			'.prettierrc.cts',
+			'.prettierrc.mts',
+			'prettier.config.js',
+			'prettier.config.cjs',
+			'prettier.config.mjs',
+			'prettier.config.ts',
+			'prettier.config.cts',
+			'prettier.config.mts',
+		];
+		for (const fileName of configFileNames) {
+			const fullPath = path.join(process.cwd(), fileName);
+			try {
+				await fs.promises.access(fullPath);
+				log.info(`Auto-detected prettier config: ${fileName}`);
+				return fullPath;
+			} catch {
+				// 继续查找
+			}
+		}
+		// 检查 package.json 中是否存在 prettier 字段
+		try {
+			const pkgRaw = await fs.promises.readFile(path.join(process.cwd(), 'package.json'), 'utf8');
+			const pkg = JSON.parse(pkgRaw) as Record<string, unknown>;
+			if (pkg['prettier']) {
+				log.info('Using prettier config from package.json');
+				return path.join(process.cwd(), 'package.json');
+			}
+		} catch {
+			// 忽略
+		}
+		return null;
+	}
+
+	/**
+	 * 执行格式化命令
+	 * @param config      全局配置
+	 * @param formatOption  true = 自动检测配置; string = 用户指定配置文件路径
+	 */
+	private async formatGeneratedFiles(config: ConfigType, formatOption: string | boolean) {
+		const prettierBin = await this.resolvePrettierExecutable();
+
+		// 解析配置文件标志
+		let configFlag = '';
+		if (typeof formatOption === 'string' && formatOption.trim()) {
+			// 用户明确指定了配置文件路径
+			const configPath = path.resolve(process.cwd(), formatOption.trim());
+			try {
+				await fs.promises.access(configPath);
+				configFlag = ` --config "${configPath}"`;
+			} catch {
+				log.warning(`Prettier config file not found: ${formatOption}, falling back to auto-detection...`);
+				const detected = await this.detectPrettierConfig();
+				if (detected) configFlag = ` --config "${detected}"`;
+			}
+		} else {
+			// 自动检测
+			const detected = await this.detectPrettierConfig();
+			if (detected) configFlag = ` --config "${detected}"`;
+		}
+
+		// 收集存在的生成目录
+		const dirsToFormat: string[] = [];
+		const checkDir = async (dir: string, pattern: string) => {
+			try {
+				await fs.promises.access(dir);
+				dirsToFormat.push(`"${dir}/${pattern}"`);
+			} catch {
+				// 目录不存在，跳过
+			}
+		};
+		await checkDir(config.saveTypeFolderPath, '**/*.{ts,d.ts}');
+		await checkDir(config.saveApiListFolderPath, '**/*.ts');
+		await checkDir(config.saveEnumFolderPath, '**/*.ts');
+
+		if (dirsToFormat.length === 0) {
+			log.warning('No generated directories found to format.');
+			return;
+		}
+
+		const formatCommand = `${prettierBin} --write ${dirsToFormat.join(' ')}${configFlag}`;
 
 		try {
 			spinner.start('Formatting generated files...');
-			await fs.promises.access(config.saveTypeFolderPath);
 
 			const { stderr } = await new Promise<ExecResult>((resolve, reject) => {
 				exec(formatCommand, (error, stdout, stderr) => {
@@ -248,6 +353,7 @@ export class Main {
 			const excludeTags = server.excludeTags ?? config.excludeTags;
 			const modulePrefix = server.modulePrefix ?? config.modulePrefix ?? '';
 			const responseModelTransform = server.responseModelTransform ?? config.responseModelTransform;
+			const timeout = server.timeout ?? config.timeout;
 
 			const result: NormalizedSwaggerServer = {
 				url,
@@ -260,6 +366,7 @@ export class Main {
 				excludeInterface,
 				modulePrefix,
 				responseModelTransform,
+				timeout,
 			};
 
 			// 可选字段需要单独处理
@@ -314,6 +421,7 @@ export class Main {
 			excludeTags: server.excludeTags,
 			modulePrefix: server.modulePrefix,
 			responseModelTransform: server.responseModelTransform ?? baseConfig.responseModelTransform,
+			timeout: server.timeout ?? baseConfig.timeout,
 			swaggerConfig: server,
 		};
 	}
@@ -346,7 +454,7 @@ export class Main {
 		}
 	}
 
-	async initialize(show?: 'miss' | 'gen'): Promise<void> {
+	async initialize(show?: 'miss' | 'gen', formatOption?: string | boolean): Promise<void> {
 		const configFilePath = process.cwd() + '/an.config.json';
 
 		try {
@@ -385,8 +493,10 @@ export class Main {
 				if (show && list) showSummary.push({ serverUrl: servers[i].url, list });
 			}
 
-			// 对生成文件进行格式化
-			await this.formatGeneratedFiles(mergedConfig);
+			// 对生成文件进行格式化（仅当用户传入 --format 参数时执行）
+			if (formatOption !== undefined && formatOption !== false) {
+				await this.formatGeneratedFiles(mergedConfig, formatOption);
+			}
 
 			log.success('Successfully, all done, see you next time!');
 			log.print('\n');

@@ -17,7 +17,7 @@
 	"logLevel": "info",
 	"swaggerConfig": [
 		{
-			"url": "./data/open-api.json",
+			"url": "https://app.op.dev.dotfortune.com/order/v3/api-docs",
 			"apiListFileName": "index.ts",
 			"headers": {},
 			"includeInterface": [],
