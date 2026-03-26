@@ -1,7 +1,7 @@
 import type { ComponentsSchemas, ConfigType, RenderEntry } from '../types';
 import type { OpenAPIV3 } from 'openapi-types';
 
-import { isValidJSON } from '../../utils';
+import { isValidJSON, log } from '../../utils';
 import { getIndentation } from '../shared/format';
 import { getEnumTypeName, resolveSchemaName, typeNameToFileName } from '../shared/naming';
 import { nullableSuffix } from '../shared/schema-utils';
@@ -446,7 +446,7 @@ export class ComponentSchemaResolver {
 
 	private generateContent(schemaObject: NonArraySchemaObject | ArraySchemaObject, key: string): string {
 		if ('items' in schemaObject) {
-			console.warn(`数组类型未处理: ${key}`, schemaObject.items);
+			log.warn(`数组类型未处理: ${key}`);
 			return '';
 		}
 
@@ -474,7 +474,7 @@ export class ComponentSchemaResolver {
 
 	main(): { enumsMap: Map<string, RenderEntry>; schemasMap: Map<string, RenderEntry> } {
 		if (!this.schemas) {
-			console.warn('schemas 为空');
+			log.warn('schemas 为空');
 			return { enumsMap: this.enumParser.enumsMap, schemasMap: this.schemasMap };
 		}
 
@@ -483,13 +483,13 @@ export class ComponentSchemaResolver {
 		for (const key of schemaKeys) {
 			const schema = this.schemas[key];
 			if ('$ref' in schema) {
-				console.warn(`跳过 ReferenceObject: ${key}`);
+				log.warn(`跳过 ReferenceObject: ${key}`);
 				continue;
 			}
 
 			const schemaObject = ('type' in schema ? schema : null)!;
 			if (!schemaObject?.type) {
-				console.warn(`无效的 schema 对象: ${key}`);
+				log.warn(`无效的 schema 对象: ${key}`);
 				continue;
 			}
 

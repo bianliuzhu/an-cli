@@ -14,9 +14,10 @@
 		"varnames": "enum-varnames",
 		"comment": "enum-descriptions"
 	},
+	"logLevel": "error",
 	"swaggerConfig": [
 		{
-			"url": "./data/open-api.json",
+			"url": "./data/op.json",
 			"apiListFileName": "index.ts",
 			"headers": {},
 			"includeInterface": [],

@@ -15,7 +15,7 @@ import type {
 } from '../types';
 import type { OpenAPIV3 } from 'openapi-types';
 
-import { log } from '../../utils';
+import { formatParseError, log } from '../../utils';
 import { applyFormattingDefaults, getIndentation } from '../shared/format';
 import { SUPPORTED_REQUEST_TYPES_ALL, SUPPORTED_REQUEST_UPLOAD_TYPES } from '../shared/http';
 import { formatPropertyName } from '../shared/naming';
@@ -106,9 +106,16 @@ export class PathParse {
 	}
 
 	private handleError(error: ParseError) {
+		// 自动从当前处理上下文中补充 path 和 method
+		if (!error.path && this.contentBody.requestPath) {
+			error.path = this.contentBody.requestPath;
+		}
+		if (!error.method && this.contentBody.method) {
+			error.method = this.contentBody.method;
+		}
 		this.errors.push(error);
 		if (this.config.errorHandling?.logErrors) {
-			log.error(`${error.type}: ${error.message}${error.path ? ` at ${error.path}` : ''}`);
+			log.error(formatParseError(error));
 		}
 		if (this.config.errorHandling?.throwOnError) {
 			throw new Error(`${error.type}: ${error.message}`);
@@ -182,14 +189,21 @@ export class PathParse {
 
 		if (V2) {
 			if (!V2.schema) {
-				console.warn(`Parameter "${V2.name}" has no schema defined, skipping...`);
+				this.handleError({
+					type: 'PARAMETERS',
+					message: `Parameter "${V2.name}" has no schema defined, skipping`,
+				});
 				return;
 			}
 
 			const v2value = this.schemaResolver.main(V2.schema);
 
 			if (!v2value || typeof v2value !== 'string') {
-				console.warn(`Failed to parse schema for parameter "${V2.name}", got:`, v2value);
+				this.handleError({
+					type: 'PARAMETERS',
+					message: `Failed to parse schema for parameter "${V2.name}"`,
+					details: v2value,
+				});
 				return;
 			}
 
@@ -230,9 +244,12 @@ export class PathParse {
 					this.contentBody.payload._header = { [V2.name]: v2value };
 				}
 			} else if (V2.in === 'cookie') {
-				console.info(`Cookie parameter "${V2.name}" detected but not added to type definition (cookies are typically handled separately)`);
+				log.verbose(`Cookie parameter "${V2.name}" detected but not added to type definition`);
 			} else {
-				console.warn(`Unknown parameter location "${V2.in}" for parameter "${V2.name}"`);
+				this.handleError({
+					type: 'PARAMETERS',
+					message: `Unknown parameter location "${V2.in}" for parameter "${V2.name}"`,
+				});
 			}
 		}
 	}
@@ -631,7 +648,21 @@ export class PathParse {
 		this.Map = new Map();
 
 		if (this.errors.length > 0) {
-			log.warning(`Completed with ${this.errors.length} errors`);
+			log.warning(`Completed with ${this.errors.length} error(s):`);
+			// 按类型分组汇总
+			const grouped = new Map<string, ParseError[]>();
+			for (const err of this.errors) {
+				const key = err.type;
+				if (!grouped.has(key)) grouped.set(key, []);
+				grouped.get(key)!.push(err);
+			}
+			for (const [type, errors] of grouped) {
+				log.warning(`  ${type}: ${errors.length} error(s)`);
+				for (const err of errors) {
+					const endpoint = [err.method, err.path].filter(Boolean).join(' ');
+					log.warn(`    ${endpoint ? endpoint + ' - ' : ''}${err.message}`);
+				}
+			}
 		}
 	}
 

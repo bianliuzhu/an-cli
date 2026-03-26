@@ -5,7 +5,7 @@ import http from 'http';
 import https from 'https';
 import path from 'path';
 
-import { requireModule } from '../utils';
+import { log, requireModule } from '../utils';
 
 interface DocumentCommom {
 	swagger?: string;
@@ -31,7 +31,7 @@ export async function getSwaggerJson(config: ConfigType): TReturnType {
 			const res = requireModule(absolutePath) as OpenAPI.Document & DocumentCommom;
 			return Promise.resolve(res);
 		} catch (err) {
-			console.error(err, true);
+			log.error(String(err));
 			return Promise.reject(new Error(String(err)));
 		}
 	}
@@ -43,7 +43,7 @@ export function requestJson({ swaggerJsonUrl: url = '', headers = {} }: ConfigTy
 		let TM: ReturnType<typeof setTimeout> | undefined = undefined;
 		const request = url.startsWith('https') ? https.request : http.request;
 
-		console.info(`Request Start: ${url}`);
+		log.verbose(`Request Start: ${url}`);
 
 		const req = request(
 			url,
@@ -69,23 +69,23 @@ export function requestJson({ swaggerJsonUrl: url = '', headers = {} }: ConfigTy
 					clearTimeout(TM);
 					try {
 						const json = JSON.parse(dataStr) as OpenAPI.Document & DocumentCommom;
-						console.info(`Request Successful: ${url}`);
+						log.verbose(`Request Successful: ${url}`);
 						resolve(json);
 					} catch (error) {
-						console.error(`Request Failed: ${url}`, true);
+						log.error(`Request Failed: ${url}`);
 						reject(new Error(String(error)));
 					}
 				});
 
 				res.on('error', (err) => {
-					console.error(`Request Failed: ${url}`, true);
+					log.error(`Request Failed: ${url}`);
 					reject(err);
 				});
 			},
 		);
 
 		req.on('timeout', (err: Error) => {
-			console.error(err, true);
+			log.error(String(err));
 			reject(err);
 		});
 

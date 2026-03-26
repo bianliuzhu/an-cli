@@ -1,7 +1,7 @@
 import type { ConfigType, RenderEntry } from '../types';
 import type { OpenAPIV3 } from 'openapi-types';
 
-import { isValidJSON } from '../../utils';
+import { isValidJSON, log } from '../../utils';
 import { getIndentation } from '../shared/format';
 import { getEnumTypeName, resolveSchemaName, typeNameToFileName, wordsToPascalCase } from '../shared/naming';
 import { nullableSuffix } from '../shared/schema-utils';
@@ -126,7 +126,7 @@ export class EnumParser {
 				return `export enum ${enumName} {\n${enumValues}\n}`;
 			}
 		} catch (error) {
-			console.error('JSON 解析失败:', error);
+			log.error(`JSON 解析失败: ${error instanceof Error ? error.message : String(error)}`);
 			return '';
 		}
 	}

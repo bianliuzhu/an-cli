@@ -7,7 +7,7 @@ import path from 'path';
 import { exec } from 'shelljs';
 
 import { clearDir, clearDirExcept, writeFileRecursive } from '../utils';
-import { log } from '../utils';
+import { log, setLogLevel } from '../utils';
 import Components from './components/index';
 import { getSwaggerJson } from './get-data';
 import PathParse from './path/index';
@@ -104,18 +104,18 @@ export class Main {
 			});
 
 			if (stderr) {
-				console.log('\n');
-				console.log('$', chalk.yellow(formatCommand));
-				console.log('\n');
+				log.print('\n');
+				log.print('$', chalk.yellow(formatCommand));
+				log.print('\n');
 			}
 			log.success('File formatting successful');
-			console.log('\n');
+			log.print('\n');
 		} catch (error: unknown) {
-			console.log('');
-			console.log(error);
+			log.print('');
+			log.print(error);
 			log.error('Format failed, please manually execute the following command:');
-			console.log('$', chalk.yellow(formatCommand));
-			console.log('');
+			log.print('$', chalk.yellow(formatCommand));
+			log.print('');
 		}
 	}
 
@@ -184,19 +184,19 @@ export class Main {
 		const isChinese = locale.startsWith('zh') || locale.includes('chinese');
 
 		if (isChinese) {
-			console.log('\n检测到旧版配置，请更新 an.config.json：');
-			console.log('1) 将 swaggerJsonUrl / publicPrefix / headers 移到 swaggerConfig 字段。');
-			console.log('2) 单个服务可直接填写对象，多个服务请使用数组，并确保 apiListFileName 唯一。');
-			console.log('示例：');
-			console.log(JSON.stringify({ swaggerConfig: exampleServer }, null, 2));
-			console.log('');
+			log.print('\n检测到旧版配置，请更新 an.config.json：');
+			log.print('1) 将 swaggerJsonUrl / publicPrefix / headers 移到 swaggerConfig 字段。');
+			log.print('2) 单个服务可直接填写对象，多个服务请使用数组，并确保 apiListFileName 唯一。');
+			log.print('示例：');
+			log.print(JSON.stringify({ swaggerConfig: exampleServer }, null, 2));
+			log.print('');
 		} else {
-			console.log('\nLegacy configuration detected, please update an.config.json:');
-			console.log('1) Move swaggerJsonUrl / publicPrefix / headers to swaggerConfig field.');
-			console.log('2) Single service can be an object directly, multiple services should use an array, and ensure apiListFileName is unique.');
-			console.log('Example:');
-			console.log(JSON.stringify({ swaggerConfig: exampleServer }, null, 2));
-			console.log('');
+			log.print('\nLegacy configuration detected, please update an.config.json:');
+			log.print('1) Move swaggerJsonUrl / publicPrefix / headers to swaggerConfig field.');
+			log.print('2) Single service can be an object directly, multiple services should use an array, and ensure apiListFileName is unique.');
+			log.print('Example:');
+			log.print(JSON.stringify({ swaggerConfig: exampleServer }, null, 2));
+			log.print('');
 		}
 	}
 
@@ -345,6 +345,12 @@ export class Main {
 		try {
 			const userConfig = await this.getConfig(configFilePath);
 			const mergedConfig = { ...configContent, ...userConfig };
+
+			// 设置日志输出级别
+			if (mergedConfig.logLevel) {
+				setLogLevel(mergedConfig.logLevel);
+			}
+
 			const hasUserswaggerConfig = Object.prototype.hasOwnProperty.call(userConfig, 'swaggerConfig');
 			const servers = this.normalizeswaggerConfig(mergedConfig, hasUserswaggerConfig);
 
@@ -376,16 +382,16 @@ export class Main {
 			await this.formatGeneratedFiles(mergedConfig);
 
 			log.success('Successfully, all done, see you next time!');
-			console.log('\n');
+			log.print('\n');
 
 			if (show && showSummary.length > 0) {
 				const label = show === 'miss' ? 'excludeInterface' : 'includeInterface';
 				for (const { serverUrl, list } of showSummary) {
-					if (servers.length > 1) console.log(chalk.cyan(`\n[${label}] ${serverUrl}`));
-					else console.log(chalk.cyan(`\n[${label}]`));
-					console.log(JSON.stringify(list, null, 2));
+					if (servers.length > 1) log.print(chalk.cyan(`\n[${label}] ${serverUrl}`));
+					else log.print(chalk.cyan(`\n[${label}]`));
+					log.print(JSON.stringify(list, null, 2));
 				}
-				console.log('\n');
+				log.print('\n');
 			}
 		} catch (error: unknown) {
 			const message = error instanceof Error ? error.message : 'Unknown error';

@@ -85,6 +85,7 @@ $ anl type -s gen
 	"saveEnumFolderPath": "apps/enums",
 	"importEnumPath": "../../enums",
 	"requestMethodsImportPath": "./config/fetch",
+	"logLevel": "info",
 	"formatting": {
 		"indentation": "\t",
 		"lineEnding": "\n"
@@ -209,6 +210,7 @@ $ anl type -s gen
 | enmuConfig.varnames                                  | string                                                                          | 否   | Swagger schema 中自定义枚举成员名所在的字段名。默认值：`enum-varnames`。                                                                                                                                                                                                                                                                                                         |
 | enmuConfig.comment                                   | string                                                                          | 否   | Swagger schema 中自定义枚举描述所在的字段名（用于生成注释）。默认值：`enum-descriptions`。                                                                                                                                                                                                                                                                                       |
 | parameterSeparator                                   | '$' \| '\_'                                                                     | 否   | 全局生成 API 名称和类型名称时，路径段和参数之间使用的分隔符。例如，`/users/{userId}/posts` 使用分隔符 `'_'` 会生成 `users_userId_posts_GET`。默认值：`'_'`。各服务器可单独配置覆盖                                                                                                                                                                                               |
+| logLevel                                             | `'silent'` \| `'error'` \| `'warn'` \| `'info'` \| `'verbose'`                  | 否   | 终端日志输出级别，控制代码生成过程中在终端显示的信息量。默认值：`'info'`。详见[日志输出级别](#日志输出级别-loglevel)                                                                                                                                                                                                                                                             |
 
 #### 配置项与生成的文件对应关系
 
@@ -473,6 +475,64 @@ export const uploadFile = (params: UploadFile.Body) =>
 - 解析错误提示
 - 类型生成失败警告
 - 文件写入异常处理
+
+**结构化错误输出**：当解析过程中发生错误时，错误信息会自动携带当前正在处理的 API 路径和 HTTP 方法，便于快速定位问题接口：
+
+```
+❌ [PARAMETERS] GET /api/goods/listGoodsSkuWithBenefits - Parameter "id" has no schema defined
+❌ [RESPONSE] POST /api/order/create - Field "data" not found in response type "ResultMessageBoolean"
+❌ [SCHEMA] GET /api/users/list - Failed to handle complex type
+```
+
+错误类型包括：
+
+| 错误类型     | 说明                   |
+| ------------ | ---------------------- |
+| PARAMETERS   | 接口参数解析错误       |
+| RESPONSE     | 响应类型解析或转换错误 |
+| SCHEMA       | Schema 类型解析错误    |
+| REFERENCE    | `$ref` 引用解析错误    |
+| REQUEST_BODY | 请求体解析错误         |
+| FILE_WRITE   | 文件写入错误           |
+
+生成结束后，如果存在错误，会输出按类型分组的错误汇总：
+
+```
+❗️ Completed with 3 error(s):
+❗️   PARAMETERS: 2 error(s)
+      GET /api/goods/list - Parameter "id" has no schema defined
+      POST /api/order/create - Parameter "data" has no schema defined
+❗️   RESPONSE: 1 error(s)
+      GET /api/users/detail - Field "data" not found in response type "ResultMessageBoolean"
+```
+
+> [!TIP]
+> 通过配置 `logLevel` 为 `verbose` 可以在错误信息外获取更多调试信息。详见[日志输出级别](#日志输出级别-loglevel)。
+
+#### 日志输出级别-logLevel
+
+通过 `logLevel` 配置项可以控制代码生成过程中在终端的信息输出量。
+
+```json
+{
+	"logLevel": "info"
+}
+```
+
+| 级别      | 说明                                                                   |
+| --------- | ---------------------------------------------------------------------- |
+| `silent`  | 无任何终端输出                                                         |
+| `error`   | 仅显示错误信息                                                         |
+| `warn`    | 显示警告和错误信息                                                     |
+| `info`    | **默认值**。显示常规信息，包括成功提示、警告和错误                     |
+| `verbose` | 显示所有详细信息，包括每个文件的写入状态、网络请求详情、类型解析过程等 |
+
+##### 使用场景
+
+- **日常开发**：使用默认 `info` 级别即可，会显示生成进度和结果
+- **排查问题**：设置为 `verbose`，可以看到每个文件的写入状态和详细的解析过程
+- **CI/CD 集成**：设置为 `error` 或 `silent`，减少无关输出
+- **调试报错**：设置为 `verbose` 后重新运行，可获取完整的错误上下文信息
 
 #### 接口过滤
 
