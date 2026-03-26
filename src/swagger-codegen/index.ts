@@ -7,7 +7,7 @@ import path from 'path';
 import { exec } from 'shelljs';
 
 import { clearDir, clearDirExcept, writeFileRecursive } from '../utils';
-import { log, setLogLevel } from '../utils';
+import { log, setLogLevel, spinner } from '../utils';
 import Components from './components/index';
 import { getSwaggerJson } from './get-data';
 import PathParse from './path/index';
@@ -61,11 +61,14 @@ export class Main {
 			// 无论是否为调试模式，都优先按配置从 swaggerConfig.url 获取数据
 			// 若需要本地调试示例数据，可以在 an.config.json 中将 swaggerConfig.url
 			// 配置为本地文件路径（例如 ./data/openapi.json.js），getSwaggerJson 会自动处理。
+			spinner.start('Fetching Swagger data...');
 			const response = (await getSwaggerJson(config)) as OpenAPIV3.Document;
 
 			if (!response) {
+				spinner.error('Failed to fetch Swagger data');
 				throw new Error('无法获取 Swagger 数据');
 			}
+			spinner.success('Swagger data fetched');
 
 			this.schemas = response.components?.schemas ?? {};
 			this.paths = response.paths ?? {};
@@ -73,8 +76,10 @@ export class Main {
 			const components = new Components(this.schemas, config, { appendMode });
 			const paths = new PathParse(this.paths, response.components?.parameters, this.schemas, config);
 
+			spinner.start('Generating types and APIs...');
 			await components.handle();
 			await paths.handle();
+			spinner.success('Types and APIs generated');
 
 			if (show === 'gen') return paths.getGeneratedInterfacesForOutput();
 			if (show === 'miss') return paths.getMissingInterfacesForOutput();
@@ -94,6 +99,7 @@ export class Main {
 		const formatCommand = `npx prettier --write "${config.saveTypeFolderPath}/**/*.{ts,d.ts}"`;
 
 		try {
+			spinner.start('Formatting generated files...');
 			await fs.promises.access(config.saveTypeFolderPath);
 
 			const { stderr } = await new Promise<ExecResult>((resolve, reject) => {
@@ -108,9 +114,10 @@ export class Main {
 				log.print('$', chalk.yellow(formatCommand));
 				log.print('\n');
 			}
-			log.success('File formatting successful');
+			spinner.success('File formatting successful');
 			log.print('\n');
 		} catch (error: unknown) {
+			spinner.error('Format failed');
 			log.print('');
 			log.print(error);
 			log.error('Format failed, please manually execute the following command:');

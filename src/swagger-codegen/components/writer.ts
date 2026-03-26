@@ -1,6 +1,7 @@
 import type { ConfigType, RenderEntry } from '../types';
 
 import { log, writeFileRecursive } from '../../utils';
+import { PAD_END } from '../shared/constants';
 import { writeIndexFileWithDedup } from '../shared/writer';
 
 export class ComponentWriter {
@@ -25,7 +26,7 @@ export class ComponentWriter {
 				exportFileContent.push(`export * from './${fileName}';`);
 				const _path = `${saveTypeFolderPath}${fileName}.ts`;
 				await writeFileRecursive(_path, content);
-				log.info(`${_path.padEnd(80)} - Write done!`);
+				log.info(`${_path.padEnd(PAD_END)} - Write done!`);
 			};
 			tasks.push(task(value));
 		}
@@ -49,7 +50,7 @@ export class ComponentWriter {
 				exportFileContent.push(`export * from './${fileName}';`);
 				const _path = `${this.config.saveEnumFolderPath}/${fileName}.ts`;
 				await writeFileRecursive(_path, content);
-				log.info(`${_path.padEnd(80)} - Write done!`);
+				log.info(`${_path.padEnd(PAD_END)} - Write done!`);
 			};
 			tasks.push(task(value));
 		}

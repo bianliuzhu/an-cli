@@ -1,6 +1,7 @@
 import type { ContentBody, MapType, PathParseConfig } from '../types';
 
 import { clearDir, log, writeFileRecursive } from '../../utils';
+import { PAD_END } from '../shared/constants';
 import { getIndentation } from '../shared/format';
 
 export class PathWriter {
@@ -34,7 +35,7 @@ export class PathWriter {
 					const _path = `${saveTypeFolderPath}/connectors/${fileName}.d.ts`;
 					writeFileRecursive(_path, contentArray.join('\n'))
 						.then(() => {
-							log.info(`${_path.padEnd(80)} - Write done!`);
+							log.info(`${_path.padEnd(PAD_END)} - Write done!`);
 							resolve(1);
 						})
 						.catch((err) => {

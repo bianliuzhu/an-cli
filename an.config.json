@@ -14,7 +14,7 @@
 		"varnames": "enum-varnames",
 		"comment": "enum-descriptions"
 	},
-	"logLevel": "error",
+	"logLevel": "info",
 	"swaggerConfig": [
 		{
 			"url": "./data/op.json",
