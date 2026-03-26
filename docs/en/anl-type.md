@@ -83,6 +83,7 @@ $ anl type -s gen
 	"saveEnumFolderPath": "apps/enums",
 	"importEnumPath": "../../enums",
 	"requestMethodsImportPath": "./config/fetch",
+	"logLevel": "info",
 	"formatting": {
 		"indentation": "\t",
 		"lineEnding": "\n"
@@ -209,6 +210,7 @@ $ anl type -s gen
 | parameterSeparator                                   | '$' \| '\_'                                                                     | No       | Global separator used between path segments and parameters when generating API names and type names. For example, `/users/{userId}/posts` with separator `'_'` generates `users_userId_posts_GET`. Default: `'_'`. Each server can override individually                                                                                                                                                     |
 | enmuConfig.varnames                                  | string                                                                          | No       | Schema field name that stores custom enum member identifiers. Default: `enum-varnames`.                                                                                                                                                                                                                                                                                                                      |
 | enmuConfig.comment                                   | string                                                                          | No       | Schema field name that stores enum member descriptions (used for inline comments). Default: `enum-descriptions`.                                                                                                                                                                                                                                                                                             |
+| logLevel                                             | `'silent'` \| `'error'` \| `'warn'` \| `'info'` \| `'verbose'`                  | No       | Terminal log output level, controls the amount of information displayed in the terminal during code generation. Default: `'info'`. See [Log Level](#log-level-loglevel)                                                                                                                                                                                                                                      |
 
 #### Configuration Items and Generated Files Correspondence
 
@@ -475,6 +477,64 @@ The tool has built-in comprehensive error handling mechanisms:
 - Parse error prompts
 - Type generation failure warnings
 - File write exception handling
+
+**Structured Error Output**: When errors occur during parsing, the error message automatically includes the current API path and HTTP method, making it easy to locate problematic interfaces:
+
+```
+❌ [PARAMETERS] GET /api/goods/listGoodsSkuWithBenefits - Parameter "id" has no schema defined
+❌ [RESPONSE] POST /api/order/create - Field "data" not found in response type "ResultMessageBoolean"
+❌ [SCHEMA] GET /api/users/list - Failed to handle complex type
+```
+
+Error types include:
+
+| Error Type   | Description                              |
+| ------------ | ---------------------------------------- |
+| PARAMETERS   | Interface parameter parsing error        |
+| RESPONSE     | Response type parsing or transform error |
+| SCHEMA       | Schema type parsing error                |
+| REFERENCE    | `$ref` reference parsing error           |
+| REQUEST_BODY | Request body parsing error               |
+| FILE_WRITE   | File write error                         |
+
+After generation completes, if errors exist, a grouped error summary is displayed:
+
+```
+❗️ Completed with 3 error(s):
+❗️   PARAMETERS: 2 error(s)
+      GET /api/goods/list - Parameter "id" has no schema defined
+      POST /api/order/create - Parameter "data" has no schema defined
+❗️   RESPONSE: 1 error(s)
+      GET /api/users/detail - Field "data" not found in response type "ResultMessageBoolean"
+```
+
+> [!TIP]
+> Set `logLevel` to `verbose` to get additional debugging information beyond error messages. See [Log Level](#log-level-loglevel).
+
+#### Log Level (logLevel)
+
+The `logLevel` configuration controls the amount of information displayed in the terminal during code generation.
+
+```json
+{
+	"logLevel": "info"
+}
+```
+
+| Level     | Description                                                                           |
+| --------- | ------------------------------------------------------------------------------------- |
+| `silent`  | No terminal output at all                                                             |
+| `error`   | Only display error messages                                                           |
+| `warn`    | Display warnings and errors                                                           |
+| `info`    | **Default**. Display general information including success messages, warnings, errors |
+| `verbose` | Display all detailed information including file write status, request details, etc.   |
+
+##### Use Cases
+
+- **Daily development**: Use the default `info` level, which shows generation progress and results
+- **Troubleshooting**: Set to `verbose` to see each file's write status and detailed parsing process
+- **CI/CD integration**: Set to `error` or `silent` to reduce unnecessary output
+- **Debugging errors**: Set to `verbose` and re-run to get complete error context information
 
 #### Interface Filtering
 
