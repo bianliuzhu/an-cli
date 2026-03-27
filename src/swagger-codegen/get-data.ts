@@ -37,10 +37,12 @@ export async function getSwaggerJson(config: ConfigType): TReturnType {
 	}
 }
 
+const TIME_OUT = 60000; // 60秒
+
 /** 发起请求 */
 export function requestJson(config: ConfigType): TReturnType {
 	const { swaggerJsonUrl: url = '', headers = {} } = config;
-	const timeoutMs: number = config.timeout ?? 60000;
+	const timeoutMs: number = config.timeout ?? TIME_OUT;
 	return new Promise((resolve, reject) => {
 		let TM: ReturnType<typeof setTimeout> | undefined = undefined;
 		const request = url.startsWith('https') ? https.request : http.request;
