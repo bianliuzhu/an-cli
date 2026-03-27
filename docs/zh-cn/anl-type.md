@@ -77,6 +77,7 @@ $ anl type -s gen
 生成完成后可选择使用 Prettier 对所有生成文件进行格式化。**默认不开启**，需显式传入 `-f` 参数才会执行。
 
 格式化范围覆盖三个生成目录：
+
 - `saveTypeFolderPath`（类型定义文件）
 - `saveApiListFolderPath`（API 请求函数文件）
 - `saveEnumFolderPath`（枚举文件）
@@ -129,6 +130,31 @@ $ anl type -f -s miss
 - **可选值**：
   - 不传值（如 `--format` / `-f`）：自动检测项目配置文件
   - 传入路径（如 `--format .prettierrc.mjs`）：使用指定的配置文件
+
+#### 覆盖日志输出级别（-l / --log-level）
+
+通过命令行参数 `-l` / `--log-level` 可临时覆盖配置文件中的 `logLevel`，**命令行参数优先级高于配置文件**。
+
+##### 使用示例
+
+```bash
+# 详细输出，查看每个文件的写入状态
+$ anl type --log-level verbose
+
+# 静默运行，无任何输出
+$ anl type -l silent
+
+# 与其他参数组合使用
+$ anl type -l warn -f -s miss
+```
+
+##### 参数说明
+
+- **参数**：`-l, --log-level <level>`
+- **可选值**：`silent` | `error` | `warn` | `info` | `verbose`
+- **优先级**：命令行参数 > `an.config.json` 中的 `logLevel` 配置
+
+详细级别说明见[日志输出级别](#日志输出级别-loglevel)。
 
 ### 配置文件详解
 
@@ -573,12 +599,17 @@ export const uploadFile = (params: UploadFile.Body) =>
 
 #### 日志输出级别-logLevel
 
-通过 `logLevel` 配置项可以控制代码生成过程中在终端的信息输出量。
+通过 `logLevel` 配置项可以控制代码生成过程中在终端的信息输出量。也可以在执行命令时通过 `-l` / `--log-level` 参数临时覆盖，**命令行参数优先级高于配置文件**。
 
 ```json
 {
 	"logLevel": "info"
 }
+```
+
+```bash
+# 通过命令行参数临时覆盖
+$ anl type -l verbose
 ```
 
 | 级别      | 说明                                                                   |
