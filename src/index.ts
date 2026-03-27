@@ -14,7 +14,8 @@ program
 	.description('auto interface')
 	.option('-s, --show <what>', 'show interface list after generation: miss | gen')
 	.option('-f, --format [config]', 'enable prettier formatting after generation; optionally specify a prettier config file path (e.g. --format .prettierrc.mjs)')
-	.action((options: { show?: string; format?: string | boolean }) => {
+	.option('-l, --log-level <level>', 'set log output level: silent | error | warn | info | verbose')
+	.action((options: { show?: string; format?: string | boolean; logLevel?: string }) => {
 		const raw = (options.show ?? '').toLowerCase().trim();
 		const show =
 			raw === 'miss' || raw === 'missing' || raw === 'm' || raw === 'exclude' || raw === 'x'
@@ -23,7 +24,7 @@ program
 					? 'gen'
 					: undefined;
 		const Instance = new Main();
-		Instance.initialize(show, options.format).catch((error) => {
+		Instance.initialize(show, options.format, options.logLevel).catch((error) => {
 			console.error(error);
 		});
 	});

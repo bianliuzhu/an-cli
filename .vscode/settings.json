@@ -13,6 +13,15 @@
 		"source.fixAll.stylelint": "explicit",
 		"source.organizeImports": "never"
 	},
+	/** vscode 配置 */
+	"js/ts.tsdk.path": "node_modules/typescript/lib",
+	"js/ts.tsdk.promptToUseWorkspaceVersion": true,
+	"js/ts.validate.enabled": true,
+	"js/ts.updateImportsOnFileMove.enabled": "prompt",
+	"js/ts.preferences.importModuleSpecifier": "non-relative",
+	"js/ts.tsserver.experimental.enableProjectDiagnostics": false,
+	"js/ts.preferences.importModuleSpecifierEnding": "minimal",
+	/** cursor 配置 */
 	"typescript.tsdk": "node_modules/typescript/lib",
 	"typescript.enablePromptUseWorkspaceTsdk": true,
 	"typescript.validate.enable": true,

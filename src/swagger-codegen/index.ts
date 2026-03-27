@@ -146,7 +146,7 @@ export class Main {
 		try {
 			const pkgRaw = await fs.promises.readFile(path.join(process.cwd(), 'package.json'), 'utf8');
 			const pkg = JSON.parse(pkgRaw) as Record<string, unknown>;
-			if (pkg['prettier']) {
+			if (pkg.prettier) {
 				log.info('Using prettier config from package.json');
 				return path.join(process.cwd(), 'package.json');
 			}
@@ -454,16 +454,17 @@ export class Main {
 		}
 	}
 
-	async initialize(show?: 'miss' | 'gen', formatOption?: string | boolean): Promise<void> {
+	async initialize(show?: 'miss' | 'gen', formatOption?: string | boolean, logLevel?: string): Promise<void> {
 		const configFilePath = process.cwd() + '/an.config.json';
 
 		try {
 			const userConfig = await this.getConfig(configFilePath);
 			const mergedConfig = { ...configContent, ...userConfig };
 
-			// 设置日志输出级别
-			if (mergedConfig.logLevel) {
-				setLogLevel(mergedConfig.logLevel);
+			// 设置日志输出级别：命令行参数优先于配置文件
+			const resolvedLogLevel = (logLevel ?? mergedConfig.logLevel) as import('./types').LogLevel | undefined;
+			if (resolvedLogLevel) {
+				setLogLevel(resolvedLogLevel);
 			}
 
 			const hasUserswaggerConfig = Object.prototype.hasOwnProperty.call(userConfig, 'swaggerConfig');
