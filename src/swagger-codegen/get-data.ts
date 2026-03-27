@@ -87,8 +87,8 @@ export function requestJson(config: ConfigType): TReturnType {
 		);
 
 		req.on('timeout', (err: Error) => {
-			log.error('Request Timeout:' + String(err));
-			reject(err);
+			log.error(`Request Timeout: ${url}`);
+			reject(err ?? new Error(`Request Timeout: ${url}`));
 		});
 
 		TM = setTimeout(() => {

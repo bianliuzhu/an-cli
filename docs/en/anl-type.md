@@ -75,6 +75,7 @@ $ anl type -s gen
 After generation, you can optionally run Prettier to format all generated files. **Disabled by default** — must be explicitly enabled by passing the `-f` flag.
 
 Formatting covers all three generated directories:
+
 - `saveTypeFolderPath` (type definition files)
 - `saveApiListFolderPath` (API request function files)
 - `saveEnumFolderPath` (enum files)
@@ -127,6 +128,31 @@ $ anl type -f -s miss
 - **Values**:
   - No value (e.g. `--format` / `-f`): auto-detect config file in project root
   - Path value (e.g. `--format .prettierrc.mjs`): use the specified config file
+
+#### Override Log Level (-l / --log-level)
+
+Use the `-l` / `--log-level` flag to temporarily override the `logLevel` set in `an.config.json`. **The CLI flag takes priority over the config file**.
+
+##### Usage examples
+
+```bash
+# Verbose output — see each file's write status
+$ anl type --log-level verbose
+
+# Silent run, no output at all
+$ anl type -l silent
+
+# Combine with other options
+$ anl type -l warn -f -s miss
+```
+
+##### Option
+
+- **Option**: `-l, --log-level <level>`
+- **Values**: `silent` | `error` | `warn` | `info` | `verbose`
+- **Priority**: CLI flag > `logLevel` in `an.config.json`
+
+For level descriptions, see [Log Level](#log-level-loglevel).
 
 ### Configuration File Details
 
@@ -575,12 +601,17 @@ After generation completes, if errors exist, a grouped error summary is displaye
 
 #### Log Level (logLevel)
 
-The `logLevel` configuration controls the amount of information displayed in the terminal during code generation.
+The `logLevel` configuration controls the amount of information displayed in the terminal during code generation. You can also temporarily override it at runtime using the `-l` / `--log-level` CLI flag — **the CLI flag takes priority over the config file**.
 
 ```json
 {
 	"logLevel": "info"
 }
+```
+
+```bash
+# Override via CLI flag
+$ anl type -l verbose
 ```
 
 | Level     | Description                                                                           |
