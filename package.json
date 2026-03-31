@@ -1,8 +1,22 @@
 {
 	"name": "anl",
-	"version": "26.228.0",
+	"version": "26.321.11",
 	"description": "FE command line tool",
 	"main": "bin/an-cli.js",
+	"exports": {
+		".": "./bin/an-cli.js",
+		"./config": {
+			"types": "./config.d.ts",
+			"default": "./config.js"
+		}
+	},
+	"typesVersions": {
+		"*": {
+			"config": [
+				"./config.d.ts"
+			]
+		}
+	},
 	"publishConfig": {
 		"registry": "https://registry.npmjs.org"
 	},
@@ -56,6 +70,7 @@
 		"commander": "14.0.1",
 		"figures": "^6.1.0",
 		"inquirer": "^10.1.8",
+		"jiti": "^2.6.1",
 		"log-symbols": "^5.1.0",
 		"ora": "5.*",
 		"pinyin-pro": "^3.28.0",
@@ -91,7 +106,9 @@
 		"package.json",
 		"README.md",
 		"lib",
-		"template"
+		"template",
+		"config.js",
+		"config.d.ts"
 	],
 	"repository": {
 		"type": "git",

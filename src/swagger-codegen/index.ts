@@ -1,8 +1,9 @@
-import type { ComponentsSchemas, ConfigType, IConfigSwaggerServer, PathsObject } from './types';
+import type { ComponentsSchemas, ConfigType, IConfigSwaggerServer, LogLevel, PathsObject } from './types';
 import type { OpenAPIV3 } from 'openapi-types';
 
 import chalk from 'chalk';
 import fs from 'fs';
+import { createJiti } from 'jiti';
 import path from 'path';
 import { exec } from 'shelljs';
 
@@ -427,11 +428,29 @@ export class Main {
 	}
 
 	/**
-	 * 获取配置文件
+	 * 加载 TypeScript 配置文件
 	 */
-	private async getConfig(configFilePath: string): Promise<ConfigType> {
+	private async loadTsConfig(tsConfigPath: string): Promise<ConfigType> {
 		try {
-			const data = await fs.promises.readFile(configFilePath, 'utf8');
+			const jiti = createJiti(__filename, { interopDefault: true });
+			const mod = await jiti.import(tsConfigPath);
+			const resolved = mod as { default?: ConfigType } | ConfigType;
+			const config = ('default' in resolved && resolved.default ? resolved.default : resolved) as ConfigType;
+			isConfigFile = true;
+			return config;
+		} catch (error: unknown) {
+			isConfigFile = true;
+			const message = error instanceof Error ? error.message : String(error);
+			throw new Error(`配置文件加载失败，请检查 an.config.ts 文件: ${message}`);
+		}
+	}
+
+	/**
+	 * 加载 JSON 配置文件
+	 */
+	private async loadJsonConfig(jsonConfigPath: string): Promise<ConfigType> {
+		try {
+			const data = await fs.promises.readFile(jsonConfigPath, 'utf8');
 			isConfigFile = true;
 			try {
 				return JSON.parse(data) as ConfigType;
@@ -441,28 +460,85 @@ export class Main {
 				throw new Error(`配置文件格式错误，请检查 an.config.json 的 JSON 格式是否正确: ${parseError instanceof Error ? parseError.message : String(parseError)}`);
 			}
 		} catch (error: unknown) {
-			// 文件不存在的情况
 			if (error instanceof Error && 'code' in error && (error as NodeJS.ErrnoException).code === 'ENOENT') {
-				isConfigFile = false;
-				log.warning('配置文件不存在，将自动创建配置文件。');
-				await writeFileRecursive(configFilePath, JSON.stringify(configContent, null, 2));
-				log.success('配置文件已创建，请检查项目根目录下的 an.config.json 文件并配置后重新运行。');
-				return configContent;
+				throw error; // 文件不存在，抛出让上层处理
 			}
-			// 其他错误（如权限问题、JSON解析错误等）
 			throw error;
 		}
 	}
 
+	/**
+	 * 获取配置文件（优先加载 an.config.ts，其次 an.config.json）
+	 */
+	private async getConfig(projectRoot: string): Promise<ConfigType> {
+		const tsConfigPath = path.join(projectRoot, 'an.config.ts');
+		const jsonConfigPath = path.join(projectRoot, 'an.config.json');
+
+		// 优先使用 ts 配置文件
+		if (fs.existsSync(tsConfigPath)) {
+			log.info('检测到 an.config.ts 配置文件。');
+			return this.loadTsConfig(tsConfigPath);
+		}
+
+		// 其次使用 json 配置文件
+		if (fs.existsSync(jsonConfigPath)) {
+			return this.loadJsonConfig(jsonConfigPath);
+		}
+
+		// 均不存在，创建 ts 配置文件
+		isConfigFile = false;
+		log.warning('配置文件不存在，将自动创建配置文件。');
+		const tsContent = this.generateTsConfigContent();
+		await writeFileRecursive(tsConfigPath, tsContent);
+		log.success('配置文件已创建，请检查项目根目录下的 an.config.ts 文件并配置后重新运行。');
+		return configContent;
+	}
+
+	/**
+	 * 生成 an.config.ts 文件内容
+	 */
+	private generateTsConfigContent(): string {
+		return `import { defineConfig } from 'anl/config';
+
+export default defineConfig({
+	saveTypeFolderPath: 'src/types',
+	saveApiListFolderPath: 'src/apis',
+	saveEnumFolderPath: 'src/enums',
+	importEnumPath: '../../../enums',
+	requestMethodsImportPath: './config/fetch',
+	formatting: {
+		indentation: '\\t',
+		lineEnding: '\\n',
+	},
+	swaggerConfig: [
+		{
+			url: 'https://generator3.swagger.io/openapi.json',
+			apiListFileName: 'index.ts',
+			headers: {},
+			dataLevel: 'serve',
+			parameterSeparator: '_',
+			includeInterface: [],
+			excludeInterface: [],
+		},
+	],
+	enmuConfig: {
+		erasableSyntaxOnly: false,
+		varnames: 'enum-varnames',
+		comment: 'enum-descriptions',
+	},
+});
+`;
+	}
+
 	async initialize(show?: 'miss' | 'gen', formatOption?: string | boolean, logLevel?: string): Promise<void> {
-		const configFilePath = process.cwd() + '/an.config.json';
+		const projectRoot = process.cwd();
 
 		try {
-			const userConfig = await this.getConfig(configFilePath);
+			const userConfig = await this.getConfig(projectRoot);
 			const mergedConfig = { ...configContent, ...userConfig };
 
 			// 设置日志输出级别：命令行参数优先于配置文件
-			const resolvedLogLevel = (logLevel ?? mergedConfig.logLevel) as import('./types').LogLevel | undefined;
+			const resolvedLogLevel = (logLevel ?? mergedConfig.logLevel) as LogLevel | undefined;
 			if (resolvedLogLevel) {
 				setLogLevel(resolvedLogLevel);
 			}

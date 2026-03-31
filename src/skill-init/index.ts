@@ -1,6 +1,7 @@
 import chalk from 'chalk';
 import fs from 'fs';
 import inquirer from 'inquirer';
+import { createJiti } from 'jiti';
 import path from 'path';
 
 import { log, writeFileRecursive } from '../utils';
@@ -47,10 +48,23 @@ function applyTemplate(template: string, variables: Record<string, string>): str
 }
 
 function readAnConfig(targetDir: string): AnConfig | null {
-	const configPath = path.join(targetDir, 'an.config.json');
-	if (!fs.existsSync(configPath)) return null;
+	const tsConfigPath = path.join(targetDir, 'an.config.ts');
+	const jsonConfigPath = path.join(targetDir, 'an.config.json');
+
+	// 优先使用 ts 配置文件
+	if (fs.existsSync(tsConfigPath)) {
+		try {
+			const jiti = createJiti(__filename, { interopDefault: true });
+			const mod = jiti.import(tsConfigPath) as { default?: AnConfig } | AnConfig;
+			return (('default' in mod && mod.default ? mod.default : mod) as AnConfig) ?? null;
+		} catch {
+			return null;
+		}
+	}
+
+	if (!fs.existsSync(jsonConfigPath)) return null;
 	try {
-		return JSON.parse(fs.readFileSync(configPath, 'utf-8')) as AnConfig;
+		return JSON.parse(fs.readFileSync(jsonConfigPath, 'utf-8')) as AnConfig;
 	} catch {
 		return null;
 	}
@@ -151,7 +165,7 @@ export async function skillHandle(): Promise<void> {
 	const anConfig = readAnConfig(targetDir);
 
 	if (!anConfig) {
-		log.error('未找到 an.config.json，请先在项目根目录配置 an.config.json');
+		log.error('未找到配置文件，请先在项目根目录配置 an.config.ts 或 an.config.json');
 		return;
 	}
 
