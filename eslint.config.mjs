@@ -25,7 +25,9 @@ export default defineConfig([
 		'node_modules',
 		// 生成/拷贝产物：避免对大批量生成代码做 lint（且通常不在 tsconfig project 内）
 		'apps/**',
-		'axios.d.ts'
+		'axios.d.ts',
+		'config.d.ts',
+		'an.config.example.ts',
 	]),
 
 	{

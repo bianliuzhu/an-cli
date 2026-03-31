@@ -1,15 +1,17 @@
 # `anl type` Command Usage
 
-- **First time** executing the `anl type` command will automatically create a configuration file named `an.config.json` in the _project root directory_ (can also be created manually) to initialize the configuration template.
+- **First time** executing the `anl type` command will automatically create a configuration file named `an.config.ts` in the _project root directory_ (can also be created manually) to initialize the configuration template. This file uses `defineConfig` to provide **full type hints** for easy configuration in the editor.
 
-- When executing the `anl type` command, it will look for the `an.config.json` configuration file in the user's project root directory, read its configuration information, and generate corresponding axios encapsulation, configuration, interface list, interface requests, and TS types for each interface request parameters and responses
+- Both `an.config.ts` and `an.config.json` formats are supported. **If both files exist, `an.config.ts` takes priority.**
+
+- When executing the `anl type` command, it will look for the configuration file in the user's project root directory, read its configuration information, and generate corresponding axios encapsulation, configuration, interface list, interface requests, and TS types for each interface request parameters and responses
 
 - Configuration items in the configuration file can be freely modified
 
-- About the `an.config.json` configuration file
+- About the configuration file
   - The configuration file must be in the project root directory
 
-  - The configuration file name cannot be changed
+  - Supported file names: `an.config.ts` (recommended) or `an.config.json`
 
   - For specific parameter descriptions, see [Configuration File Details](#configuration-file-details)
 
@@ -22,7 +24,7 @@
 
 > [!NOTE]
 >
-> If you're unclear about these configurations, you can first execute the anl type command to generate the types, then check the project directory, combine with the configuration item descriptions, adjust the configuration items, and regenerate to gradually verify the role of configuration items and complete the final configuration
+> If you're unclear about these configurations, you can first execute the `anl type` command to generate an `an.config.ts` template, then execute it again to generate examples. Check the project directory, combine with the configuration item descriptions, adjust the configuration items, and regenerate to gradually verify the role of configuration items and complete the final configuration
 
 ### Usage Method
 
@@ -155,6 +157,65 @@ $ anl type -l warn -f -s miss
 For level descriptions, see [Log Level](#log-level-loglevel).
 
 ### Configuration File Details
+
+#### TypeScript Configuration File (Recommended)
+
+Using `an.config.ts` provides **full editor type hints and autocompletion**. Recommended for all new projects:
+
+```typescript
+import { defineConfig } from 'anl/config';
+
+export default defineConfig({
+	saveTypeFolderPath: 'src/types',
+	saveApiListFolderPath: 'src/apis',
+	saveEnumFolderPath: 'src/enums',
+	importEnumPath: '../../../enums',
+	requestMethodsImportPath: './config/fetch',
+	formatting: {
+		indentation: '\t',
+		lineEnding: '\n',
+	},
+	swaggerConfig: [
+		{
+			url: 'https://generator3.swagger.io/openapi.json',
+			apiListFileName: 'index.ts',
+			headers: {},
+			dataLevel: 'serve',
+			parameterSeparator: '_',
+			includeInterface: [],
+			excludeInterface: [],
+		},
+	],
+	enmuConfig: {
+		erasableSyntaxOnly: false,
+		varnames: 'enum-varnames',
+		comment: 'enum-descriptions',
+	},
+});
+```
+
+> [!TIP] Type Hints
+>
+> The `defineConfig` function does not transform anything — it only provides type annotations. Your editor will automatically suggest all available options, type constraints, and JSDoc descriptions while editing.
+
+> [!NOTE] ESLint / TSConfig Note
+>
+> If your project's ESLint has `parserOptions.project` enabled (type-aware checking), `an.config.ts` needs to be included by a tsconfig.<br />
+> It is recommended to add it to the `include` field of `tsconfig.node.json`:
+>
+> ```json
+> {
+> 	"include": ["vite.config.ts", "an.config.ts"]
+> }
+> ```
+
+#### Migrating from JSON to TypeScript Configuration
+
+Projects with existing `an.config.json` do not need to migrate immediately — the tool will continue to support JSON format. To migrate:
+
+1. Create `an.config.ts` in the project root
+2. Copy the configuration items from JSON into `defineConfig({...})`
+3. Delete the old `an.config.json` (optional — when both exist, `.ts` takes priority)
 
 #### Configuration File Example
 

@@ -1,15 +1,17 @@
 # `anl type` 命令使用说明
 
-- **首次**执行 `anl type`, 命令，会在*项目根目录下*, _自动创建_ 以 `an.config.json` 为名的配置文件（手动创建也可以）并初始化配置模板。
+- **首次**执行 `anl type` 命令，会在*项目根目录下*_自动创建_ `an.config.ts` 配置文件（手动创建也可以）并初始化配置模板。该文件通过 `defineConfig` 提供**完整的类型提示**，方便在编辑器中配置各选项。
 
-- 执行 `anl type` 命令时，会找用户项目根目录下的 `an.config.json` 配置文件，并读取其配置信息，生成对应的 `axios` 封装及配置文件、接口列表、每个接口的出入参TS类型
+- 同时支持 `an.config.ts` 和 `an.config.json` 两种配置格式。**若两个文件同时存在，优先使用 `an.config.ts`**
+
+- 执行 `anl type` 命令时，会查找用户项目根目录下的配置文件，并读取其配置信息，生成对应的 `axios` 封装及配置文件、接口列表、每个接口的出入参TS类型
 
 - 配置文件内的配置项是可自由修改的
 
-- 关于 `an.config.json` 配置文件
+- 关于配置文件
   - 配置文件必须在项目根目录下（配置文件位置不可修改）
 
-  - 配置文件名不可更改
+  - 支持的文件名：`an.config.ts`（推荐）或 `an.config.json`
 
   - 具体参数说明请看[配置文件详解](#配置文件详解)
 
@@ -22,7 +24,7 @@
 
 > [!NOTE] 快速实践办法
 >
-> 如果不清楚这些配置会产生哪些影响，可以先执行 `anl type` 命令，首次执行会生成 `an.config.json` 的模板配置，<br />
+> 如果不清楚这些配置会产生哪些影响，可以先执行 `anl type` 命令，首次执行会生成 `an.config.ts` 的模板配置，<br />
 > 然后再次执行 `anl type` 会生成示例，<br />
 > 然后检查项目目录，结合配置项说明，调整配置项，再次生成，逐步验证配置项目作用，完成最终配置
 
@@ -157,6 +159,65 @@ $ anl type -l warn -f -s miss
 详细级别说明见[日志输出级别](#日志输出级别-loglevel)。
 
 ### 配置文件详解
+
+#### TypeScript 配置文件（推荐）
+
+使用 `an.config.ts` 可以获得编辑器的**完整类型提示和自动补全**，推荐所有新项目使用此方式：
+
+```typescript
+import { defineConfig } from 'anl/config';
+
+export default defineConfig({
+	saveTypeFolderPath: 'src/types',
+	saveApiListFolderPath: 'src/apis',
+	saveEnumFolderPath: 'src/enums',
+	importEnumPath: '../../../enums',
+	requestMethodsImportPath: './config/fetch',
+	formatting: {
+		indentation: '\t',
+		lineEnding: '\n',
+	},
+	swaggerConfig: [
+		{
+			url: 'https://generator3.swagger.io/openapi.json',
+			apiListFileName: 'index.ts',
+			headers: {},
+			dataLevel: 'serve',
+			parameterSeparator: '_',
+			includeInterface: [],
+			excludeInterface: [],
+		},
+	],
+	enmuConfig: {
+		erasableSyntaxOnly: false,
+		varnames: 'enum-varnames',
+		comment: 'enum-descriptions',
+	},
+});
+```
+
+> [!TIP] 类型提示
+>
+> `defineConfig` 函数本身不做任何转换，它仅提供类型标注。配置时编辑器会自动提示所有可用选项、类型约束及 JSDoc 注释说明。
+
+> [!NOTE] ESLint / TSConfig 注意事项
+>
+> 如果项目的 ESLint 开启了 `parserOptions.project`（type-aware 检查），`an.config.ts` 需要被某个 tsconfig 包含。<br />
+> 推荐将其加入 `tsconfig.node.json` 的 `include` 字段：
+>
+> ```json
+> {
+> 	"include": ["vite.config.ts", "an.config.ts"]
+> }
+> ```
+
+#### 从 JSON 配置迁移到 TypeScript 配置
+
+已有 `an.config.json` 的项目无需立即迁移，工具会继续支持 JSON 格式。如需迁移，只需：
+
+1. 在项目根目录创建 `an.config.ts`
+2. 将 JSON 中的配置项复制到 `defineConfig({...})` 中
+3. 删除旧的 `an.config.json`（可选，两者共存时优先使用 `.ts`）
 
 #### 配置文件示例
 
