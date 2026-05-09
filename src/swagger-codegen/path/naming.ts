@@ -1,5 +1,7 @@
 import type { PathParseConfig } from '../types';
 
+import { getNamespacePrefix } from '../shared/naming';
+
 interface PathPart {
 	type: 'normal' | 'param';
 	original: string;
@@ -85,6 +87,13 @@ function deduplicateParts(parts: PathPart[]): PathPart[] {
 	return deduplicatedParts;
 }
 
+/**
+ * 由 path|METHOD 字符串派生 apiName / typeName / fileName / 实际请求 path。
+ *
+ * 注意：typeName 末尾会按 `getNamespacePrefix(config)` 的结果加上服务级前缀（用 `_` 连接），
+ * 该前缀来自 buildServerConfig 注入的 `__namespacePrefix` / `__segment` + `namespaceIsolation`。
+ * 单独调用本函数（如单元测试）时若未注入这些字段，将得到无前缀的 typeName。
+ */
 export function convertEndpointString(apiString: string, config: PathParseConfig): EndpointNamingResult {
 	let completionPath = apiString;
 	if (!apiString.startsWith('/')) {
@@ -162,10 +171,14 @@ export function convertEndpointString(apiString: string, config: PathParseConfig
 	}
 	finalPath = finalPath.replace(/\{(\w+)\}/g, (_, param) => `\${${param}}`);
 
+	const baseTypeName = typeName ? `${typeName}_${method}` : method;
+	const prefix = getNamespacePrefix(config);
+	const finalTypeName = prefix ? `${prefix}_${baseTypeName}` : baseTypeName;
+
 	return {
 		apiName: apiName ? `${apiName}_${method}` : method,
 		fileName,
-		typeName: typeName ? `${typeName}_${method}` : method,
+		typeName: finalTypeName,
 		path: finalPath,
 	};
 }

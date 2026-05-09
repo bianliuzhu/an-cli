@@ -53,6 +53,11 @@ export interface IConfigSwaggerServer {
 	responseModelTransform?: IResponseModelTransform;
 	/** 请求超时时间（毫秒），默认 60000 */
 	timeout?: number;
+	/** 命名空间隔离策略（服务级配置）：
+	 * - 'segment'（默认）：以服务 segment 派生 PascalCase 前缀（如 op → `Op_`），避免多服务同 path 的全局 namespace 合并污染。
+	 * - 'none'：不加前缀（仅推荐单服务项目使用）。
+	 */
+	namespaceIsolation?: 'segment' | 'none';
 }
 
 export interface ConfigType {
@@ -90,6 +95,8 @@ export interface ConfigType {
 	responseModelTransform?: IResponseModelTransform;
 	/** 请求超时时间（毫秒），默认 60000 */
 	timeout?: number;
+	/** 命名空间隔离策略（服务级配置注入），默认 'segment' */
+	namespaceIsolation?: 'segment' | 'none';
 	/** 格式化配置 */
 	formatting?: {
 		/** 缩进字符 */
