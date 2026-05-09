@@ -12,7 +12,7 @@ import { log, setLogLevel, spinner } from '../utils';
 import Components from './components/index';
 import { getSwaggerJson } from './get-data';
 import PathParse from './path/index';
-import { computeSegment } from './shared/naming';
+import { computeSegment, getServiceTag } from './shared/naming';
 
 let isConfigFile: boolean;
 
@@ -59,6 +59,9 @@ export class Main {
 	 * 处理 Swagger 数据
 	 */
 	private async handle(config: ConfigType, appendMode: boolean, show?: 'miss' | 'gen'): Promise<{ path: string; method: string }[] | null> {
+		const tag = getServiceTag(config);
+		// 一个服务一段：使用 section 标题展示服务名 + URL，下面所有子任务无需重复 tag
+		log.section(tag || 'service', config.swaggerJsonUrl);
 		try {
 			// 无论是否为调试模式，都优先按配置从 swaggerConfig.url 获取数据
 			// 若需要本地调试示例数据，可以在 an.config.json 中将 swaggerConfig.url
@@ -611,8 +614,7 @@ export default defineConfig({
 				await this.formatGeneratedFiles(mergedConfig, formatOption);
 			}
 
-			log.success('Successfully, all done, see you next time!');
-			log.print('\n');
+			log.banner('All done — see you next time!');
 
 			if (show && showSummary.length > 0) {
 				const label = show === 'miss' ? 'excludeInterface' : 'includeInterface';

@@ -20,6 +20,9 @@
 			"protocol": "inspector",
 			"console": "integratedTerminal",
 			"internalConsoleOptions": "neverOpen",
+			// 关闭子进程自动附加，避免 jiti / ts-node 派生的子 node 进程都注入 bootloader，
+			// 累积大量 inspector socket 后耗尽进程 FD，导致脚本在第二个 swagger 服务时卡死。
+			"autoAttachChildProcesses": false,
 			"env": {
 				"NODE_ENV": "debug",
 				"TS_NODE_TRANSPILE_ONLY": "true"
@@ -45,6 +48,7 @@
 			"protocol": "inspector",
 			"console": "integratedTerminal",
 			"internalConsoleOptions": "neverOpen",
+			"autoAttachChildProcesses": false,
 			"env": {
 				"NODE_ENV": "development",
 				"TS_NODE_TRANSPILE_ONLY": "true"

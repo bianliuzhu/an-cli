@@ -124,6 +124,28 @@ export function getServerSegment(config: object): string {
 }
 
 /**
+ * 生成用于日志输出的服务标签，格式为 `【bff】`。
+ * 优先使用 apiListFileName 去扩展名，其次使用 segment，最后使用 url 的 host。
+ * 用于在多服务（甚至单服务）模式下区分日志属于哪个 swagger 服务。
+ */
+export function getServiceTag(config: ConfigType): string {
+	const fileName = config.apiListFileName?.replace(/\.[^/.]+$/, '').trim();
+	if (fileName) return `【${fileName}】`;
+	const segment = getServerSegment(config);
+	if (segment) return `【${segment}】`;
+	const url = config.swaggerJsonUrl;
+	if (url) {
+		try {
+			const host = new URL(url).host;
+			if (host) return `【${host}】`;
+		} catch {
+			// 非合法 URL（可能为本地文件路径），忽略
+		}
+	}
+	return '';
+}
+
+/**
  * 当 models / connectors 多嵌套了一层 segment 子目录时，
  * 需要把用户配置的 importEnumPath 相对路径整体再向上一层。
  *

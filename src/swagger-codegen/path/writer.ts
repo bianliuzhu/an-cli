@@ -1,9 +1,12 @@
 import type { ContentBody, MapType, PathParseConfig } from '../types';
 
-import { clearDir, log, writeFileRecursive } from '../../utils';
+import { clearDir, log, runWithConcurrency, writeFileRecursive } from '../../utils';
 import { PAD_END } from '../shared/constants';
 import { getIndentation } from '../shared/format';
 import { getServerSegment } from '../shared/naming';
+
+// 限制并发文件写入数，避免在 macOS 上触发 EMFILE: too many open files
+const FILE_WRITE_CONCURRENCY = 32;
 
 export class PathWriter {
 	private config: PathParseConfig;
@@ -13,50 +16,35 @@ export class PathWriter {
 	}
 
 	async write(map: MapType, apiListFileContent: string[], methodList: string[]): Promise<void> {
-		const Plist = [];
 		const saveTypeFolderPath = this.config.saveTypeFolderPath;
 		const segment = getServerSegment(this.config);
 		const connectorsDir = segment ? `${saveTypeFolderPath}/connectors/${segment}` : `${saveTypeFolderPath}/connectors`;
 
-		const taskFactory = (key: string, content: ContentBody) =>
-			new Promise((resolve, reject) => {
-				try {
-					const { payload, response, fileName } = content;
-					const [, method] = key.split('|');
-					if (!methodList.includes(method)) methodList.push(method);
+		const writeOne = async (key: string, content: ContentBody) => {
+			const { payload, response, fileName } = content;
+			const [, method] = key.split('|');
+			if (!methodList.includes(method)) methodList.push(method);
 
-					const contentArray = [
-						`declare namespace ${content.typeName} {`,
-						...payload.path,
-						...payload.query,
-						...payload.header,
-						...payload.body,
-						`${getIndentation(this.config)}${response}`,
-						`}`,
-					];
+			const contentArray = [
+				`declare namespace ${content.typeName} {`,
+				...payload.path,
+				...payload.query,
+				...payload.header,
+				...payload.body,
+				`${getIndentation(this.config)}${response}`,
+				`}`,
+			];
 
-					const _path = `${connectorsDir}/${fileName}.d.ts`;
-					writeFileRecursive(_path, contentArray.join('\n'))
-						.then(() => {
-							log.info(`${_path.padEnd(PAD_END)} - Write done!`);
-							resolve(1);
-						})
-						.catch((err) => {
-							reject(new Error(String(err)));
-						});
-				} catch (error) {
-					reject(new Error(String(error)));
-				}
-			});
+			const _path = `${connectorsDir}/${fileName}.d.ts`;
+			await writeFileRecursive(_path, contentArray.join('\n'));
+			log.info(`${_path.padEnd(PAD_END)} - Write done!`);
+		};
 
 		// 将 Map 转换为数组并按 key 排序以确保顺序一致性
 		const sortedEntries = Array.from(map.entries()).sort((a, b) => a[0].localeCompare(b[0]));
 
-		for (const [key, value] of sortedEntries) {
-			Plist.push(taskFactory(key, value));
-		}
-
-		await Promise.all(Plist);
+		// 限制并发数，避免一次性打开过多文件描述符（EMFILE）
+		await runWithConcurrency(sortedEntries, FILE_WRITE_CONCURRENCY, ([key, value]) => writeOne(key, value));
 
 		// 对 methodList 排序以确保顺序一致性
 		methodList.sort();
@@ -68,6 +56,6 @@ export class PathWriter {
 		await clearDir(apiListFilePath);
 		await writeFileRecursive(apiListFilePath, apiListFileContent.join('\n'));
 
-		log.success('Path parse & write done!');
+		log.step('Paths parsed & written');
 	}
 }
