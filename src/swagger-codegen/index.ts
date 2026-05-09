@@ -13,7 +13,7 @@ import { log, setLogLevel, spinner } from '../utils';
 import Components from './components/index';
 import { getSwaggerJson } from './get-data';
 import PathParse from './path/index';
-import { computeSegment, getServiceTag } from './shared/naming';
+import { computeSegment, getServiceTag, segmentToNamespacePrefix } from './shared/naming';
 
 let isConfigFile: boolean;
 
@@ -49,8 +49,8 @@ const configContent: ConfigType = {
 	},
 };
 
-type NormalizedSwaggerServer = Required<Omit<IConfigSwaggerServer, 'name' | 'responseModelTransform' | 'includeTags' | 'excludeTags' | 'timeout'>> &
-	Pick<IConfigSwaggerServer, 'name' | 'responseModelTransform' | 'includeTags' | 'excludeTags' | 'timeout'>;
+type NormalizedSwaggerServer = Required<Omit<IConfigSwaggerServer, 'name' | 'responseModelTransform' | 'includeTags' | 'excludeTags' | 'timeout' | 'namespaceIsolation'>> &
+	Pick<IConfigSwaggerServer, 'name' | 'responseModelTransform' | 'includeTags' | 'excludeTags' | 'timeout' | 'namespaceIsolation'>;
 
 export class Main {
 	private schemas: ComponentsSchemas = {};
@@ -364,6 +364,7 @@ export class Main {
 			const modulePrefix = server.modulePrefix ?? config.modulePrefix ?? '';
 			const responseModelTransform = server.responseModelTransform ?? config.responseModelTransform;
 			const timeout = server.timeout ?? config.timeout;
+			const namespaceIsolation = server.namespaceIsolation ?? config.namespaceIsolation ?? 'segment';
 
 			const result: NormalizedSwaggerServer = {
 				url,
@@ -377,6 +378,7 @@ export class Main {
 				modulePrefix,
 				responseModelTransform,
 				timeout,
+				namespaceIsolation,
 			};
 
 			// 可选字段需要单独处理
@@ -430,9 +432,10 @@ export class Main {
 	 * 将 swaggerServer 数据合并到配置中，便于后续处理
 	 *
 	 * @param segment 用于隔离 models/connectors 目录的子段；空串表示不隔离
+	 * @param namespacePrefix 预计算的 namespace 前缀（可与 segment 独立）；空串表示不加前缀
 	 */
-	private buildServerConfig(baseConfig: ConfigType, server: NormalizedSwaggerServer, segment: string): ConfigType {
-		const result: ConfigType & { __segment?: string } = {
+	private buildServerConfig(baseConfig: ConfigType, server: NormalizedSwaggerServer, segment: string, namespacePrefix: string): ConfigType {
+		const result: ConfigType & { __segment?: string; __namespacePrefix?: string } = {
 			...baseConfig,
 			swaggerJsonUrl: server.url,
 			publicPrefix: server.publicPrefix ?? baseConfig.publicPrefix,
@@ -447,9 +450,12 @@ export class Main {
 			modulePrefix: server.modulePrefix,
 			responseModelTransform: server.responseModelTransform ?? baseConfig.responseModelTransform,
 			timeout: server.timeout ?? baseConfig.timeout,
+			namespaceIsolation: server.namespaceIsolation ?? baseConfig.namespaceIsolation ?? 'segment',
 			swaggerConfig: server,
 			// 内部字段：当多服务隔离时携带 segment，下游通过 getServerSegment 读取
 			__segment: segment,
+			// 内部字段：预计算的 namespace 前缀，下游通过 getNamespacePrefix 读取
+			__namespacePrefix: namespacePrefix,
 		};
 		return result;
 	}
@@ -654,12 +660,54 @@ export default defineConfig({
 					if (!seg) {
 						throw new Error(`swaggerConfig[${idx}].apiListFileName="${servers[idx].apiListFileName}" 无法派生有效 segment（清洗后为空），请使用包含字母/数字的文件名。`);
 					}
+					// 'index' 会与顶层 models/index.ts 自身冲突（export * from './index' 自引用），强制改名
+					if (seg.toLowerCase() === 'index') {
+						throw new Error(
+							`swaggerConfig[${idx}].apiListFileName="${servers[idx].apiListFileName}" 派生 segment 为 "index"，会与顶层 models/index.ts 形成自引用，请改为其他文件名（如 "main.ts" / "default.ts"）。`,
+						);
+					}
 					if (seen.has(seg)) {
 						throw new Error(
 							`swaggerConfig 多个服务的 apiListFileName 在派生 segment 时冲突："${servers[seen.get(seg)!].apiListFileName}" 与 "${servers[idx].apiListFileName}" 都解析为 "${seg}"，请改名以避免目录覆盖。`,
 						);
 					}
 					seen.set(seg, idx);
+				});
+			}
+
+			// 计算每个服务的 namespace 前缀（与 segment 隔离独立，单服务也可生效）
+			// - 'none'：始终为空
+			// - 'segment'（默认）：从 apiListFileName 派生，能派生出非空 segment 即加前缀
+			const prefixes = servers.map((server) => {
+				const isolation = server.namespaceIsolation ?? mergedConfig.namespaceIsolation ?? 'segment';
+				if (isolation === 'none') return '';
+				const seg = computeSegment(server.apiListFileName);
+				return segmentToNamespacePrefix(seg);
+			});
+
+			// 多服务且任一服务关闭了 namespace 前缀时，提示存在跨服务全局 namespace 合并污染风险
+			if (isolateBySegment) {
+				const noneServers = servers
+					.map((s, idx) => ({ s, idx }))
+					.filter(({ s }) => (s.namespaceIsolation ?? mergedConfig.namespaceIsolation ?? 'segment') === 'none')
+					.map(({ s }) => s.apiListFileName);
+				if (noneServers.length > 0) {
+					log.warning(
+						`检测到多服务场景下以下服务关闭了 namespace 前缀（namespaceIsolation: 'none'）：${noneServers.join(', ')}。` +
+							` 不同服务若存在同名 path，将会因 declare namespace 全局合并而互相污染类型，请确认是否符合预期。`,
+					);
+				}
+
+				// 校验 prefix 唯一性，避免不同 segment（如 'op' / 'OP'）派生同一 prefix
+				const prefixSeen = new Map<string, number>();
+				prefixes.forEach((prefix, idx) => {
+					if (!prefix) return;
+					if (prefixSeen.has(prefix)) {
+						throw new Error(
+							`swaggerConfig 多个服务派生的 namespace 前缀冲突："${servers[prefixSeen.get(prefix)!].apiListFileName}" 与 "${servers[idx].apiListFileName}" 都解析为前缀 "${prefix}"，请改名以避免类型同名合并。`,
+						);
+					}
+					prefixSeen.set(prefix, idx);
 				});
 			}
 
@@ -705,7 +753,7 @@ export default defineConfig({
 			// 全量：保持原行为，第一个服务负责重写 index，后续 append
 			for (let order = 0; order < selectedIndices.length; order++) {
 				const i = selectedIndices[order];
-				const serverConfig = this.buildServerConfig(mergedConfig, servers[i], segments[i]);
+				const serverConfig = this.buildServerConfig(mergedConfig, servers[i], segments[i], prefixes[i]);
 				const appendMode = isSelective ? true : order > 0;
 				const list = await this.handle(serverConfig, appendMode, show);
 				if (show && list) showSummary.push({ serverUrl: servers[i].url, list });
@@ -791,14 +839,35 @@ export default defineConfig({
 
 	/**
 	 * 顶层 models/index.ts 聚合 barrel 写入。
+	 *
+	 * 采用 namespace re-export 形式：`export * as Op from './op';`
+	 * - 避免不同服务模型同名（如 ChaXunRuCan / FanHuiDTO 等通用拼音名）触发 TS2308 歧义。
+	 * - 业务侧用法：`import { Op } from '@/types/models'; type T = Op.FanHuiDTO;`
+	 *   或继续用扁平桶：`import { FanHuiDTO } from '@/types/models/op';`
+	 *
 	 * 全量：直接重写为所有 segment 的导出。
-	 * 选择型：读取现有 barrel + 合并所选 segment 的导出，去重写回，避免丢失其他服务的导出。
+	 * 选择型：读取现有 barrel + 合并所选 segment 的导出（按 segment 去重），保留其他服务行。
 	 */
 	private async writeTopLevelModelsBarrel(baseConfig: ConfigType, segments: string[], selectedIndices: number[], isSelective: boolean): Promise<void> {
 		const barrelPath = `${baseConfig.saveTypeFolderPath}/models/index.ts`;
 
+		const buildExportLine = (seg: string): string => {
+			const ns = segmentToNamespacePrefix(seg);
+			if (!ns) {
+				// 极端情况下 segment 无法派生合法 PascalCase（已有上游校验，理论不会到达）
+				throw new Error(`无法为 segment "${seg}" 生成 namespace 别名，请改用包含字母/数字的 apiListFileName。`);
+			}
+			return `export * as ${ns} from './${seg}';`;
+		};
+
 		const targetSegments = isSelective ? selectedIndices.map((i) => segments[i]).filter(Boolean) : segments.filter(Boolean);
-		const newExports = targetSegments.map((seg) => `export * from './${seg}';`);
+		const newExports = targetSegments.map((seg) => buildExportLine(seg));
+
+		// 解析现有 barrel 中每行所引用的 segment（兼容历史的 `export * from './x'` 与新 `export * as X from './x'`）
+		const segmentOf = (line: string): string | null => {
+			const m = line.match(/from\s+['"]\.\/([^'\"]+)['"]/);
+			return m ? m[1] : null;
+		};
 
 		let merged: string[];
 		if (isSelective) {
@@ -809,14 +878,24 @@ export default defineConfig({
 			} catch {
 				existing = [];
 			}
-			const set = new Set(existing);
-			merged = [...existing];
-			for (const line of newExports) {
-				if (!set.has(line)) {
-					merged.push(line);
-					set.add(line);
+			const targetSet = new Set(targetSegments);
+			// 删除现有行中属于本次目标 segment 的旧条目（避免新旧两种形式并存）
+			const kept = existing.filter((line) => {
+				const seg = segmentOf(line);
+				return !(seg && targetSet.has(seg));
+			});
+			// 顺带把保留下来的旧 `export *` 升级为 namespace 形式，统一防歧义
+			const upgraded = kept.map((line) => {
+				const seg = segmentOf(line);
+				if (!seg) return line;
+				if (/export\s+\*\s+as\s+/.test(line)) return line;
+				try {
+					return buildExportLine(seg);
+				} catch {
+					return line;
 				}
-			}
+			});
+			merged = [...upgraded, ...newExports];
 		} else {
 			merged = newExports;
 		}

@@ -124,6 +124,41 @@ export function getServerSegment(config: object): string {
 }
 
 /**
+ * 把 segment（kebab/snake/dot 形式）转为 PascalCase，作为命名空间前缀。
+ * - 'op' -> 'Op'
+ * - 'agents' -> 'Agents'
+ * - 'dot-digital-human' -> 'DotDigitalHuman'
+ * - '123abc' -> '_123abc'（数字开头需补下划线以保证 TS 标识符合法）
+ * - '' -> ''
+ */
+export function segmentToNamespacePrefix(segment: string): string {
+	if (!segment) return '';
+	const result = segment
+		.split(/[-_.]+/)
+		.filter(Boolean)
+		.map((word) => capitalize(word.toLowerCase()))
+		.join('');
+	if (!result) return '';
+	// 数字开头补下划线，避免生成非法 TS 标识符
+	return /^[0-9]/.test(result) ? `_${result}` : result;
+}
+
+/**
+ * 基于 segment + namespaceIsolation 决定 namespace 前缀。
+ *
+ * 优先读取 buildServerConfig 阶段预计算的 `__namespacePrefix`（允许单服务也能出现前缀，
+ * 只要能从 apiListFileName 派生 segment）；未写入时回退到“读 __segment + isolation”的旧逻辑。
+ */
+export function getNamespacePrefix(config: ConfigType): string {
+	const injected = (config as { __namespacePrefix?: string }).__namespacePrefix;
+	if (typeof injected === 'string') return injected;
+	const isolation = config.namespaceIsolation ?? 'segment';
+	if (isolation === 'none') return '';
+	const segment = getServerSegment(config);
+	return segmentToNamespacePrefix(segment);
+}
+
+/**
  * 生成用于日志输出的服务标签，格式为 `【bff】`。
  * 优先使用 apiListFileName 去扩展名，其次使用 segment，最后使用 url 的 host。
  * 用于在多服务（甚至单服务）模式下区分日志属于哪个 swagger 服务。
