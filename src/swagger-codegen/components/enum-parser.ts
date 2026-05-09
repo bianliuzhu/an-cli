@@ -3,7 +3,7 @@ import type { OpenAPIV3 } from 'openapi-types';
 
 import { isValidJSON, log } from '../../utils';
 import { getIndentation } from '../shared/format';
-import { getEnumTypeName, resolveSchemaName, typeNameToFileName, wordsToPascalCase } from '../shared/naming';
+import { adjustImportPathForSegment, getEnumTypeName, getServerSegment, resolveSchemaName, typeNameToFileName, wordsToPascalCase } from '../shared/naming';
 import { nullableSuffix } from '../shared/schema-utils';
 
 type NonArraySchemaObject = OpenAPIV3.NonArraySchemaObject;
@@ -228,6 +228,8 @@ export class EnumParser {
 		const typeName = getEnumTypeName(this.config, enumName);
 		const fileName = typeNameToFileName(enumName);
 
+		const enumImportPath = adjustImportPathForSegment(this.config.importEnumPath ?? '', getServerSegment(this.config));
+
 		// 如果有 example 且为有效 JSON
 		if (isValidJSON(value.example as string)) {
 			const enumContent = this.convertJsonToEnumString(value.example as string, enumName);
@@ -235,7 +237,7 @@ export class EnumParser {
 				this.enumsMap.set(fileName, { fileName, content: enumContent });
 			}
 			return {
-				headerRef: `import type { ${typeName} } from '${this.config.importEnumPath}';`,
+				headerRef: `import type { ${typeName} } from '${enumImportPath}';`,
 				renderStr: `${getIndentation(this.config)}${key}${isRequired ? '' : '?'}: ${typeName}${this.nullable(value.nullable)};`,
 				comment: enumContent,
 				typeName,
@@ -249,7 +251,7 @@ export class EnumParser {
 				this.enumsMap.set(fileName, { fileName, content: enumResult.renderStr });
 			}
 			return {
-				headerRef: `import type { ${typeName} } from '${this.config.importEnumPath}';`,
+				headerRef: `import type { ${typeName} } from '${enumImportPath}';`,
 				renderStr: `${getIndentation(this.config)}${key}${isRequired ? '' : '?'}: ${typeName}${this.nullable(value.nullable)};`,
 				typeName,
 			};
@@ -288,6 +290,7 @@ export class EnumParser {
 	 */
 	getEnumImport(enumName: string): string {
 		const typeName = getEnumTypeName(this.config, enumName);
-		return `import type { ${typeName} } from '${this.config.importEnumPath}';`;
+		const enumImportPath = adjustImportPathForSegment(this.config.importEnumPath ?? '', getServerSegment(this.config));
+		return `import type { ${typeName} } from '${enumImportPath}';`;
 	}
 }

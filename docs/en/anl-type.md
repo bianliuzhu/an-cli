@@ -309,6 +309,22 @@ Projects with existing `an.config.json` do not need to migrate immediately — t
 }
 ```
 
+> **Multi-server output isolation**
+>
+> When `swaggerConfig` defines **multiple** swagger services, generated artifacts are isolated by each service's `apiListFileName` (basename without extension):
+>
+> - `saveTypeFolderPath/models/{segment}/*.ts`
+> - `saveTypeFolderPath/connectors/{segment}/*.d.ts`
+>
+> e.g. `apiListFileName: 'bff.ts'` → segment `bff` → `apps/types/models/bff/`, `apps/types/connectors/bff/`.
+>
+> Notes:
+>
+> 1. **Single-service** projects are unaffected (no extra segment subdirectory). Backward compatible with previous output layout.
+> 2. `apiListFileName` must be a plain file name. Path separators (`/`, `\`) and `..` are rejected at startup. Other invalid chars (spaces, CJK, etc.) are normalized to `-`.
+> 3. Use a relative path for `importEnumPath` (e.g. `'../../enums'`). When isolation is enabled, the tool automatically compensates the extra directory depth (prepends one more `../`).
+> 4. `saveEnumFolderPath` is currently **not isolated** — all services share one enum folder. Avoid duplicate enum names across services.
+
 #### Configuration Item Descriptions
 
 | Configuration Item                                   | Type                                                                            | Required | Description                                                                                                                                                                                                                                                                                                                                                                                                       |

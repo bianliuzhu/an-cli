@@ -3,7 +3,7 @@ import type { OpenAPIV3 } from 'openapi-types';
 
 import { isValidJSON, log } from '../../utils';
 import { getIndentation } from '../shared/format';
-import { getEnumTypeName, resolveSchemaName, typeNameToFileName } from '../shared/naming';
+import { adjustImportPathForSegment, getEnumTypeName, getServerSegment, resolveSchemaName, typeNameToFileName } from '../shared/naming';
 import { nullableSuffix } from '../shared/schema-utils';
 import { EnumParser } from './enum-parser';
 
@@ -143,7 +143,9 @@ export class ComponentSchemaResolver {
 
 		if (dataType === 'enum') {
 			const importTypeName = getEnumTypeName(this.config, typeName);
-			header = `import type { ${importTypeName} } from '${this.config.importEnumPath}';`;
+			const segment = getServerSegment(this.config);
+			const enumImportPath = adjustImportPathForSegment(this.config.importEnumPath ?? '', segment);
+			header = `import type { ${importTypeName} } from '${enumImportPath}';`;
 		} else {
 			header = `import type { ${typeName} } from './${fileName}';`;
 		}

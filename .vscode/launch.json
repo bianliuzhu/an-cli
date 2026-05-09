@@ -23,7 +23,11 @@
 			"env": {
 				"NODE_ENV": "debug",
 				"TS_NODE_TRANSPILE_ONLY": "true"
-			}
+			},
+			"skipFiles": [
+				"<node_internals>/**",
+				"${workspaceFolder}/node_modules/**"
+			]
 		},
 		{
 			"name": "dev",
@@ -44,7 +48,11 @@
 			"env": {
 				"NODE_ENV": "development",
 				"TS_NODE_TRANSPILE_ONLY": "true"
-			}
+			},
+			"skipFiles": [
+				"<node_internals>/**",
+				"${workspaceFolder}/node_modules/**"
+			]
 		}
 	]
 }

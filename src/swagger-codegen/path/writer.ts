@@ -3,6 +3,7 @@ import type { ContentBody, MapType, PathParseConfig } from '../types';
 import { clearDir, log, writeFileRecursive } from '../../utils';
 import { PAD_END } from '../shared/constants';
 import { getIndentation } from '../shared/format';
+import { getServerSegment } from '../shared/naming';
 
 export class PathWriter {
 	private config: PathParseConfig;
@@ -14,6 +15,8 @@ export class PathWriter {
 	async write(map: MapType, apiListFileContent: string[], methodList: string[]): Promise<void> {
 		const Plist = [];
 		const saveTypeFolderPath = this.config.saveTypeFolderPath;
+		const segment = getServerSegment(this.config);
+		const connectorsDir = segment ? `${saveTypeFolderPath}/connectors/${segment}` : `${saveTypeFolderPath}/connectors`;
 
 		const taskFactory = (key: string, content: ContentBody) =>
 			new Promise((resolve, reject) => {
@@ -32,7 +35,7 @@ export class PathWriter {
 						`}`,
 					];
 
-					const _path = `${saveTypeFolderPath}/connectors/${fileName}.d.ts`;
+					const _path = `${connectorsDir}/${fileName}.d.ts`;
 					writeFileRecursive(_path, contentArray.join('\n'))
 						.then(() => {
 							log.info(`${_path.padEnd(PAD_END)} - Write done!`);
