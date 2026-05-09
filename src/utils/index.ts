@@ -64,6 +64,28 @@ export const writeFileRecursive = function (path: string, buffer: string): Promi
 };
 
 /**
+ * 限制并发数地执行一组异步任务，按输入顺序返回结果。
+ * 用于避免在批量文件 IO 时一次性打开过多文件描述符（macOS 默认 256），
+ * 触发 EMFILE: too many open files。
+ */
+export async function runWithConcurrency<T, R>(items: readonly T[], limit: number, worker: (item: T, index: number) => Promise<R>): Promise<R[]> {
+	const results: R[] = new Array(items.length);
+	const concurrency = Math.max(1, Math.min(limit, items.length));
+	let cursor = 0;
+
+	const runners = Array.from({ length: concurrency }, async () => {
+		while (true) {
+			const current = cursor++;
+			if (current >= items.length) return;
+			results[current] = await worker(items[current], current);
+		}
+	});
+
+	await Promise.all(runners);
+	return results;
+}
+
+/**
  * 删除文件夹下所有文件
  * @param {string} path
  */

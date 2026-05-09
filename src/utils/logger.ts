@@ -87,6 +87,30 @@ export const log = {
 	print: (...args: unknown[]) => {
 		if (shouldLog('info')) interruptSpinner(() => console.log(...args));
 	},
+	/** 输出一条服务/阶段的分节标题，例如：▸ [bff] https://... */
+	section: (title: string, subtitle?: string) => {
+		if (!shouldLog('info')) return;
+		interruptSpinner(() => {
+			console.log('');
+			const head = chalk.cyan.bold(`▸ ${title}`);
+			console.log(subtitle ? `${head} ${chalk.dim(subtitle)}` : head);
+			console.log(chalk.dim('─'.repeat(60)));
+		});
+	},
+	/** 缩进的子任务条目，使用浅色对勾 */
+	step: (msg: string) => {
+		if (!shouldLog('info')) return;
+		interruptSpinner(() => console.log(`  ${chalk.green('✓')} ${msg}`));
+	},
+	/** 横幅，用于全局开头/结尾汇总 */
+	banner: (msg: string) => {
+		if (!shouldLog('info')) return;
+		interruptSpinner(() => {
+			console.log('');
+			console.log(chalk.green.bold(`✨ ${msg}`));
+			console.log('');
+		});
+	},
 };
 
 export const spinner = {
@@ -94,14 +118,14 @@ export const spinner = {
 	error: (msg: string) => shouldLog('error') && SP.fail(`❌ ${chalk.red(msg)}`),
 	start: (msg: string) => {
 		if (!shouldLog('info')) return;
-		SP.text = chalk.blue(msg);
+		SP.text = chalk.cyan(msg);
 		SP.start();
 	},
 	success: (msg: string) => {
 		if (!shouldLog('info')) return;
 		SP.stopAndPersist({
-			symbol: chalk.green('✔'),
-			text: chalk.green(msg),
+			symbol: `  ${chalk.green('✓')}`,
+			text: msg,
 		});
 	},
 };

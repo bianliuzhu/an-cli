@@ -2,6 +2,8 @@ import type { ConfigType } from '../types';
 
 import { pinyin } from 'pinyin-pro';
 
+import { log } from '../../utils';
+
 /**
  * 检测字符串是否包含中文字符
  */
@@ -92,6 +94,77 @@ export function typeNameToFileName(str: string): string {
 		.toLowerCase()
 		.replace(/-+/g, '-')
 		.replace(/^-|-$/g, '');
+}
+
+/**
+ * 由 `apiListFileName` 派生 segment（用于隔离生成目录）。
+ *
+ * 仅取 basename 并去除扩展名，再清洗为合法目录名（[a-zA-Z0-9_-]）。
+ *
+ * 例：
+ * - 'bff.ts' -> 'bff'
+ * - 'a/b/notice.ts' -> 'notice'
+ * - 'bad name!.ts' -> 'bad-name'
+ */
+export function computeSegment(apiListFileName: string | undefined): string {
+	const raw = (apiListFileName ?? '').trim();
+	if (!raw) return '';
+	const base = raw.split(/[\\/]/).pop() ?? '';
+	const noExt = base.replace(/\.[^.]+$/, '');
+	const cleaned = noExt.replace(/[^a-zA-Z0-9_-]+/g, '-').replace(/^-+|-+$/g, '');
+	return cleaned;
+}
+
+/**
+ * 读取预先计算好的 segment（在 buildServerConfig 阶段写入 `__segment`）。
+ * 多服务隔离时返回非空字符串，否则返回空串。
+ */
+export function getServerSegment(config: object): string {
+	return (config as { __segment?: string }).__segment ?? '';
+}
+
+/**
+ * 生成用于日志输出的服务标签，格式为 `【bff】`。
+ * 优先使用 apiListFileName 去扩展名，其次使用 segment，最后使用 url 的 host。
+ * 用于在多服务（甚至单服务）模式下区分日志属于哪个 swagger 服务。
+ */
+export function getServiceTag(config: ConfigType): string {
+	const fileName = config.apiListFileName?.replace(/\.[^/.]+$/, '').trim();
+	if (fileName) return `【${fileName}】`;
+	const segment = getServerSegment(config);
+	if (segment) return `【${segment}】`;
+	const url = config.swaggerJsonUrl;
+	if (url) {
+		try {
+			const host = new URL(url).host;
+			if (host) return `【${host}】`;
+		} catch {
+			// 非合法 URL（可能为本地文件路径），忽略
+		}
+	}
+	return '';
+}
+
+/**
+ * 当 models / connectors 多嵌套了一层 segment 子目录时，
+ * 需要把用户配置的 importEnumPath 相对路径整体再向上一层。
+ *
+ * - `./xxx`、`../xxx` 自动追加一层 `../`
+ * - 包名 / 路径别名 / 绝对路径保持不变
+ * - 裸相对路径（如 `enums`）无法判断语义，发出警告并保持不变
+ */
+export function adjustImportPathForSegment(importPath: string, segment: string): string {
+	if (!segment) return importPath;
+	if (!importPath) return importPath;
+	if (importPath.startsWith('./') || importPath.startsWith('../')) {
+		return '../' + importPath;
+	}
+	// 绝对路径 / 包名 / alias 不调整
+	if (importPath.startsWith('/') || /^[a-zA-Z@]/.test(importPath)) {
+		return importPath;
+	}
+	log.warning(`importEnumPath="${importPath}" 形态不明确，建议以 "./" 或 "../" 开头。多服务隔离已开启，工具未自动补偿层级，请自行确认 enum 引用是否正确。`);
+	return importPath;
 }
 
 export function getEnumTypeName(config: ConfigType, enumName: string): string {

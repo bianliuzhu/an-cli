@@ -12,6 +12,7 @@ import { log, setLogLevel, spinner } from '../utils';
 import Components from './components/index';
 import { getSwaggerJson } from './get-data';
 import PathParse from './path/index';
+import { computeSegment, getServiceTag } from './shared/naming';
 
 let isConfigFile: boolean;
 
@@ -58,6 +59,9 @@ export class Main {
 	 * 处理 Swagger 数据
 	 */
 	private async handle(config: ConfigType, appendMode: boolean, show?: 'miss' | 'gen'): Promise<{ path: string; method: string }[] | null> {
+		const tag = getServiceTag(config);
+		// 一个服务一段：使用 section 标题展示服务名 + URL，下面所有子任务无需重复 tag
+		log.section(tag || 'service', config.swaggerJsonUrl);
 		try {
 			// 无论是否为调试模式，都优先按配置从 swaggerConfig.url 获取数据
 			// 若需要本地调试示例数据，可以在 an.config.json 中将 swaggerConfig.url
@@ -345,6 +349,10 @@ export class Main {
 
 			const apiListFileNameRaw = server.apiListFileName ?? config.apiListFileName ?? 'index.ts';
 			const apiListFileName = apiListFileNameRaw.trim() || 'index.ts';
+			// 校验 apiListFileName，避免路径分隔符 / 路径穿越导致生成到非预期目录
+			if (/[\\/]/.test(apiListFileName) || apiListFileName.includes('..')) {
+				throw new Error(`swaggerConfig[${index}].apiListFileName 非法："${apiListFileName}"，请使用单个文件名（如 "bff.ts"），不要包含路径分隔符或 ".."。`);
+			}
 			const headers = server.headers ?? config.headers ?? {};
 			const dataLevel = server.dataLevel ?? config.dataLevel ?? 'serve';
 			const parameterSeparator = server.parameterSeparator ?? config.parameterSeparator ?? '_';
@@ -406,9 +414,11 @@ export class Main {
 
 	/**
 	 * 将 swaggerServer 数据合并到配置中，便于后续处理
+	 *
+	 * @param segment 用于隔离 models/connectors 目录的子段；空串表示不隔离
 	 */
-	private buildServerConfig(baseConfig: ConfigType, server: NormalizedSwaggerServer): ConfigType {
-		return {
+	private buildServerConfig(baseConfig: ConfigType, server: NormalizedSwaggerServer, segment: string): ConfigType {
+		const result: ConfigType & { __segment?: string } = {
 			...baseConfig,
 			swaggerJsonUrl: server.url,
 			publicPrefix: server.publicPrefix ?? baseConfig.publicPrefix,
@@ -424,7 +434,10 @@ export class Main {
 			responseModelTransform: server.responseModelTransform ?? baseConfig.responseModelTransform,
 			timeout: server.timeout ?? baseConfig.timeout,
 			swaggerConfig: server,
+			// 内部字段：当多服务隔离时携带 segment，下游通过 getServerSegment 读取
+			__segment: segment,
 		};
+		return result;
 	}
 
 	/**
@@ -562,12 +575,38 @@ export default defineConfig({
 
 			const showSummary: { serverUrl: string; list: { path: string; method: string }[] }[] = [];
 
+			// 多服务时按 apiListFileName 派生 segment 进行目录隔离，并校验 segment 唯一性
+			const isolateBySegment = servers.length > 1;
+			const segments = isolateBySegment ? servers.map((s) => computeSegment(s.apiListFileName)) : servers.map(() => '');
+			if (isolateBySegment) {
+				const seen = new Map<string, number>();
+				segments.forEach((seg, idx) => {
+					if (!seg) {
+						throw new Error(`swaggerConfig[${idx}].apiListFileName="${servers[idx].apiListFileName}" 无法派生有效 segment（清洗后为空），请使用包含字母/数字的文件名。`);
+					}
+					if (seen.has(seg)) {
+						throw new Error(
+							`swaggerConfig 多个服务的 apiListFileName 在派生 segment 时冲突："${servers[seen.get(seg)!].apiListFileName}" 与 "${servers[idx].apiListFileName}" 都解析为 "${seg}"，请改名以避免目录覆盖。`,
+						);
+					}
+					seen.set(seg, idx);
+				});
+			}
+
 			// 逐个 swagger 服务生成
 			for (let i = 0; i < servers.length; i++) {
-				const serverConfig = this.buildServerConfig(mergedConfig, servers[i]);
+				const serverConfig = this.buildServerConfig(mergedConfig, servers[i], segments[i]);
 				const appendMode = i > 0;
 				const list = await this.handle(serverConfig, appendMode, show);
 				if (show && list) showSummary.push({ serverUrl: servers[i].url, list });
+			}
+
+			// 多服务隔离时，生成顶层 models 聚合 barrel，便于下游统一从 saveTypeFolderPath/models 导入
+			if (isolateBySegment) {
+				const barrelPath = `${mergedConfig.saveTypeFolderPath}/models/index.ts`;
+				const barrelContent = segments.map((seg) => `export * from './${seg}';`).join('\n') + '\n';
+				await writeFileRecursive(barrelPath, barrelContent);
+				log.info(`${barrelPath} - Top-level models barrel written.`);
 			}
 
 			// 对生成文件进行格式化（仅当用户传入 --format 参数时执行）
@@ -575,8 +614,7 @@ export default defineConfig({
 				await this.formatGeneratedFiles(mergedConfig, formatOption);
 			}
 
-			log.success('Successfully, all done, see you next time!');
-			log.print('\n');
+			log.banner('All done — see you next time!');
 
 			if (show && showSummary.length > 0) {
 				const label = show === 'miss' ? 'excludeInterface' : 'includeInterface';

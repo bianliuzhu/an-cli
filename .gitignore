@@ -115,3 +115,7 @@ data/cx.json
 data/df.json
 data/op.json
 data/*.json
+
+# 用户本地真实配置（含内网 URL），仅保留 an.config.example.* 入库
+an.config.ts
+an.config.json

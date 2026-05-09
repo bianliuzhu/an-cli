@@ -311,6 +311,22 @@ export default defineConfig({
 }
 ```
 
+> **多服务目录隔离规则**
+>
+> 当 `swaggerConfig` 配置了 **多个** swagger 服务时，工具会按每个服务的 `apiListFileName`（去除扩展名后的 basename）对生成产物进行目录隔离：
+>
+> - `saveTypeFolderPath/models/{segment}/*.ts`
+> - `saveTypeFolderPath/connectors/{segment}/*.d.ts`
+>
+> 例如 `apiListFileName: 'bff.ts'` → segment 为 `bff`，对应 `apps/types/models/bff/`、`apps/types/connectors/bff/`。
+>
+> 注意事项：
+>
+> 1. **单服务**场景行为保持不变（不会多嵌套 segment 子目录），向后兼容旧版产物结构。
+> 2. `apiListFileName` 必须是单个文件名，**不允许包含路径分隔符 `/`、`\` 或 `..`**，否则启动时会抛错。非法字符（如空格、中文）会被自动替换为 `-`。
+> 3. `importEnumPath` 推荐使用相对路径（如 `'../../enums'`）。隔离开启后，工具会自动为 models/connectors 多出的一层目录补偿前缀（自动追加一层 `../`），无需手动调整。
+> 4. `saveEnumFolderPath` 下的枚举文件目前**不做服务隔离**，多个服务共用一份 enum 目录；若不同服务存在同名枚举请避免冲突。
+
 #### 配置项说明
 
 | 配置项                                               | 类型                                                                            | 必填 | 说明                                                                                                                                                                                                                                                                                                                                                                                        |
