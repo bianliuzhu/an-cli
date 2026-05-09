@@ -3,6 +3,7 @@ import type { OpenAPIV3 } from 'openapi-types';
 
 import chalk from 'chalk';
 import fs from 'fs';
+import inquirer from 'inquirer';
 import { createJiti } from 'jiti';
 import path from 'path';
 import { exec } from 'shelljs';
@@ -48,8 +49,8 @@ const configContent: ConfigType = {
 	},
 };
 
-type NormalizedSwaggerServer = Required<Omit<IConfigSwaggerServer, 'responseModelTransform' | 'includeTags' | 'excludeTags' | 'timeout'>> &
-	Pick<IConfigSwaggerServer, 'responseModelTransform' | 'includeTags' | 'excludeTags' | 'timeout'>;
+type NormalizedSwaggerServer = Required<Omit<IConfigSwaggerServer, 'name' | 'responseModelTransform' | 'includeTags' | 'excludeTags' | 'timeout'>> &
+	Pick<IConfigSwaggerServer, 'name' | 'responseModelTransform' | 'includeTags' | 'excludeTags' | 'timeout'>;
 
 export class Main {
 	private schemas: ComponentsSchemas = {};
@@ -379,6 +380,9 @@ export class Main {
 			};
 
 			// 可选字段需要单独处理
+			if (server.name?.trim()) {
+				result.name = server.name.trim();
+			}
 			if (includeTags !== undefined) {
 				result.includeTags = includeTags;
 			}
@@ -402,6 +406,16 @@ export class Main {
 					throw new Error(`swaggerConfig 中 apiListFileName 重复：${server.apiListFileName}，请为每个服务设置唯一文件名。`);
 				}
 				nameSet.add(server.apiListFileName);
+			});
+
+			// 同时校验 name 全局唯一（仅检查显式提供的 name）
+			const explicitNameSet = new Set<string>();
+			normalized.forEach((server) => {
+				if (!server.name) return;
+				if (explicitNameSet.has(server.name)) {
+					throw new Error(`swaggerConfig 中 name 重复：${server.name}，请为每个服务设置唯一名称。`);
+				}
+				explicitNameSet.add(server.name);
 			});
 		}
 
@@ -543,7 +557,76 @@ export default defineConfig({
 `;
 	}
 
-	async initialize(show?: 'miss' | 'gen', formatOption?: string | boolean, logLevel?: string): Promise<void> {
+	/**
+	 * 解析 --service 输入，定位选中的服务索引集合。
+	 * 匹配优先级：name（显式声明） > apiListFileName 去扩展名（即 segment 派生值）。
+	 * 不匹配的 token 会汇总后报错。
+	 */
+	private resolveSelectedServiceIndices(servers: NormalizedSwaggerServer[], requested: string[]): number[] {
+		const tokenToIndex = new Map<string, number>();
+		servers.forEach((server, idx) => {
+			if (server.name) {
+				tokenToIndex.set(server.name.toLowerCase(), idx);
+			}
+		});
+		// apiListFileName 去扩展名作为兜底匹配，且不会覆盖已有 name 索引
+		servers.forEach((server, idx) => {
+			const seg = computeSegment(server.apiListFileName).toLowerCase();
+			if (seg && !tokenToIndex.has(seg)) {
+				tokenToIndex.set(seg, idx);
+			}
+		});
+
+		const selected = new Set<number>();
+		const unknown: string[] = [];
+		for (const raw of requested) {
+			const key = raw.toLowerCase();
+			const idx = tokenToIndex.get(key);
+			if (idx === undefined) unknown.push(raw);
+			else selected.add(idx);
+		}
+
+		if (unknown.length) {
+			const available = servers
+				.map((s) => s.name || computeSegment(s.apiListFileName))
+				.filter(Boolean)
+				.join(', ');
+			throw new Error(`未找到匹配的 swagger 服务：${unknown.join(', ')}。可用服务：${available || '<无>'}`);
+		}
+
+		return Array.from(selected).sort((a, b) => a - b);
+	}
+
+	/**
+	 * 交互式选择需要重新生成的服务（多选）。
+	 * 仅在 TTY 环境调用，调用方需要确保 stdout/stdin 是 TTY。
+	 */
+	private async promptSelectServices(servers: NormalizedSwaggerServer[]): Promise<number[]> {
+		const choices = servers.map((server, idx) => {
+			const id = server.name || computeSegment(server.apiListFileName) || `#${idx}`;
+			return {
+				name: `${id}  (${server.apiListFileName}  ←  ${server.url})`,
+				value: idx,
+				short: id,
+			};
+		});
+
+		const { picked } = await inquirer.prompt<{ picked: number[] }>([
+			{
+				type: 'checkbox',
+				name: 'picked',
+				message: '请选择需要重新生成的 swagger 服务（空选 = 全部）：',
+				choices,
+				pageSize: Math.min(20, choices.length),
+			},
+		]);
+
+		// 空选视为全选，保持与传统全量行为一致
+		if (!picked || picked.length === 0) return servers.map((_, i) => i);
+		return picked.sort((a, b) => a - b);
+	}
+
+	async initialize(show?: 'miss' | 'gen', formatOption?: string | boolean, logLevel?: string, requestedServices?: string[]): Promise<void> {
 		const projectRoot = process.cwd();
 
 		try {
@@ -561,21 +644,8 @@ export default defineConfig({
 
 			if (!isConfigFile) return;
 
-			// 创建目标目录（如果不存在）
-			await fs.promises.mkdir(mergedConfig.saveApiListFolderPath, { recursive: true });
-
-			// 复制 ajax 配置文件
-			await this.copyAjaxConfigFiles(mergedConfig.saveApiListFolderPath);
-
-			// 清理文件夹
-			// 清理 API 文件夹，但保留配置文件
-			await clearDirExcept(mergedConfig.saveApiListFolderPath, ['config']);
-			await clearDir(mergedConfig.saveTypeFolderPath);
-			await clearDir(mergedConfig.saveEnumFolderPath);
-
-			const showSummary: { serverUrl: string; list: { path: string; method: string }[] }[] = [];
-
 			// 多服务时按 apiListFileName 派生 segment 进行目录隔离，并校验 segment 唯一性
+			// 注意：isolateBySegment 必须基于 "原始 servers 总数"，与 --service 过滤无关
 			const isolateBySegment = servers.length > 1;
 			const segments = isolateBySegment ? servers.map((s) => computeSegment(s.apiListFileName)) : servers.map(() => '');
 			if (isolateBySegment) {
@@ -593,25 +663,66 @@ export default defineConfig({
 				});
 			}
 
+			// 决定本次需要生成的服务索引
+			let selectedIndices: number[];
+			let isSelective: boolean;
+			if (requestedServices?.length) {
+				selectedIndices = this.resolveSelectedServiceIndices(servers, requestedServices);
+				isSelective = selectedIndices.length !== servers.length;
+			} else if (servers.length > 1 && process.stdin.isTTY && process.stdout.isTTY) {
+				// 多服务且交互式终端：弹出多选
+				log.print(chalk.cyan('\n检测到多个 swagger 服务，请选择本次要重新生成的服务：'));
+				selectedIndices = await this.promptSelectServices(servers);
+				isSelective = selectedIndices.length !== servers.length;
+			} else {
+				selectedIndices = servers.map((_, i) => i);
+				isSelective = false;
+			}
+
+			// 打印本次执行计划
+			this.printExecutionPlan(servers, selectedIndices, isSelective);
+
+			// 创建目标目录（如果不存在）
+			await fs.promises.mkdir(mergedConfig.saveApiListFolderPath, { recursive: true });
+
+			// 复制 ajax 配置文件
+			await this.copyAjaxConfigFiles(mergedConfig.saveApiListFolderPath);
+
+			if (isSelective) {
+				// 选择型：精准清理被选中的服务对应文件/目录，绝不动其他服务的产物
+				await this.cleanSelectedTargets(mergedConfig, servers, selectedIndices, segments, isolateBySegment);
+			} else {
+				// 全量：保持原有清理策略
+				await clearDirExcept(mergedConfig.saveApiListFolderPath, ['config']);
+				await clearDir(mergedConfig.saveTypeFolderPath);
+				await clearDir(mergedConfig.saveEnumFolderPath);
+			}
+
+			const showSummary: { serverUrl: string; list: { path: string; method: string }[] }[] = [];
+
 			// 逐个 swagger 服务生成
-			for (let i = 0; i < servers.length; i++) {
+			// 选择型：appendMode 恒为 true（基于已有 index 合并写入，不会污染其他服务）
+			// 全量：保持原行为，第一个服务负责重写 index，后续 append
+			for (let order = 0; order < selectedIndices.length; order++) {
+				const i = selectedIndices[order];
 				const serverConfig = this.buildServerConfig(mergedConfig, servers[i], segments[i]);
-				const appendMode = i > 0;
+				const appendMode = isSelective ? true : order > 0;
 				const list = await this.handle(serverConfig, appendMode, show);
 				if (show && list) showSummary.push({ serverUrl: servers[i].url, list });
 			}
 
-			// 多服务隔离时，生成顶层 models 聚合 barrel，便于下游统一从 saveTypeFolderPath/models 导入
+			// 多服务隔离时，写入顶层 models 聚合 barrel
 			if (isolateBySegment) {
-				const barrelPath = `${mergedConfig.saveTypeFolderPath}/models/index.ts`;
-				const barrelContent = segments.map((seg) => `export * from './${seg}';`).join('\n') + '\n';
-				await writeFileRecursive(barrelPath, barrelContent);
-				log.info(`${barrelPath} - Top-level models barrel written.`);
+				await this.writeTopLevelModelsBarrel(mergedConfig, segments, selectedIndices, isSelective);
 			}
 
 			// 对生成文件进行格式化（仅当用户传入 --format 参数时执行）
 			if (formatOption !== undefined && formatOption !== false) {
-				await this.formatGeneratedFiles(mergedConfig, formatOption);
+				if (isSelective) {
+					await this.formatSelectedFiles(mergedConfig, servers, selectedIndices, segments, isolateBySegment, formatOption);
+				} else {
+					await this.formatGeneratedFiles(mergedConfig, formatOption);
+				}
 			}
 
 			log.banner('All done — see you next time!');
@@ -619,7 +730,7 @@ export default defineConfig({
 			if (show && showSummary.length > 0) {
 				const label = show === 'miss' ? 'excludeInterface' : 'includeInterface';
 				for (const { serverUrl, list } of showSummary) {
-					if (servers.length > 1) log.print(chalk.cyan(`\n[${label}] ${serverUrl}`));
+					if (selectedIndices.length > 1) log.print(chalk.cyan(`\n[${label}] ${serverUrl}`));
 					else log.print(chalk.cyan(`\n[${label}]`));
 					log.print(JSON.stringify(list, null, 2));
 				}
@@ -628,6 +739,165 @@ export default defineConfig({
 		} catch (error: unknown) {
 			const message = error instanceof Error ? error.message : 'Unknown error';
 			log.error(`Initialization failed: ${message}`);
+			process.exitCode = 1;
+		}
+	}
+
+	/**
+	 * 打印本次将要执行的服务清单（选中/跳过）。
+	 */
+	private printExecutionPlan(servers: NormalizedSwaggerServer[], selectedIndices: number[], isSelective: boolean): void {
+		const selectedSet = new Set(selectedIndices);
+		log.print(chalk.cyan(isSelective ? '\n[anl type] 选择型生成，仅处理以下服务：' : '\n[anl type] 全量生成，将处理所有服务：'));
+		servers.forEach((server, idx) => {
+			const id = server.name || computeSegment(server.apiListFileName) || `#${idx}`;
+			if (selectedSet.has(idx)) {
+				log.print(`  ${chalk.green('●')} ${id}  (${server.apiListFileName})  ${chalk.gray(server.url)}`);
+			} else {
+				log.print(`  ${chalk.gray('○ skip ')}${id}  (${server.apiListFileName})  ${chalk.gray(server.url)}`);
+			}
+		});
+		log.print('');
+	}
+
+	/**
+	 * 选择型清理：仅删除被选中服务对应的 API 文件、connectors/<seg>、models/<seg>。
+	 * 共享的 enum 目录不清理（写入时按文件覆盖，index.ts 通过 appendMode 合并去重）。
+	 */
+	private async cleanSelectedTargets(
+		baseConfig: ConfigType,
+		servers: NormalizedSwaggerServer[],
+		selectedIndices: number[],
+		segments: string[],
+		isolateBySegment: boolean,
+	): Promise<void> {
+		for (const i of selectedIndices) {
+			const apiFilePath = `${baseConfig.saveApiListFolderPath}/${servers[i].apiListFileName}`;
+			await clearDir(apiFilePath);
+
+			if (isolateBySegment) {
+				const seg = segments[i];
+				if (seg) {
+					await clearDir(`${baseConfig.saveTypeFolderPath}/connectors/${seg}`);
+					await clearDir(`${baseConfig.saveTypeFolderPath}/models/${seg}`);
+				}
+			} else {
+				// 单服务模式 = 全量等价，按全量逻辑清理
+				await clearDir(`${baseConfig.saveTypeFolderPath}/connectors`);
+				await clearDir(`${baseConfig.saveTypeFolderPath}/models`);
+			}
+		}
+	}
+
+	/**
+	 * 顶层 models/index.ts 聚合 barrel 写入。
+	 * 全量：直接重写为所有 segment 的导出。
+	 * 选择型：读取现有 barrel + 合并所选 segment 的导出，去重写回，避免丢失其他服务的导出。
+	 */
+	private async writeTopLevelModelsBarrel(baseConfig: ConfigType, segments: string[], selectedIndices: number[], isSelective: boolean): Promise<void> {
+		const barrelPath = `${baseConfig.saveTypeFolderPath}/models/index.ts`;
+
+		const targetSegments = isSelective ? selectedIndices.map((i) => segments[i]).filter(Boolean) : segments.filter(Boolean);
+		const newExports = targetSegments.map((seg) => `export * from './${seg}';`);
+
+		let merged: string[];
+		if (isSelective) {
+			let existing: string[] = [];
+			try {
+				const current = await fs.promises.readFile(barrelPath, 'utf8');
+				existing = current.split('\n').filter((line) => line.trim() !== '');
+			} catch {
+				existing = [];
+			}
+			const set = new Set(existing);
+			merged = [...existing];
+			for (const line of newExports) {
+				if (!set.has(line)) {
+					merged.push(line);
+					set.add(line);
+				}
+			}
+		} else {
+			merged = newExports;
+		}
+
+		const content = merged.join('\n') + '\n';
+		await writeFileRecursive(barrelPath, content);
+		log.info(`${barrelPath} - Top-level models barrel ${isSelective ? 'merged' : 'written'}.`);
+	}
+
+	/**
+	 * 选择型格式化：仅格式化被选中的服务对应的产物，避免误格式化其他服务文件。
+	 */
+	private async formatSelectedFiles(
+		config: ConfigType,
+		servers: NormalizedSwaggerServer[],
+		selectedIndices: number[],
+		segments: string[],
+		isolateBySegment: boolean,
+		formatOption: string | boolean,
+	): Promise<void> {
+		const targets: string[] = [];
+		for (const i of selectedIndices) {
+			const apiFile = `${config.saveApiListFolderPath}/${servers[i].apiListFileName}`;
+			try {
+				await fs.promises.access(apiFile);
+				targets.push(`"${apiFile}"`);
+			} catch {
+				/* ignore */
+			}
+
+			const segDirs =
+				isolateBySegment && segments[i]
+					? [`${config.saveTypeFolderPath}/connectors/${segments[i]}`, `${config.saveTypeFolderPath}/models/${segments[i]}`]
+					: [`${config.saveTypeFolderPath}/connectors`, `${config.saveTypeFolderPath}/models`];
+			for (const dir of segDirs) {
+				try {
+					await fs.promises.access(dir);
+					targets.push(`"${dir}/**/*.{ts,d.ts}"`);
+				} catch {
+					/* ignore */
+				}
+			}
+		}
+
+		if (targets.length === 0) {
+			log.warning('No files to format for the selected services.');
+			return;
+		}
+
+		const prettierBin = await this.resolvePrettierExecutable();
+		let configFlag = '';
+		if (typeof formatOption === 'string' && formatOption.trim()) {
+			const configPath = path.resolve(process.cwd(), formatOption.trim());
+			try {
+				await fs.promises.access(configPath);
+				configFlag = ` --config "${configPath}"`;
+			} catch {
+				const detected = await this.detectPrettierConfig();
+				if (detected) configFlag = ` --config "${detected}"`;
+			}
+		} else {
+			const detected = await this.detectPrettierConfig();
+			if (detected) configFlag = ` --config "${detected}"`;
+		}
+
+		const formatCommand = `${prettierBin} --write ${targets.join(' ')}${configFlag}`;
+		try {
+			spinner.start('Formatting selected files...');
+			await new Promise<void>((resolve, reject) => {
+				exec(formatCommand, (error) => {
+					if (error) reject(new Error(String(error)));
+					else resolve();
+				});
+			});
+			spinner.success('File formatting successful');
+			log.print('\n');
+		} catch (error: unknown) {
+			spinner.error('Format failed');
+			log.print(error);
+			log.error('Format failed, please manually execute the following command:');
+			log.print('$', chalk.yellow(formatCommand));
 		}
 	}
 }

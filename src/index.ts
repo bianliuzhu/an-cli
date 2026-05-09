@@ -15,7 +15,11 @@ program
 	.option('-s, --show <what>', 'show interface list after generation: miss | gen')
 	.option('-f, --format [config]', 'enable prettier formatting after generation; optionally specify a prettier config file path (e.g. --format .prettierrc.mjs)')
 	.option('-l, --log-level <level>', 'set log output level: silent | error | warn | info | verbose')
-	.action((options: { show?: string; format?: string | boolean; logLevel?: string }) => {
+	.option(
+		'-S, --service <names>',
+		'only regenerate the specified swagger service(s); comma-separated. Match by `name` (preferred) or `apiListFileName` without extension. Other services are kept untouched.',
+	)
+	.action((options: { show?: string; format?: string | boolean; logLevel?: string; service?: string }) => {
 		const raw = (options.show ?? '').toLowerCase().trim();
 		const show =
 			raw === 'miss' || raw === 'missing' || raw === 'm' || raw === 'exclude' || raw === 'x'
@@ -23,8 +27,14 @@ program
 				: raw === 'gen' || raw === 'generated' || raw === 'g' || raw === 'include' || raw === 'i'
 					? 'gen'
 					: undefined;
+		const services = options.service
+			? options.service
+					.split(',')
+					.map((s) => s.trim())
+					.filter(Boolean)
+			: undefined;
 		const Instance = new Main();
-		Instance.initialize(show, options.format, options.logLevel).catch((error) => {
+		Instance.initialize(show, options.format, options.logLevel, services).catch((error) => {
 			console.error(error);
 		});
 	});

@@ -156,6 +156,90 @@ $ anl type -l warn -f -s miss
 
 For level descriptions, see [Log Level](#log-level-loglevel).
 
+#### Regenerate Selected Services Only (-S / --service)
+
+When `swaggerConfig` defines multiple swagger services, `anl type` defaults to a **full regeneration** (clean directories → regenerate everything). To refresh only one or a few services while keeping the others' generated files untouched, use the `-S` / `--service` flag.
+
+##### Examples
+
+```bash
+# Regenerate only the `op` service
+$ anl type -S op
+
+# Regenerate multiple services (comma-separated)
+$ anl type --service op,notice
+
+# Combine with other flags
+$ anl type -S op -f -s miss
+```
+
+##### Matching Rules
+
+- Match against the service `name` field first (recommended for stable identifiers)
+- Fall back to `apiListFileName` without its extension (e.g. `op.ts` → `op`)
+- Case-insensitive
+- If any token does not match, the command fails with a list of available services and exits with code `1`
+
+##### Option
+
+- **Option**: `-S, --service <names>`
+- **Values**: One or more service identifiers, comma-separated
+- **Priority**: CLI flag > interactive picker > full regeneration
+
+##### Selective Mode Guarantees
+
+- Only the selected services' API file, `connectors/<segment>` and `models/<segment>` directories are cleaned
+- The **shared enum directory is never wiped** (so other services' enums are preserved)
+- The top-level `models/index.ts` barrel is updated with a "read → merge → dedupe → write" strategy, **preserving other services' `export *` lines**
+- Under selective mode, `--format` only formats the selected services' generated files
+
+#### Interactive Picker (auto-triggered for multi-service configs)
+
+`anl type` automatically opens an inquirer multi-select prompt when **all** of the following are true:
+
+1. `swaggerConfig` defines **2 or more** services
+2. `-S` / `--service` is **not** provided
+3. The current process is attached to a **TTY** (not CI / not piped)
+
+##### Example
+
+```bash
+$ anl type
+Multiple swagger services detected. Please pick the ones to regenerate this run:
+? Select services to regenerate (empty selection = all): (Press <space> to select, <a> to toggle all)
+❯◯ op  (op.ts  ←  https://app.op.dev.dotfortune.com/order/v3/api-docs)
+ ◯ notice  (notice.ts  ←  http://dot-common.dev.dotfortune.net/v3/api-docs/op-notice)
+ ...
+```
+
+- Empty selection → treated as "all" → falls back to full regeneration
+- Selecting 1..N items → selective regeneration
+- In non-TTY environments (CI / pipes) the interactive prompt is skipped and full regeneration runs
+
+#### Service Naming (`swaggerConfig[i].name`)
+
+Declaring a `name` for each service gives you:
+
+- A **stable, human-readable** identifier for both `-S, --service` and the interactive picker
+- Decoupling from `apiListFileName` — renaming the output file no longer breaks your CLI usage
+
+```typescript
+swaggerConfig: [
+	{
+		name: 'op', // recommended
+		url: 'https://example.com/order/v3/api-docs',
+		apiListFileName: 'op.ts',
+	},
+	{
+		name: 'notice',
+		url: 'https://example.com/notice/v3/api-docs',
+		apiListFileName: 'notice.ts',
+	},
+],
+```
+
+> In multi-service configs, both `name` and `apiListFileName` must be globally unique. When `name` is omitted, the segment derived from `apiListFileName` (extension stripped) is used for matching.
+
 ### Configuration File Details
 
 #### TypeScript Configuration File (Recommended)

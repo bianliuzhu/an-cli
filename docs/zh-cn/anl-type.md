@@ -158,6 +158,90 @@ $ anl type -l warn -f -s miss
 
 详细级别说明见[日志输出级别](#日志输出级别-loglevel)。
 
+#### 仅生成指定服务（-S / --service）
+
+当 `swaggerConfig` 配置了多个 swagger 服务时，默认 `anl type` 会**全量重生成所有服务**（清空目录 → 重新生成）。如果只想刷新其中的某一个或几个服务（其他服务的产物保持不变），可以使用 `-S` / `--service` 参数。
+
+##### 使用示例
+
+```bash
+# 仅重新生成 op 服务
+$ anl type -S op
+
+# 同时重新生成多个服务，逗号分隔
+$ anl type --service op,notice
+
+# 与其他参数组合
+$ anl type -S op -f -s miss
+```
+
+##### 匹配规则
+
+- 优先按服务的 `name` 字段匹配（推荐显式声明，命名稳定）
+- 若未声明 `name`，则回退到 `apiListFileName` 去掉扩展名后的值（例如 `op.ts` → `op`）
+- 大小写不敏感
+- 任意一个 token 未匹配 → 报错并列出所有可用服务名，进程退出码为 1
+
+##### 参数说明
+
+- **参数**：`-S, --service <names>`
+- **可选值**：单个或多个服务标识，逗号分隔
+- **优先级**：命令行参数 > 交互式选择 > 全量
+
+##### 选择型生成的行为约定
+
+- 仅清理被选中服务的 API 文件、`connectors/<segment>` 与 `models/<segment>` 子目录
+- **共享的 enum 目录不会被清空**（避免误删其他服务定义的枚举）
+- 顶层 `models/index.ts` 采用"读取-合并-去重-写回"策略，**保留其他服务的 `export *`**
+- `--format` 在选择型模式下仅格式化被选中服务的产物
+
+#### 交互式多选（多服务自动触发）
+
+当满足以下条件时，`anl type` 会自动弹出 inquirer 多选框，让你勾选本次需要重新生成的服务：
+
+1. `swaggerConfig` 配置了 **2 个及以上** 服务
+2. 未传 `-S` / `--service`
+3. 当前是 **TTY 终端**（非 CI / 非管道）
+
+##### 使用示例
+
+```bash
+$ anl type
+检测到多个 swagger 服务，请选择本次要重新生成的服务：
+? 请选择需要重新生成的 swagger 服务（空选 = 全部）： (Press <space> to select, <a> to toggle all)
+❯◯ op  (op.ts  ←  https://app.op.dev.dotfortune.com/order/v3/api-docs)
+ ◯ notice  (notice.ts  ←  http://dot-common.dev.dotfortune.net/v3/api-docs/op-notice)
+ ...
+```
+
+- 不勾选任何项 → 视为"全部" → 走全量行为，与 `anl type` 单服务时一致
+- 勾选 1 ~ N 项 → 走选择型行为
+- 非 TTY 环境（CI / 管道）会自动跳过交互，回退到全量行为
+
+#### 服务命名（`swaggerConfig[i].name`）
+
+为每个服务声明 `name` 字段，可获得：
+
+- 在 `-S, --service` 与交互式多选中拥有**稳定、易读**的标识
+- 即使将来调整 `apiListFileName`，命令行用法不受影响
+
+```typescript
+swaggerConfig: [
+	{
+		name: 'op', // 推荐显式声明
+		url: 'https://example.com/order/v3/api-docs',
+		apiListFileName: 'op.ts',
+	},
+	{
+		name: 'notice',
+		url: 'https://example.com/notice/v3/api-docs',
+		apiListFileName: 'notice.ts',
+	},
+],
+```
+
+> 多服务下，`name` 与 `apiListFileName` 都需要全局唯一。未声明 `name` 时仍可使用 `apiListFileName` 去扩展名后的值匹配。
+
 ### 配置文件详解
 
 #### TypeScript 配置文件（推荐）
