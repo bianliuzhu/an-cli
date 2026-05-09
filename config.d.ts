@@ -24,6 +24,9 @@ export interface IIncludeInterface {
 }
 
 export interface IConfigSwaggerServer {
+	/** 服务名称，作为 `anl type --service <name>` 的匹配标识，建议在多服务场景下显式指定。
+	 * 未指定时，会回退到 apiListFileName 去扩展名后的值作为标识。 */
+	name?: string;
 	/** swagger json 的 url */
 	url: string;
 	/** 公共前缀 */
