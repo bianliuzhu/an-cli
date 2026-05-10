@@ -599,7 +599,7 @@ export default defineConfig({
 
 		if (unknown.length) {
 			const available = servers
-				.map((s) => s.name || computeSegment(s.apiListFileName))
+				.map((s) => s.name ?? computeSegment(s.apiListFileName))
 				.filter(Boolean)
 				.join(', ');
 			throw new Error(`未找到匹配的 swagger 服务：${unknown.join(', ')}。可用服务：${available || '<无>'}`);
@@ -614,7 +614,7 @@ export default defineConfig({
 	 */
 	private async promptSelectServices(servers: NormalizedSwaggerServer[]): Promise<number[]> {
 		const choices = servers.map((server, idx) => {
-			const id = server.name || computeSegment(server.apiListFileName) || `#${idx}`;
+			const id = (server.name ?? computeSegment(server.apiListFileName)) || `#${idx}`;
 			return {
 				name: `${id}  (${server.apiListFileName}  ←  ${server.url})`,
 				value: idx,
@@ -817,7 +817,7 @@ export default defineConfig({
 		const selectedSet = new Set(selectedIndices);
 		log.print(chalk.cyan(isSelective ? '\n[anl type] 选择型生成，仅处理以下服务：' : '\n[anl type] 全量生成，将处理所有服务：'));
 		servers.forEach((server, idx) => {
-			const id = server.name || computeSegment(server.apiListFileName) || `#${idx}`;
+			const id = (server.name ?? computeSegment(server.apiListFileName)) || `#${idx}`;
 			if (selectedSet.has(idx)) {
 				log.print(`  ${chalk.green('●')} ${id}  (${server.apiListFileName})  ${chalk.gray(server.url)}`);
 			} else {
@@ -888,7 +888,7 @@ export default defineConfig({
 
 		// 解析现有 barrel 中每行所引用的 segment（兼容历史的 `export * from './x'` 与新 `export * as X from './x'`）
 		const segmentOf = (line: string): string | null => {
-			const m = line.match(/from\s+['"]\.\/([^'\"]+)['"]/);
+			const m = /from\s+['"]\.\/([^'"]+)['"]/.exec(line);
 			return m ? m[1] : null;
 		};
 
@@ -958,7 +958,7 @@ export default defineConfig({
 
 		const isolatedFor = (i: number): boolean => (servers[i].enumIsolation ?? 'segment') === 'segment';
 
-		const targetSegments = isSelective
+		const candidateSegments = isSelective
 			? selectedIndices
 					.filter((i) => isolatedFor(i))
 					.map((i) => segments[i])
@@ -967,10 +967,25 @@ export default defineConfig({
 					.map((seg, i) => ({ seg, i }))
 					.filter(({ seg, i }) => Boolean(seg) && isolatedFor(i))
 					.map(({ seg }) => seg);
-		const newExports = targetSegments.map((seg) => buildExportLine(seg));
+
+		const uniqueCandidateSegments = Array.from(new Set(candidateSegments));
+		const existsChecks = await Promise.all(
+			uniqueCandidateSegments.map(async (seg) => {
+				const segDir = `${baseConfig.saveEnumFolderPath}/${seg}`;
+				try {
+					const entries = await fs.promises.readdir(segDir, { withFileTypes: true });
+					const hasEnumFiles = entries.some((entry) => entry.isFile() && /\.(d\.)?ts$/.test(entry.name) && entry.name !== 'index.ts');
+					return hasEnumFiles ? seg : '';
+				} catch {
+					return '';
+				}
+			}),
+		);
+		const generatedSegments = existsChecks.filter(Boolean);
+		const newExports = generatedSegments.map((seg) => buildExportLine(seg));
 
 		const segmentOf = (line: string): string | null => {
-			const m = line.match(/from\s+['"]\.\/([^'\"]+)['"]/);
+			const m = /from\s+['"]\.\/([^'"]+)['"]/.exec(line);
 			return m ? m[1] : null;
 		};
 
@@ -983,7 +998,7 @@ export default defineConfig({
 			} catch {
 				existing = [];
 			}
-			const targetSet = new Set(targetSegments);
+			const targetSet = new Set(uniqueCandidateSegments);
 			// 仅删除既有的属于本次目标 segment 的旧条目，其余行（含非隔离服务的扁平 `export * from './<file>'`）保持原样。
 			// 注意：此处不可像 models barrel 那样把保留行"升级"为 namespace 形式 ——
 			// 在混合 enumIsolation 场景下，扁平文件名（如 './import-task-status'）会被误识别为 segment 而错误改写。
@@ -1002,7 +1017,7 @@ export default defineConfig({
 			} catch {
 				existing = [];
 			}
-			const targetSet = new Set(targetSegments);
+			const targetSet = new Set(uniqueCandidateSegments);
 			// 删除既有的属于本次目标 segment 的旧条目（含历史 `export *` 与新 `export * as`）
 			const kept = existing.filter((line) => {
 				const seg = segmentOf(line);

@@ -28,10 +28,10 @@
 		"ts": "tsc ./src/int.ts --noEmit --watch",
 		"blink": "pnpm run build && pnpm link",
 		"docs": "docsify serve ./docs",
-		"test:type": "node bin/an-cli.js type",
-		"test:type:one": "node bin/an-cli.js type -S op",
-		"test:type:multi": "node bin/an-cli.js type -S op,notice",
-		"test:type:miss": "node bin/an-cli.js type -S notExist"
+		"type": "node bin/an-cli.js type",
+		"type:one": "node bin/an-cli.js type -S op",
+		"type:multi": "node bin/an-cli.js type -S op,notice",
+		"type:miss": "node bin/an-cli.js type -S notExist"
 	},
 	"bin": {
 		"anl": "bin/an-cli.js"
