@@ -3,7 +3,16 @@ import type { OpenAPIV3 } from 'openapi-types';
 
 import { getIndentation, getLineEnding } from '../shared/format';
 import { SUPPORTED_REQUEST_TYPES_ALL } from '../shared/http';
-import { adjustImportPathForSegment, containsChinese, getEnumTypeName, getServerSegment, resolveSchemaName, typeNameToFileName } from '../shared/naming';
+import {
+	adjustImportPathForSegment,
+	appendEnumSegment,
+	containsChinese,
+	getEnumSegment,
+	getEnumTypeName,
+	getServerSegment,
+	resolveSchemaName,
+	typeNameToFileName,
+} from '../shared/naming';
 import { applyTypeMapping, formatObjectProperties, nullableSuffix, stringifyArrayType } from '../shared/schema-utils';
 
 const componentsPathEnum = {
@@ -120,7 +129,7 @@ export class SchemaResolver {
 			const finalTypeName = isEnum ? getEnumTypeName(this.config, resolvedName) : resolvedName;
 
 			const segment = getServerSegment(this.config);
-			const enumImportPath = adjustImportPathForSegment(this.config.importEnumPath ?? '', segment);
+			const enumImportPath = appendEnumSegment(adjustImportPathForSegment(this.config.importEnumPath ?? '', segment), getEnumSegment(this.config));
 			const modelsRelative = segment ? `../../models/${segment}` : '../models';
 			const importStatement = isEnum ? `import('${enumImportPath}/${fileName}').${finalTypeName}` : `import('${modelsRelative}/${fileName}').${resolvedName}`;
 

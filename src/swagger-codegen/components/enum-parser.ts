@@ -3,7 +3,16 @@ import type { OpenAPIV3 } from 'openapi-types';
 
 import { isValidJSON, log } from '../../utils';
 import { getIndentation } from '../shared/format';
-import { adjustImportPathForSegment, getEnumTypeName, getServerSegment, resolveSchemaName, typeNameToFileName, wordsToPascalCase } from '../shared/naming';
+import {
+	adjustImportPathForSegment,
+	appendEnumSegment,
+	getEnumSegment,
+	getEnumTypeName,
+	getServerSegment,
+	resolveSchemaName,
+	typeNameToFileName,
+	wordsToPascalCase,
+} from '../shared/naming';
 import { nullableSuffix } from '../shared/schema-utils';
 
 type NonArraySchemaObject = OpenAPIV3.NonArraySchemaObject;
@@ -228,7 +237,7 @@ export class EnumParser {
 		const typeName = getEnumTypeName(this.config, enumName);
 		const fileName = typeNameToFileName(enumName);
 
-		const enumImportPath = adjustImportPathForSegment(this.config.importEnumPath ?? '', getServerSegment(this.config));
+		const enumImportPath = appendEnumSegment(adjustImportPathForSegment(this.config.importEnumPath ?? '', getServerSegment(this.config)), getEnumSegment(this.config));
 
 		// 如果有 example 且为有效 JSON
 		if (isValidJSON(value.example as string)) {
@@ -290,7 +299,7 @@ export class EnumParser {
 	 */
 	getEnumImport(enumName: string): string {
 		const typeName = getEnumTypeName(this.config, enumName);
-		const enumImportPath = adjustImportPathForSegment(this.config.importEnumPath ?? '', getServerSegment(this.config));
+		const enumImportPath = appendEnumSegment(adjustImportPathForSegment(this.config.importEnumPath ?? '', getServerSegment(this.config)), getEnumSegment(this.config));
 		return `import type { ${typeName} } from '${enumImportPath}';`;
 	}
 }

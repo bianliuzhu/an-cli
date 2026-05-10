@@ -191,9 +191,9 @@ $ anl type -S op -f -s miss
 ##### 选择型生成的行为约定
 
 - 仅清理被选中服务的 API 文件、`connectors/<segment>` 与 `models/<segment>` 子目录
-- **共享的 enum 目录不会被清空**（避免误删其他服务定义的枚举）
-- 顶层 `models/index.ts` 采用"读取-合并-去重-写回"策略，**保留其他服务的 `export *`**
-- `--format` 在选择型模式下仅格式化被选中服务的产物
+- **枚举数据隔离启用时**（`enumIsolation: 'segment'`，默认）：同步清理被选中服务的 `enums/<segment>` 子目录；**未启用时**（`enumIsolation: 'none'`）：保留共享的顶层 enum 目录不清空，避免误删其他服务定义的枚举
+- 顶层 `models/index.ts` 与 `enums/index.ts` 均采用"读取-合并-去重-写回"策略，**保留其他服务的导出行**（包括 `export *` 与 `export * as Xxx`）
+- `--format` 在选择型模式下仅格式化被选中服务的产物（含其 `enums/<segment>` 子目录）
 
 #### 交互式多选（多服务自动触发）
 
@@ -401,15 +401,30 @@ export default defineConfig({
 >
 > - `saveTypeFolderPath/models/{segment}/*.ts`
 > - `saveTypeFolderPath/connectors/{segment}/*.d.ts`
+> - `saveEnumFolderPath/{segment}/*.ts`（默认开启，可通过 `enumIsolation: 'none'` 关闭）
 >
-> 例如 `apiListFileName: 'bff.ts'` → segment 为 `bff`，对应 `apps/types/models/bff/`、`apps/types/connectors/bff/`。
+> 例如 `apiListFileName: 'bff.ts'` → segment 为 `bff`，对应 `apps/types/models/bff/`、`apps/types/connectors/bff/`、`apps/enums/bff/`。
 >
 > 注意事项：
 >
 > 1. **单服务**场景行为保持不变（不会多嵌套 segment 子目录），向后兼容旧版产物结构。
 > 2. `apiListFileName` 必须是单个文件名，**不允许包含路径分隔符 `/`、`\` 或 `..`**，否则启动时会抛错。非法字符（如空格、中文）会被自动替换为 `-`。
-> 3. `importEnumPath` 推荐使用相对路径（如 `'../../enums'`）。隔离开启后，工具会自动为 models/connectors 多出的一层目录补偿前缀（自动追加一层 `../`），无需手动调整。
-> 4. `saveEnumFolderPath` 下的枚举文件目前**不做服务隔离**，多个服务共用一份 enum 目录；若不同服务存在同名枚举请避免冲突。
+> 3. `importEnumPath` 推荐使用相对路径（如 `'../../enums'`）。隔离开启后，工具会自动为 models/connectors 多出的一层目录补偿前缀（自动追加一层 `../`），并在路径末尾追加 `/<segment>`，无需手动调整。
+> 4. **枚举数据隔离**（`enumIsolation`，默认 `'segment'`）：多服务时枚举写入 `${saveEnumFolderPath}/<segment>/`，并在顶层生成 namespace barrel：
+>    ```ts
+>    // apps/enums/index.ts
+>    export * as Op from './op';
+>    export * as Bff from './bff';
+>    ```
+>    业务侧两种用法：
+>    ```ts
+>    import { Op } from '@/enums';
+>    const s: Op.Status = Op.Status.Enabled;
+>    // 或扁平桶（同服务内不会撞名）：
+>    import { Status } from '@/enums/op';
+>    ```
+>    若需保持历史「所有服务共用顶层枚举目录」的行为，可在某个服务上设置 `enumIsolation: 'none'`，该服务的枚举仍写入顶层；存在同名枚举时后写者会覆盖前写者，请谨慎使用。
+> 5. 从旧版（共享枚举）升级到当前版本时，工具会扫描 `${saveEnumFolderPath}` 顶层若仍存在历史 `*.ts` 枚举文件，会发出 warning 提示你重跑全量或手动清理；自身不会删除以避免破坏未受工具管控的产物。
 
 #### 配置项说明
 
@@ -433,6 +448,8 @@ export default defineConfig({
 | swaggerConfig[].includeTags                          | string[]                                                                        | 否   | 该服务器按 OpenAPI tag 包含的接口。与 `excludeTags` 互斥，在接口级 `includeInterface`/`excludeInterface` 之后应用。详见[按 Tag 过滤接口](#按-tag-过滤接口)                                                                                                                                                                                                                                  |
 | swaggerConfig[].excludeTags                          | string[]                                                                        | 否   | 该服务器按 OpenAPI tag 排除的接口。与 `includeTags` 互斥，在接口级过滤之后应用。详见[按 Tag 过滤接口](#按-tag-过滤接口)                                                                                                                                                                                                                                                                     |
 | swaggerConfig[].timeout                              | number                                                                          | 否   | 请求 Swagger JSON 数据的超时时间（毫秒），默认 `60000`（60 秒）。若未设置，使用全局 `timeout` 配置                                                                                                                                                                                                                                                                                          |
+| swaggerConfig[].namespaceIsolation                   | `'segment'` \| `'none'`                                                         | 否   | 命名空间前缀策略。默认 `'segment'`：根据 `apiListFileName` 派生 PascalCase 前缀（如 `op.ts` → `Op_`），避免多服务同 path 触发 `declare namespace` 全局合并污染。设为 `'none'` 关闭前缀。若未设置，使用全局 `namespaceIsolation` 配置                                                                                                                                                        |
+| swaggerConfig[].enumIsolation                        | `'segment'` \| `'none'`                                                         | 否   | 枚举数据隔离策略。默认 `'segment'`：多服务时把 enum 写入 `${saveEnumFolderPath}/<segment>/`，并在顶层生成 namespace barrel，避免不同服务同名枚举互相覆盖。设为 `'none'` 则该服务枚举共用顶层目录（同名时后写者覆盖前写者）。若未设置，使用全局 `enumIsolation` 配置。**单服务模式下该选项无效，始终扁平写入顶层**                                                                           |
 | swaggerConfig[].responseModelTransform               | object                                                                          | 否   | 该服务器的响应模型转换配置。支持三种模式：`unwrap`（剔除响应模型）、`wrap`（添加响应模型）、`replace`（替换响应模型）。若未设置，使用全局 `responseModelTransform` 配置。详见[响应模型转换](#响应模型转换)                                                                                                                                                                                  |
 | swaggerConfig[].responseModelTransform.type          | `'unwrap'` \| `'wrap'` \| `'replace'`                                           | 是   | 响应模型转换类型。`unwrap`: 提取响应包装器中的 data 字段；`wrap`: 为原始响应添加统一包装结构；`replace`: 使用自定义类型替换响应。详见[场景一](#场景一为没有响应模型的接口添加响应模型wrap)、[场景二](#场景二剔除已有的响应模型unwrap)、[场景三](#场景三替换响应模型replace)                                                                                                                 |
 | swaggerConfig[].responseModelTransform.dataField     | string                                                                          | 否   | 用于 `unwrap` 和 `wrap` 模式的数据字段名，默认为 `"data"`                                                                                                                                                                                                                                                                                                                                   |
@@ -459,6 +476,8 @@ export default defineConfig({
 | enmuConfig.comment                                   | string                                                                          | 否   | Swagger schema 中自定义枚举描述所在的字段名（用于生成注释）。默认值：`enum-descriptions`。                                                                                                                                                                                                                                                                                                  |
 | parameterSeparator                                   | '$' \| '\_'                                                                     | 否   | 全局生成 API 名称和类型名称时，路径段和参数之间使用的分隔符。例如，`/users/{userId}/posts` 使用分隔符 `'_'` 会生成 `users_userId_posts_GET`。默认值：`'_'`。各服务器可单独配置覆盖                                                                                                                                                                                                          |
 | timeout                                              | number                                                                          | 否   | 全局请求 Swagger JSON 数据的超时时间（毫秒），默认 `60000`（60 秒）。各服务器可单独配置覆盖                                                                                                                                                                                                                                                                                                 |
+| namespaceIsolation                                   | `'segment'` \| `'none'`                                                         | 否   | 全局命名空间前缀策略，默认 `'segment'`。各服务器可通过 `swaggerConfig[].namespaceIsolation` 单独覆盖                                                                                                                                                                                                                                                                                        |
+| enumIsolation                                        | `'segment'` \| `'none'`                                                         | 否   | 全局枚举数据隔离策略，默认 `'segment'`（多服务时枚举按 segment 分目录写入并自动生成顶层 namespace barrel）。各服务器可通过 `swaggerConfig[].enumIsolation` 单独覆盖。详见上方"多服务目录隔离规则"                                                                                                                                                                                           |
 | logLevel                                             | `'silent'` \| `'error'` \| `'warn'` \| `'info'` \| `'verbose'`                  | 否   | 终端日志输出级别，控制代码生成过程中在终端显示的信息量。默认值：`'info'`。详见[日志输出级别](#日志输出级别-loglevel)                                                                                                                                                                                                                                                                        |
 
 #### 配置项与生成的文件对应关系
@@ -480,6 +499,8 @@ project/
 │   │         ├── error-message.ts  		# 系统级错误提示，用户可修改，不能删除和重命名 不受控
 │   │         └── fetch.ts         		# 请求封装，用户可修改，不能删除和重命名，可替换为 fetch 不受控
 │   └── enums/               		# 枚举数据类型定义：由 saveEnumFolderPath 配置项指定
+│        ├── index.ts        				# 多服务且 enumIsolation 启用时，自动生成的顶层 namespace barrel
+│        └── <segment>/      				# 多服务时按 segment 隔离的枚举子目录（apiListFileName 派生）
 ```
 
 ### 生成的代码示例
