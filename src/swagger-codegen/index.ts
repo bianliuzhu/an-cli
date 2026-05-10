@@ -49,8 +49,10 @@ const configContent: ConfigType = {
 	},
 };
 
-type NormalizedSwaggerServer = Required<Omit<IConfigSwaggerServer, 'name' | 'responseModelTransform' | 'includeTags' | 'excludeTags' | 'timeout' | 'namespaceIsolation'>> &
-	Pick<IConfigSwaggerServer, 'name' | 'responseModelTransform' | 'includeTags' | 'excludeTags' | 'timeout' | 'namespaceIsolation'>;
+type NormalizedSwaggerServer = Required<
+	Omit<IConfigSwaggerServer, 'name' | 'responseModelTransform' | 'includeTags' | 'excludeTags' | 'timeout' | 'namespaceIsolation' | 'enumIsolation'>
+> &
+	Pick<IConfigSwaggerServer, 'name' | 'responseModelTransform' | 'includeTags' | 'excludeTags' | 'timeout' | 'namespaceIsolation' | 'enumIsolation'>;
 
 export class Main {
 	private schemas: ComponentsSchemas = {};
@@ -365,6 +367,7 @@ export class Main {
 			const responseModelTransform = server.responseModelTransform ?? config.responseModelTransform;
 			const timeout = server.timeout ?? config.timeout;
 			const namespaceIsolation = server.namespaceIsolation ?? config.namespaceIsolation ?? 'segment';
+			const enumIsolation = server.enumIsolation ?? config.enumIsolation ?? 'segment';
 
 			const result: NormalizedSwaggerServer = {
 				url,
@@ -379,6 +382,7 @@ export class Main {
 				responseModelTransform,
 				timeout,
 				namespaceIsolation,
+				enumIsolation,
 			};
 
 			// 可选字段需要单独处理
@@ -451,6 +455,7 @@ export class Main {
 			responseModelTransform: server.responseModelTransform ?? baseConfig.responseModelTransform,
 			timeout: server.timeout ?? baseConfig.timeout,
 			namespaceIsolation: server.namespaceIsolation ?? baseConfig.namespaceIsolation ?? 'segment',
+			enumIsolation: server.enumIsolation ?? baseConfig.enumIsolation ?? 'segment',
 			swaggerConfig: server,
 			// 内部字段：当多服务隔离时携带 segment，下游通过 getServerSegment 读取
 			__segment: segment,
@@ -762,6 +767,20 @@ export default defineConfig({
 			// 多服务隔离时，写入顶层 models 聚合 barrel
 			if (isolateBySegment) {
 				await this.writeTopLevelModelsBarrel(mergedConfig, segments, selectedIndices, isSelective);
+				// 至少有一个被选中的服务开启了 enum 隔离时，写入顶层 enums 聚合 barrel
+				const enumIsolatedSegments = selectedIndices
+					.filter((i) => (servers[i].enumIsolation ?? 'segment') === 'segment')
+					.map((i) => segments[i])
+					.filter(Boolean);
+				if (enumIsolatedSegments.length > 0) {
+					await this.writeTopLevelEnumsBarrel(mergedConfig, segments, servers, selectedIndices, isSelective);
+				}
+				// 仅当所有服务都启用了 enum 隔离时，顶层残留 *.ts 必定是旧版升级遗留，主动提示用户清理；
+				// 否则（存在 enumIsolation: 'none' 服务）顶层文件是合法产物，不能误报。
+				const allIsolated = servers.every((s) => (s.enumIsolation ?? 'segment') === 'segment');
+				if (allIsolated) {
+					await this.warnLegacyTopLevelEnums(mergedConfig);
+				}
 			}
 
 			// 对生成文件进行格式化（仅当用户传入 --format 参数时执行）
@@ -810,7 +829,8 @@ export default defineConfig({
 
 	/**
 	 * 选择型清理：仅删除被选中服务对应的 API 文件、connectors/<seg>、models/<seg>。
-	 * 共享的 enum 目录不清理（写入时按文件覆盖，index.ts 通过 appendMode 合并去重）。
+	 * 当 enumIsolation === 'segment' 时，同步清理 enums/<seg>；
+	 * 否则共享的 enum 顶层目录不清理（写入时按文件覆盖，index.ts 通过 appendMode 合并去重）。
 	 */
 	private async cleanSelectedTargets(
 		baseConfig: ConfigType,
@@ -828,6 +848,9 @@ export default defineConfig({
 				if (seg) {
 					await clearDir(`${baseConfig.saveTypeFolderPath}/connectors/${seg}`);
 					await clearDir(`${baseConfig.saveTypeFolderPath}/models/${seg}`);
+					if ((servers[i].enumIsolation ?? 'segment') === 'segment') {
+						await clearDir(`${baseConfig.saveEnumFolderPath}/${seg}`);
+					}
 				}
 			} else {
 				// 单服务模式 = 全量等价，按全量逻辑清理
@@ -906,6 +929,114 @@ export default defineConfig({
 	}
 
 	/**
+	 * 顶层 enums/index.ts 聚合 barrel 写入（与 writeTopLevelModelsBarrel 对称）。
+	 *
+	 * 采用 namespace re-export 形式：`export * as Op from './op';`
+	 * - 业务侧用法：`import { Op } from '@/enums'; const s = Op.Status.Enabled;`
+	 *   或继续用扁平桶：`import { Status } from '@/enums/op';`
+	 *
+	 * 仅会处理 enumIsolation === 'segment' 的服务；
+	 * enumIsolation === 'none' 的服务的 enum 仍位于顶层目录（与历史行为一致），
+	 * 由 warnLegacyTopLevelEnums 给出迁移提示。
+	 */
+	private async writeTopLevelEnumsBarrel(
+		baseConfig: ConfigType,
+		segments: string[],
+		servers: NormalizedSwaggerServer[],
+		selectedIndices: number[],
+		isSelective: boolean,
+	): Promise<void> {
+		const barrelPath = `${baseConfig.saveEnumFolderPath}/index.ts`;
+
+		const buildExportLine = (seg: string): string => {
+			const ns = segmentToNamespacePrefix(seg);
+			if (!ns) {
+				throw new Error(`无法为 segment "${seg}" 生成 namespace 别名，请改用包含字母/数字的 apiListFileName。`);
+			}
+			return `export * as ${ns} from './${seg}';`;
+		};
+
+		const isolatedFor = (i: number): boolean => (servers[i].enumIsolation ?? 'segment') === 'segment';
+
+		const targetSegments = isSelective
+			? selectedIndices
+					.filter((i) => isolatedFor(i))
+					.map((i) => segments[i])
+					.filter(Boolean)
+			: segments
+					.map((seg, i) => ({ seg, i }))
+					.filter(({ seg, i }) => Boolean(seg) && isolatedFor(i))
+					.map(({ seg }) => seg);
+		const newExports = targetSegments.map((seg) => buildExportLine(seg));
+
+		const segmentOf = (line: string): string | null => {
+			const m = line.match(/from\s+['"]\.\/([^'\"]+)['"]/);
+			return m ? m[1] : null;
+		};
+
+		let merged: string[];
+		if (isSelective) {
+			let existing: string[] = [];
+			try {
+				const current = await fs.promises.readFile(barrelPath, 'utf8');
+				existing = current.split('\n').filter((line) => line.trim() !== '');
+			} catch {
+				existing = [];
+			}
+			const targetSet = new Set(targetSegments);
+			// 仅删除既有的属于本次目标 segment 的旧条目，其余行（含非隔离服务的扁平 `export * from './<file>'`）保持原样。
+			// 注意：此处不可像 models barrel 那样把保留行"升级"为 namespace 形式 ——
+			// 在混合 enumIsolation 场景下，扁平文件名（如 './import-task-status'）会被误识别为 segment 而错误改写。
+			const kept = existing.filter((line) => {
+				const seg = segmentOf(line);
+				return !(seg && targetSet.has(seg));
+			});
+			merged = [...kept, ...newExports];
+		} else {
+			// 全量：保留 `enumIsolation: 'none'` 服务在 writeEnums 阶段写入的扁平 `export * from './<file>'` 行，
+			// 仅追加/覆盖隔离服务的 namespace re-export 行。
+			let existing: string[] = [];
+			try {
+				const current = await fs.promises.readFile(barrelPath, 'utf8');
+				existing = current.split('\n').filter((line) => line.trim() !== '');
+			} catch {
+				existing = [];
+			}
+			const targetSet = new Set(targetSegments);
+			// 删除既有的属于本次目标 segment 的旧条目（含历史 `export *` 与新 `export * as`）
+			const kept = existing.filter((line) => {
+				const seg = segmentOf(line);
+				return !(seg && targetSet.has(seg));
+			});
+			merged = [...kept, ...newExports];
+		}
+
+		const content = merged.join('\n') + '\n';
+		await writeFileRecursive(barrelPath, content);
+		log.info(`${barrelPath} - Top-level enums barrel ${isSelective ? 'merged' : 'written'}.`);
+	}
+
+	/**
+	 * 多服务隔离模式下，若 saveEnumFolderPath 顶层仍残留 *.ts 枚举文件，
+	 * 极有可能是从旧版（共享枚举）升级而来，主动提示用户重跑全量或手动清理，避免新旧引用混存。
+	 */
+	private async warnLegacyTopLevelEnums(baseConfig: ConfigType): Promise<void> {
+		const dir = baseConfig.saveEnumFolderPath;
+		try {
+			const entries = await fs.promises.readdir(dir, { withFileTypes: true });
+			const stale = entries.filter((e) => e.isFile() && e.name.endsWith('.ts') && e.name !== 'index.ts').map((e) => e.name);
+			if (stale.length > 0) {
+				log.warning(
+					`检测到 ${dir} 顶层仍存在历史枚举文件（${stale.slice(0, 5).join(', ')}${stale.length > 5 ? ' ...' : ''}），共 ${stale.length} 个。\n` +
+						`若已切换到 enumIsolation: 'segment'（默认），建议执行 \`anl type\` 全量重生成或手动清理这些文件，避免与 ${dir}/<segment>/ 下的隔离枚举混用。`,
+				);
+			}
+		} catch {
+			// 目录不存在或无权限：忽略
+		}
+	}
+
+	/**
 	 * 选择型格式化：仅格式化被选中的服务对应的产物，避免误格式化其他服务文件。
 	 */
 	private async formatSelectedFiles(
@@ -934,6 +1065,26 @@ export default defineConfig({
 				try {
 					await fs.promises.access(dir);
 					targets.push(`"${dir}/**/*.{ts,d.ts}"`);
+				} catch {
+					/* ignore */
+				}
+			}
+
+			// enum 目录：隔离启用时只格式化 <segment> 子目录（递归 glob）；
+			// 否则使用 *.ts（仅顶层）以避免误格式化其他服务的隔离子目录。
+			if (isolateBySegment && segments[i] && (servers[i].enumIsolation ?? 'segment') === 'segment') {
+				const dir = `${config.saveEnumFolderPath}/${segments[i]}`;
+				try {
+					await fs.promises.access(dir);
+					targets.push(`"${dir}/**/*.{ts,d.ts}"`);
+				} catch {
+					/* ignore */
+				}
+			} else {
+				const dir = config.saveEnumFolderPath;
+				try {
+					await fs.promises.access(dir);
+					targets.push(`"${dir}/*.ts"`);
 				} catch {
 					/* ignore */
 				}

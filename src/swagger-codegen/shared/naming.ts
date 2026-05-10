@@ -202,6 +202,32 @@ export function adjustImportPathForSegment(importPath: string, segment: string):
 	return importPath;
 }
 
+/**
+ * 计算当前服务"有效的"枚举 segment：仅当多服务隔离生效（__segment 非空）
+ * 且 enumIsolation !== 'none' 时返回 segment，否则返回空串。
+ *
+ * 与 connectors / models 的目录隔离独立可控，但默认与 segment 隔离同步开启。
+ */
+export function getEnumSegment(config: ConfigType): string {
+	const segment = getServerSegment(config);
+	if (!segment) return '';
+	const isolation = (config as { enumIsolation?: 'segment' | 'none' }).enumIsolation ?? 'segment';
+	if (isolation === 'none') return '';
+	return segment;
+}
+
+/**
+ * 在已经过 `adjustImportPathForSegment` 处理的 enumImportPath 后追加 `/<enumSegment>` 子目录。
+ * - 空 enumSegment 直接返回原值
+ * - 自动处理末尾斜杠
+ */
+export function appendEnumSegment(importPath: string, enumSegment: string): string {
+	if (!enumSegment) return importPath;
+	if (!importPath) return enumSegment;
+	const trimmed = importPath.replace(/\/+$/, '');
+	return `${trimmed}/${enumSegment}`;
+}
+
 export function getEnumTypeName(config: ConfigType, enumName: string): string {
 	if (!config.enmuConfig.erasableSyntaxOnly) {
 		return enumName;

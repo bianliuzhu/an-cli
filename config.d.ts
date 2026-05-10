@@ -58,6 +58,12 @@ export interface IConfigSwaggerServer {
 	 * - 'none'：不加前缀（仅推荐单服务项目使用）。
 	 */
 	namespaceIsolation?: 'segment' | 'none';
+	/** 枚举数据隔离策略（服务级配置，多服务时生效）：
+	 * - 'segment'（默认）：将该服务的 enum 写入 `${saveEnumFolderPath}/<segment>/`，与 connectors / models 对称隔离，避免不同服务同名枚举互相覆盖。
+	 * - 'none'：与其他服务共享 `${saveEnumFolderPath}` 顶层目录，存在同名时后写者覆盖前者（与历史行为一致）。
+	 * 单服务模式下该选项无效，始终扁平写入顶层。
+	 */
+	enumIsolation?: 'segment' | 'none';
 }
 
 export interface ConfigType {
@@ -97,6 +103,8 @@ export interface ConfigType {
 	timeout?: number;
 	/** 命名空间隔离策略（服务级配置注入），默认 'segment' */
 	namespaceIsolation?: 'segment' | 'none';
+	/** 枚举数据隔离策略（服务级配置注入），默认 'segment'。仅多服务时生效 */
+	enumIsolation?: 'segment' | 'none';
 	/** 格式化配置 */
 	formatting?: {
 		/** 缩进字符 */
