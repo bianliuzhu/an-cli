@@ -252,3 +252,14 @@ export function needsQuotes(propertyName: string): boolean {
 export function formatPropertyName(propertyName: string): string {
 	return needsQuotes(propertyName) ? `"${propertyName}"` : propertyName;
 }
+
+/**
+ * 清洗不规范的标识符名称：
+ * 将名称中的中划线 `-` 统一转成下划线 `_`，以便用于 TS 属性名 / 枚举成员名。
+ * 例如 `form-data` -> `form_data`，`LIST-CARD` -> `LIST_CARD`。
+ * 其他非法标识符字符不在此处处理，仍由 `needsQuotes` / `formatPropertyName` 决定是否加引号。
+ */
+export function sanitizeIdentifierName(name: string): string {
+	if (!name) return name;
+	return name.replace(/-/g, '_');
+}

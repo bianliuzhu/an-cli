@@ -3,7 +3,16 @@ import type { OpenAPIV3 } from 'openapi-types';
 
 import { isValidJSON, log } from '../../utils';
 import { getIndentation } from '../shared/format';
-import { adjustImportPathForSegment, appendEnumSegment, getEnumSegment, getEnumTypeName, getServerSegment, resolveSchemaName, typeNameToFileName } from '../shared/naming';
+import {
+	adjustImportPathForSegment,
+	appendEnumSegment,
+	formatPropertyName,
+	getEnumSegment,
+	getEnumTypeName,
+	getServerSegment,
+	resolveSchemaName,
+	typeNameToFileName,
+} from '../shared/naming';
 import { nullableSuffix } from '../shared/schema-utils';
 import { EnumParser } from './enum-parser';
 
@@ -39,7 +48,10 @@ export class ComponentSchemaResolver {
 	}
 
 	private isRequired(fieldName: string): boolean {
-		return this.requiredFieldSet.has(fieldName);
+		// 属性名可能被 formatPropertyName 加上引号（如 "form-data"），
+		// 这里去掉引号以保证与 requiredFieldSet 中的原始名匹配
+		const unquoted = fieldName.startsWith('"') && fieldName.endsWith('"') ? fieldName.slice(1, -1) : fieldName;
+		return this.requiredFieldSet.has(unquoted);
 	}
 
 	private stringifyValue(value: unknown): string {
@@ -292,8 +304,11 @@ export class ComponentSchemaResolver {
 
 		// 使用 Object.keys() 并排序以确保顺序一致性
 		const propertyNames = Object.keys(properties).sort();
-		for (const name of propertyNames) {
-			const schemaSource = properties[name];
+		for (const rawName of propertyNames) {
+			const schemaSource = properties[rawName];
+			// 不规范属性名（如 form-data）使用引号包裹，
+			// 保留后端原始字段名，保证 JSON.stringify 后与 wire 协议一致
+			const name = formatPropertyName(rawName);
 
 			if ((schemaSource as ReferenceObject)?.$ref) {
 				const { headerRefStr, typeName, dataType } = this.parseRef((schemaSource as ReferenceObject).$ref);

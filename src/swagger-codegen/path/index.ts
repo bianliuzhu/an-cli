@@ -18,7 +18,7 @@ import type { OpenAPIV3 } from 'openapi-types';
 import { formatParseError, log } from '../../utils';
 import { applyFormattingDefaults, getIndentation } from '../shared/format';
 import { SUPPORTED_REQUEST_TYPES_ALL, SUPPORTED_REQUEST_UPLOAD_TYPES } from '../shared/http';
-import { formatPropertyName } from '../shared/naming';
+import { formatPropertyName, sanitizeIdentifierName } from '../shared/naming';
 import { convertEndpointString } from './naming';
 import { SchemaResolver } from './schema-resolver';
 import { PathWriter } from './writer';
@@ -211,11 +211,14 @@ export class PathParse {
 				const comments = this.generateParamComment(V2, doubleIndent);
 				comments.forEach((comment) => path.push(comment));
 
-				path.push(`${doubleIndent}type ${V2.name} = ${v2value};`);
+				// Path 参数名用作 JS 函数参数名，必须是合法标识符，中划线转下划线
+				// URL 模板中的 {user-id} 是纯字符串，不受影响
+				const paramName = sanitizeIdentifierName(V2.name);
+				path.push(`${doubleIndent}${paramName}: ${v2value};`);
 				if (this.contentBody.payload._path) {
-					this.contentBody.payload._path[V2.name] = v2value;
+					this.contentBody.payload._path[paramName] = v2value;
 				} else {
-					this.contentBody.payload._path = { [V2.name]: v2value };
+					this.contentBody.payload._path = { [paramName]: v2value };
 				}
 			} else if (V2.in === 'query') {
 				const comments = this.generateParamComment(V2, doubleIndent);
