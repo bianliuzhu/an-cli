@@ -10,6 +10,7 @@ import {
 	getEnumTypeName,
 	getServerSegment,
 	resolveSchemaName,
+	sanitizeIdentifierName,
 	typeNameToFileName,
 	wordsToPascalCase,
 } from '../shared/naming';
@@ -98,7 +99,7 @@ export class EnumParser {
 		const customName = customNames?.[index];
 
 		if (typeof customName === 'string' && customName.trim()) {
-			return customName;
+			return sanitizeIdentifierName(customName);
 		}
 
 		if (isNumericEnum || (typeof enumValue === 'string' && treatStringAsNumeric)) {
@@ -106,7 +107,7 @@ export class EnumParser {
 		}
 
 		if (typeof enumValue === 'string' && enumValue) {
-			return enumValue.toUpperCase();
+			return sanitizeIdentifierName(enumValue.toUpperCase());
 		}
 
 		return `ENUM_${index}`;
@@ -123,14 +124,14 @@ export class EnumParser {
 				// 使用排序后的键以确保顺序一致性
 				const enumValues = Object.entries(jsonObj)
 					.sort((a, b) => a[0].localeCompare(b[0]))
-					.map(([key, value]) => `${getIndentation(this.config)}${key}: '${String(value)}'`)
+					.map(([key, value]) => `${getIndentation(this.config)}${sanitizeIdentifierName(key)}: '${String(value)}'`)
 					.join(',\n');
 				return `export const ${enumName} = {\n${enumValues}\n} as const;\n\nexport type ${getEnumTypeName(this.config, enumName)} = typeof ${enumName}[keyof typeof ${enumName}];`;
 			} else {
 				// 使用排序后的键以确保顺序一致性
 				const enumValues = Object.entries(jsonObj)
 					.sort((a, b) => a[0].localeCompare(b[0]))
-					.map(([key, value]) => `${getIndentation(this.config)}${key} = '${String(value)}'`)
+					.map(([key, value]) => `${getIndentation(this.config)}${sanitizeIdentifierName(key)} = '${String(value)}'`)
 					.join(',\n');
 				return `export enum ${enumName} {\n${enumValues}\n}`;
 			}

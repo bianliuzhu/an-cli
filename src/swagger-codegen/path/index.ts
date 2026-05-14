@@ -211,7 +211,9 @@ export class PathParse {
 				const comments = this.generateParamComment(V2, doubleIndent);
 				comments.forEach((comment) => path.push(comment));
 
-				path.push(`${doubleIndent}type ${V2.name} = ${v2value};`);
+				// Path 参数名可能包含中划线（如 {user-id}），需要用引号包裹
+				const propertyName = formatPropertyName(V2.name);
+				path.push(`${doubleIndent}${propertyName}: ${v2value};`);
 				if (this.contentBody.payload._path) {
 					this.contentBody.payload._path[V2.name] = v2value;
 				} else {
