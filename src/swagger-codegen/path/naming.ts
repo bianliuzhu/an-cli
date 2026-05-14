@@ -169,7 +169,7 @@ export function convertEndpointString(apiString: string, config: PathParseConfig
 	if (!normalizedPath) {
 		finalPath = '/';
 	}
-	finalPath = finalPath.replace(/\{(\w+)\}/g, (_, param) => `\${${param}}`);
+	finalPath = finalPath.replace(/\{([\w-]+)\}/g, (_, param) => `\${${param.replace(/-/g, '_')}}`);
 
 	const baseTypeName = typeName ? `${typeName}_${method}` : method;
 	const prefix = getNamespacePrefix(config);
