@@ -211,10 +211,10 @@ export class PathParse {
 				const comments = this.generateParamComment(V2, doubleIndent);
 				comments.forEach((comment) => path.push(comment));
 
-				// Path 参数名用作 JS 函数参数名，必须是合法标识符，中划线转下划线
-				// URL 模板中的 {user-id} 是纯字符串，不受影响
+				// Path 参数位于 namespace Path {} 内，用 type 声明，不支持引号包裹的名称
+				// 中划线转下划线确保生成合法的 TS 标识符（如 file-id -> file_id）
 				const paramName = sanitizeIdentifierName(V2.name);
-				path.push(`${doubleIndent}${paramName}: ${v2value};`);
+				path.push(`${doubleIndent}type ${paramName} = ${v2value};`);
 				if (this.contentBody.payload._path) {
 					this.contentBody.payload._path[paramName] = v2value;
 				} else {
