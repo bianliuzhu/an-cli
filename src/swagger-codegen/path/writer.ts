@@ -11,6 +11,18 @@ const FILE_WRITE_CONCURRENCY = 32;
 export class PathWriter {
 	private config: PathParseConfig;
 
+	private formatFileHeaderComment(description?: string): string[] {
+		if (!description) return [];
+
+		const lines = description.split('\n').map((line) => line.replace(/\*\//g, '*\\/'));
+
+		if (lines.length === 1) {
+			return [`/** ${lines[0]} */`];
+		}
+
+		return ['/**', ...lines.map((line) => ` * ${line}`), ' */'];
+	}
+
 	constructor(config: PathParseConfig) {
 		this.config = config;
 	}
@@ -24,8 +36,11 @@ export class PathWriter {
 			const { payload, response, fileName } = content;
 			const [, method] = key.split('|');
 			if (!methodList.includes(method)) methodList.push(method);
+			const headerComment = this.formatFileHeaderComment(content.description);
 
 			const contentArray = [
+				...headerComment,
+				...(headerComment.length ? [''] : []),
 				`declare namespace ${content.typeName} {`,
 				...payload.path,
 				...payload.query,

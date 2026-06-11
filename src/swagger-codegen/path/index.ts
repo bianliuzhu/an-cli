@@ -71,6 +71,7 @@ export class PathParse {
 		method: '',
 		requestPath: '',
 		summary: '',
+		description: '',
 		apiName: '',
 		typeName: '',
 		deprecated: false,
@@ -285,20 +286,33 @@ export class PathParse {
 		this.contentBody.payload.header = header;
 	}
 
-	/** Prefer multipart/form-data or application/x-www-form-urlencoded when present so Body matches form-data API. */
-	private pickRequestBodyContent(requestBodyObject: RequestBodyObject): { schema: SchemaObject | null } {
-		const content = requestBodyObject.content;
-		if (!content || typeof content !== 'object') return { schema: null };
-		const formDataTypes = ['multipart/form-data', 'application/x-www-form-urlencoded'] as const;
-		for (const mediaType of formDataTypes) {
-			const media = content[mediaType];
-			if (media && typeof media === 'object' && media.schema) {
-				return { schema: media.schema as SchemaObject };
-			}
+	private pickPreferredRequestMediaType(content: RequestBodyObject['content']): string | undefined {
+		if (!content || typeof content !== 'object') return undefined;
+
+		// Keep upload/form media types ahead of JSON so generated request headers/body match form-data APIs.
+		const preferredMediaTypes = ['multipart/form-data', 'application/x-www-form-urlencoded', 'application/json'];
+		for (const mediaType of preferredMediaTypes) {
+			if (content[mediaType]) return mediaType;
 		}
-		const firstKey = Object.keys(content)[0];
-		const first = firstKey ? content[firstKey] : null;
-		return { schema: first && typeof first === 'object' && first.schema ? (first.schema as SchemaObject) : null };
+
+		const keys = Object.keys(content).sort();
+		return keys[0];
+	}
+
+	private pickRequestBodyContent(requestBodyObject: RequestBodyObject): { mediaType: IContentType; schema: SchemaObject | null } {
+		const content = requestBodyObject.content;
+		if (!content || typeof content !== 'object') {
+			return { mediaType: 'application/json', schema: null };
+		}
+
+		const pickedMediaType = this.pickPreferredRequestMediaType(content);
+		const mediaType = pickedMediaType && SUPPORTED_REQUEST_TYPES_ALL.includes(pickedMediaType as IContentType) ? (pickedMediaType as IContentType) : 'application/json';
+		const media = pickedMediaType ? content[pickedMediaType] : null;
+
+		return {
+			mediaType,
+			schema: media && typeof media === 'object' && media.schema ? (media.schema as SchemaObject) : null,
+		};
 	}
 
 	private requestBodyObjectParse(requestBodyObject: RequestBodyObject) {
@@ -424,9 +438,36 @@ export class PathParse {
 		return apidetails;
 	}
 
+	private pickPreferredResponse(response: OpenAPIV3.ResponsesObject): OpenAPIV3.ReferenceObject | OpenAPIV3.ResponseObject | undefined {
+		const response200 = response['200'];
+		if (response200) {
+			return response200;
+		}
+
+		const successCodes = Object.keys(response)
+			.filter((code) => /^2\d\d$/.test(code))
+			.sort((a, b) => Number(a) - Number(b));
+
+		if (successCodes.length > 0) {
+			const code = successCodes[0];
+			return response[code];
+		}
+
+		const defaultResponse = response.default;
+		if (defaultResponse) {
+			return defaultResponse;
+		}
+
+		return undefined;
+	}
+
 	private responseHandle(response: OpenAPIV3.ResponsesObject) {
-		const value = response['200'];
-		if (!value) return;
+		const value = this.pickPreferredResponse(response);
+		if (!value) {
+			this.contentBody.response = `type Response = unknown`;
+			this.contentBody._response = 'unknown';
+			return;
+		}
 		const responseObject = 'content' in (value as ResponseObject) ? (value as ResponseObject) : null;
 		const referenceObject = '$ref' in (value as ReferenceObject) ? (value as ReferenceObject) : null;
 
@@ -582,8 +623,8 @@ export class PathParse {
 
 				const { apiName, typeName, fileName, path } = convertEndpointString(mapKey, this.config);
 
-				const contentType = methodItems.requestBody && 'content' in methodItems.requestBody && methodItems.requestBody.content;
-				const contentTypeKey = (typeof contentType === 'object' ? Object.keys(contentType)[0] : 'application/json') as IContentType;
+				const contentTypeKey =
+					methodItems.requestBody && 'content' in methodItems.requestBody ? this.pickRequestBodyContent(methodItems.requestBody).mediaType : 'application/json';
 
 				this.contentBody = {
 					payload: { path: [], query: [], header: [], body: [] },
@@ -595,8 +636,9 @@ export class PathParse {
 					requestPath: path,
 					apiName,
 					summary: methodItems.summary,
+					description: methodItems.description,
 					deprecated: methodItems.deprecated ?? false,
-					contentType: SUPPORTED_REQUEST_TYPES_ALL.includes(contentTypeKey) ? contentTypeKey : 'application/json',
+					contentType: contentTypeKey,
 					dataLevel: matchedInclude?.dataLevel,
 				};
 

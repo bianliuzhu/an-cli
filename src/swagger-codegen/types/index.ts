@@ -73,6 +73,7 @@ export interface ContentBody {
 	method: string;
 	requestPath: string;
 	summary: string | undefined;
+	description: string | undefined;
 	apiName: string;
 	typeName: string;
 	deprecated: boolean;
