@@ -270,24 +270,86 @@ export class ComponentSchemaResolver {
 	}
 
 	private parseObject(obj: SchemaObject, key: string): TReturnType {
-		let headerRef = '';
-		let renderStr = '';
+		if (obj.type !== 'object') return { headerRef: '', renderStr: '' };
 
-		if (obj.type === 'object') {
-			const nonArraySchema = obj;
-			if (typeof nonArraySchema.additionalProperties === 'object') {
-				const value = this.parseArray(nonArraySchema.additionalProperties as ArraySchemaObject, key) ?? this.defaultReturn;
-				headerRef = value?.headerRef ?? '';
-				renderStr = value?.renderStr ?? '';
-			}
-			if (typeof nonArraySchema.additionalProperties === 'boolean') {
-				renderStr = `${getIndentation(this.config)}${key}${this.isRequired(key) ? '' : '?'}: Record<string, unknown>${this.nullable(nonArraySchema.nullable)};`;
-			} else {
-				renderStr = `${getIndentation(this.config)}${key}${this.isRequired(key) ? '' : '?'}: ${obj.type}${this.nullable(obj.nullable)};`;
-			}
+		const nonArraySchema = obj;
+		const indent = getIndentation(this.config);
+		const optional = this.isRequired(key) ? '' : '?';
+		const nullable = this.nullable(nonArraySchema.nullable);
+		const additionalProperties = nonArraySchema.additionalProperties;
+
+		if (additionalProperties && typeof additionalProperties === 'object') {
+			const value = this.parseArray(additionalProperties as ArraySchemaObject, key) ?? this.defaultReturn;
+			return { headerRef: value?.headerRef ?? '', renderStr: value?.renderStr ?? '' };
 		}
 
-		return { headerRef, renderStr };
+		if (nonArraySchema.properties && Object.keys(nonArraySchema.properties).length > 0) {
+			const localHeaderRefs: string[] = [];
+			const inlineType = this.renderInlineObjectType(nonArraySchema, localHeaderRefs);
+			return {
+				headerRef: localHeaderRefs.join('\n'),
+				renderStr: `${indent}${key}${optional}: ${inlineType}${nullable};`,
+			};
+		}
+
+		if (additionalProperties === true) {
+			return { headerRef: '', renderStr: `${indent}${key}${optional}: Record<string, unknown>${nullable};` };
+		}
+
+		return { headerRef: '', renderStr: `${indent}${key}${optional}: object${nullable};` };
+	}
+
+	// 内联对象 schema（无独立 component）递归渲染成 TS 对象字面量类型。
+	// $ref 与嵌套对象都会被展开，$ref 的 import 收集到 headerRefs 交由外层去重。
+	private renderInlineObjectType(schema: NonArraySchemaObject, headerRefs: string[]): string {
+		const properties = schema.properties;
+		if (!properties || Object.keys(properties).length === 0) {
+			return schema.additionalProperties === true ? 'Record<string, unknown>' : 'object';
+		}
+
+		const requiredSet = new Set(schema.required ?? []);
+		const propStrs: string[] = [];
+		for (const propName of Object.keys(properties).sort()) {
+			const propSchema = properties[propName];
+			const displayName = formatPropertyName(propName);
+			const propKey = displayName.startsWith('"') && displayName.endsWith('"') ? displayName.slice(1, -1) : displayName;
+			const opt = requiredSet.has(propKey) ? '' : '?';
+			const typeStr = this.renderInlineTypeString(propSchema, headerRefs);
+			const nullableFlag = !('$ref' in propSchema) ? this.nullable((propSchema as NonArraySchemaObject).nullable) : '';
+			propStrs.push(`${displayName}${opt}: ${typeStr}${nullableFlag};`);
+		}
+		return `{ ${propStrs.join(' ')} }`;
+	}
+
+	private renderInlineTypeString(schema: SchemaObject | ReferenceObject, headerRefs: string[]): string {
+		if ('$ref' in schema && schema.$ref) {
+			const { headerRefStr, typeName, dataType } = this.parseRef(schema.$ref);
+			if (headerRefStr && !headerRefs.includes(headerRefStr)) headerRefs.push(headerRefStr);
+			return dataType === 'enum' ? getEnumTypeName(this.config, typeName) : typeName;
+		}
+
+		const s = schema as SchemaObject;
+		switch (s.type) {
+			case 'string': {
+				if (Array.isArray(s.enum)) return s.enum.map((v) => `'${v}'`).join(' | ');
+				return this.getStringTypeByFormat(s.format);
+			}
+			case 'integer':
+			case 'number': {
+				if (Array.isArray(s.enum)) return s.enum.join(' | ');
+				return 'number';
+			}
+			case 'boolean':
+				return 'boolean';
+			case 'array': {
+				const itemStr = this.renderInlineTypeString(s.items, headerRefs);
+				return `Array<${itemStr}>`;
+			}
+			case 'object':
+				return this.renderInlineObjectType(s, headerRefs);
+			default:
+				return 'unknown';
+		}
 	}
 
 	private parseProperties(properties: OpenAPIV3.BaseSchemaObject['properties'], interfaceKey: string): TReturnType {
