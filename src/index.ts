@@ -19,7 +19,11 @@ program
 		'-S, --service <names>',
 		'only regenerate the specified swagger service(s); comma-separated. Match by `name` (preferred) or `apiListFileName` without extension. Other services are kept untouched.',
 	)
-	.action((options: { show?: string; format?: string | boolean; logLevel?: string; service?: string }) => {
+	.option(
+		'-t, --template <name>',
+		'request template written to <saveApiListFolderPath>/config: axios | fetch | wx | uniapp | taro. Overrides an.config.ts. Only takes effect when the config folder does not exist yet.',
+	)
+	.action((options: { show?: string; format?: string | boolean; logLevel?: string; service?: string; template?: string }) => {
 		const raw = (options.show ?? '').toLowerCase().trim();
 		const show =
 			raw === 'miss' || raw === 'missing' || raw === 'm' || raw === 'exclude' || raw === 'x'
@@ -34,7 +38,7 @@ program
 					.filter(Boolean)
 			: undefined;
 		const Instance = new Main();
-		Instance.initialize(show, options.format, options.logLevel, services).catch((error) => {
+		Instance.initialize(show, options.format, options.logLevel, services, options.template).catch((error) => {
 			console.error(error);
 		});
 	});

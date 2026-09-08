@@ -17,9 +17,10 @@
 
 - 按照自己实际需要修改配置文件后，再次执行 `anl type` 命令，生成对应的 api 和 TS类型
 
-- 首次生成会在 `saveApiListFolderPath` 目录下创建 `config/` 目录，并生成 axios 封装配置文件：
+- 首次生成会在 `saveApiListFolderPath` 目录下创建 `config/` 目录，并根据 `requestTemplate` 选择下发对应的底层请求实现（默认 `axios`，可选 `fetch` / `wx` / `uniapp` / `taro`，详见[请求模板](#请求模板)）：
   - `dio.ts`, `error-message.ts`, `fetch.ts`, `api-type.d.ts`
   - 这些文件的文件名可修改（不建议更改），文件内容可修改（不建议修改）
+  - `dio.ts` 首行会自动注入模板标记 `// @an-cli-request-template: <template>`，后续重跑时若与配置不一致会提醒先删除目录
   - **目录级别规则**：若用户本地已存在 `saveApiListFolderPath/config/`，将不再重复生成该目录及其内部文件；若不存在则会重新创建目录并生成文件
 
 > [!NOTE] 快速实践办法
@@ -195,6 +196,67 @@ $ anl type -S op -f -s miss
 - 顶层 `models/index.ts` 与 `enums/index.ts` 均采用"读取-合并-去重-写回"策略，**保留其他服务的导出行**（包括 `export *` 与 `export * as Xxx`）
 - `--format` 在选择型模式下仅格式化被选中服务的产物（含其 `enums/<segment>` 子目录）
 
+#### 请求模板
+
+通过 `-t` / `--template` 或配置项 `requestTemplate` 可将 `<saveApiListFolderPath>/config/` 下的底层请求实现切换为不同宿主环境的模板，适配浏览器、小程序、uni-app、Taro 等场景。
+
+##### 支持的模板
+
+| 模板名   | 底层请求实现   | 适用场景                          | 外部依赖 / 类型包                          |
+| -------- | -------------- | --------------------------------- | ------------------------------------------ |
+| `axios`  | axios          | 浏览器 / Node（默认选项）         | `npm i axios`                              |
+| `fetch`  | 原生 fetch     | 浏览器 / 现代 Node，无额外依赖    | 无                                         |
+| `wx`     | `wx.request`   | 微信小程序原生                    | 建议：`npm i -D @types/wechat-miniprogram` |
+| `uniapp` | `uni.request`  | uni-app 跨端（H5 / 小程序 / App） | 建议：`npm i -D @dcloudio/types`           |
+| `taro`   | `Taro.request` | Taro 3+ 跨端（H5 / 小程序 / RN）  | `npm i @tarojs/taro`                       |
+
+> 除 `axios` 外，其他模板都实现了与 axios 对齐的 `dio.request(config)` 与 `dio.interceptors.request | response` API，业务代码无需改动。
+
+##### 优先级
+
+- **CLI `-t` 参数** > **`an.config.ts` 中的 `requestTemplate`** > **默认 `axios`**
+- 仅在 `<saveApiListFolderPath>/config/` **不存在**时才会写入模板文件；若已存在会自动跳过并提示“如需切换请先删除该目录”
+
+##### 使用示例
+
+```bash
+# 方式 1：用 CLI 参数一次性指定，适合 CI / 首次初始化骨架
+$ anl type -t fetch
+
+# 方式 2：写到配置里（以后团队成员无需额外传参）
+# an.config.ts
+export default defineConfig({
+	/* ... */
+	requestTemplate: 'wx',
+});
+$ anl type
+
+# 方式 3：首次在 TTY 环境运行且未传 -t 则会弹出交互选择，自动写入骨架并同步初始化 config/
+$ anl type
+```
+
+##### 切换模板
+
+1. 删除 `<saveApiListFolderPath>/config/` 目录：
+   ```bash
+   rm -rf src/apis/config
+   ```
+2. 修改 `an.config.ts` 里的 `requestTemplate` 字段，或直接用 `-t` 覆盖：
+   ```bash
+   $ anl type -t wx
+   ```
+3. 当探测到已存在的 `config/` 与当前配置/CLI 参数不一致时（依据 `dio.ts` 首行模板标记），会打印 warning 提醒，不会静默覆盖用户已修改的代码
+
+##### 参数说明
+
+- **参数**：`-t, --template <name>`
+- **可选值**：`axios` | `fetch` | `wx` | `uniapp` | `taro`
+- **优先级**：命令行参数 > `an.config.ts` 的 `requestTemplate` > 默认 `axios`
+
+> [!NOTE] 小程序模板的类型定义
+>
+> `wx` / `uniapp` 模板直接引用了全局 `wx.` / `uni.`，如果 TS 报 `Cannot find name 'wx' | 'uni'`，请在项目安装对应类型包并在 tsconfig `types` 中启用（见上方表格）。
+
 #### 交互式多选（多服务自动触发）
 
 当满足以下条件时，`anl type` 会自动弹出 inquirer 多选框，让你勾选本次需要重新生成的服务：
@@ -257,6 +319,8 @@ export default defineConfig({
 	saveEnumFolderPath: 'src/enums',
 	importEnumPath: '../../../enums',
 	requestMethodsImportPath: './config/fetch',
+	/** 请求模板：axios | fetch | wx | uniapp | taro，切换后需删除 <saveApiListFolderPath>/config 目录重新生成 */
+	requestTemplate: 'axios',
 	formatting: {
 		indentation: '\t',
 		lineEnding: '\n',
@@ -457,6 +521,7 @@ export default defineConfig({
 | swaggerConfig[].responseModelTransform.wrapperType   | string                                                                          | 否   | 用于 `replace` 模式的替换类型字符串。可以是任何 TypeScript 类型，例如：`"ApiResponse<T>"`                                                                                                                                                                                                                                                                                                   |
 | swaggerConfig[].responseModelTransform.modelPattern  | string                                                                          | 否   | 响应模型类型名匹配正则表达式。只有匹配的类型才会被转换，不匹配的类型将跳过转换直接保留原类型。例如：`"^ResultMessage"` 只转换以 `ResultMessage` 开头的类型                                                                                                                                                                                                                                  |
 | requestMethodsImportPath                             | string                                                                          | 是   | 请求方法导入路径                                                                                                                                                                                                                                                                                                                                                                            |
+| requestTemplate                                      | `'axios'` \| `'fetch'` \| `'wx'` \| `'uniapp'` \| `'taro'`                      | 否   | 请求模板类型，决定写入 `<saveApiListFolderPath>/config/` 的底层请求实现。默认：`'axios'`。CLI `-t`/`--template` 可临时覆盖。详见[指定请求模板](#指定请求模板-t--template)                                                                                                                                                                                                                   |
 | dataLevel                                            | 'data' \| 'serve' \| 'axios'                                                    | 否   | 全局接口返回数据层级配置，默认值：`'serve'`。各服务器可单独配置覆盖。详见[数据层级配置](#数据层级配置-datalevel)                                                                                                                                                                                                                                                                            |
 | responseModelTransform                               | object                                                                          | 否   | 全局响应模型转换配置。各服务器可单独配置覆盖。配置项同 `swaggerConfig[].responseModelTransform`。详见[响应模型转换](#响应模型转换)                                                                                                                                                                                                                                                          |
 | formatting                                           | object                                                                          | 否   | 代码格式化配置。详见[代码格式化](#代码格式化)                                                                                                                                                                                                                                                                                                                                               |
