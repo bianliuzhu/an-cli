@@ -1,4 +1,4 @@
-import type { ComponentsSchemas, ConfigType, IConfigSwaggerServer, LogLevel, PathsObject } from './types';
+import type { ComponentsSchemas, ConfigType, IConfigSwaggerServer, LogLevel, PathsObject, RequestTemplate } from './types';
 import type { OpenAPIV3 } from 'openapi-types';
 
 import chalk from 'chalk';
@@ -23,12 +23,30 @@ interface ExecResult {
 }
 const isDebug = process.env.NODE_ENV === 'debug';
 
+const SUPPORTED_REQUEST_TEMPLATES: readonly RequestTemplate[] = ['axios', 'fetch', 'wx', 'uniapp', 'taro'] as const;
+const DEFAULT_REQUEST_TEMPLATE: RequestTemplate = 'axios';
+const REQUIRED_TEMPLATE_FILES = ['dio.ts', 'error-message.ts', 'fetch.ts', 'api-type.d.ts'] as const;
+const TEMPLATE_MARKER_RE = /@an-cli-request-template:\s*([a-z]+)/i;
+
+function normalizeRequestTemplate(input: unknown, source: string): RequestTemplate {
+	if (input === undefined || input === null || input === '') return DEFAULT_REQUEST_TEMPLATE;
+	if (typeof input !== 'string') {
+		throw new Error(`${source} 中的 requestTemplate 类型无效（期望字符串，实际 ${typeof input}），支持的值：${SUPPORTED_REQUEST_TEMPLATES.join(' | ')}`);
+	}
+	const val = input.trim().toLowerCase() as RequestTemplate;
+	if (!SUPPORTED_REQUEST_TEMPLATES.includes(val)) {
+		throw new Error(`${source} 中的 requestTemplate="${input}" 无效，支持的值：${SUPPORTED_REQUEST_TEMPLATES.join(' | ')}`);
+	}
+	return val;
+}
+
 const configContent: ConfigType = {
 	saveTypeFolderPath: isDebug ? 'apps/types' : 'src/types',
 	saveApiListFolderPath: isDebug ? 'apps/types' : 'src/apis',
 	saveEnumFolderPath: isDebug ? 'apps/enums' : 'src/enums',
 	importEnumPath: '../../../enums',
 	requestMethodsImportPath: './config/fetch',
+	requestTemplate: DEFAULT_REQUEST_TEMPLATE,
 	formatting: {
 		indentation: '\t',
 		lineEnding: '\n',
@@ -240,37 +258,83 @@ export class Main {
 	}
 
 	/**
-	 * 复制 AJAX 配置文件
+	 * 复制请求模板文件（模板专属文件 <template>/ 优先，其余共通文件从 _shared/ 兜底）。
+	 * 拷贝任一步骤失败会整体回滚 destDir，避免残留半成品目录导致下次运行被误判为"已生成"。
 	 */
-	private async copyAjaxConfigFiles(saveApiListFolderPath: string) {
-		const filesToCopy = ['dio.ts', 'error-message.ts', 'fetch.ts', 'api-type.d.ts'];
-		const sourceDir = isDebug ? path.join(__dirname, '..', '..', 'postbuild-assets', 'ajax-config') : path.join(__dirname, '..', 'ajax-config');
+	private async copyAjaxConfigFiles(saveApiListFolderPath: string, template: RequestTemplate) {
+		const baseDir = isDebug ? path.join(__dirname, '..', '..', 'postbuild-assets', 'request-templates') : path.join(__dirname, '..', 'request-templates');
+		const templateDir = path.join(baseDir, template);
+		const sharedDir = path.join(baseDir, '_shared');
 		const destDir = path.join(saveApiListFolderPath, 'config');
 
-		// 若用户本地已存在 config 文件夹，则整体跳过生成
+		// 若用户本地已存在 config 文件夹，则整体跳过生成；同时基于 dio.ts 顶部的标记做一致性告警
 		try {
 			await fs.promises.access(destDir);
-			log.info(`config folder already exists at ${destDir}, skipping generation.`);
+			const existing = await this.readExistingTemplateMarker(destDir);
+			if (existing && existing !== template) {
+				log.warning(
+					`config folder exists at ${destDir}, but its embedded marker "${existing}" differs from configured requestTemplate="${template}". If you want to switch, delete the config folder first: rm -rf "${destDir}"`,
+				);
+			} else {
+				log.info(`config folder already exists at ${destDir}, skipping generation. (template=${template})`);
+				log.info(`  If you want to switch template, please delete the config folder first: rm -rf "${destDir}"`);
+			}
 			return;
 		} catch {
-			await fs.promises.mkdir(destDir, { recursive: true });
+			// destDir 不存在，继续下面的生成流程
 		}
 
-		for (const file of filesToCopy) {
-			const sourceFile = path.join(sourceDir, file);
-			const destFile = path.join(destDir, file);
-
+		// 先解析每个必需文件的最终源路径（模板目录优先，_shared 兜底），任一缺失立即抛错，不动 destDir
+		const resolved: { file: string; sourceFile: string }[] = [];
+		for (const file of REQUIRED_TEMPLATE_FILES) {
+			const inTemplate = path.join(templateDir, file);
+			const inShared = path.join(sharedDir, file);
+			let picked: string | null = null;
 			try {
-				await fs.promises.access(sourceFile);
-				await fs.promises.copyFile(sourceFile, destFile);
-				log.success(`${file} create done.`);
-			} catch (error: unknown) {
-				if (error instanceof Error) {
-					log.error(`Source file ${sourceFile} does not exist`);
-					throw new Error(`Source file ${sourceFile} does not exist: ${error.message}`);
+				await fs.promises.access(inTemplate);
+				picked = inTemplate;
+			} catch {
+				try {
+					await fs.promises.access(inShared);
+					picked = inShared;
+				} catch {
+					throw new Error(`Source file not found for template "${template}": ${file} (looked in ${templateDir} and ${sharedDir})`);
 				}
-				throw new Error(`Source file ${sourceFile} does not exist: unknown error`);
 			}
+			resolved.push({ file, sourceFile: picked });
+		}
+
+		await fs.promises.mkdir(destDir, { recursive: true });
+		log.info(`Using request template: ${chalk.cyan(template)} (template dir: ${templateDir}, shared dir: ${sharedDir})`);
+
+		try {
+			for (const { file, sourceFile } of resolved) {
+				const destFile = path.join(destDir, file);
+				if (file === 'dio.ts') {
+					const content = await fs.promises.readFile(sourceFile, 'utf8');
+					const stamped = TEMPLATE_MARKER_RE.test(content)
+						? content
+						: `// @an-cli-request-template: ${template} — 切换请求模板前请删除本 config/ 目录后重新运行 anl type\n${content}`;
+					await fs.promises.writeFile(destFile, stamped);
+				} else {
+					await fs.promises.copyFile(sourceFile, destFile);
+				}
+				log.success(`${file} create done.`);
+			}
+		} catch (err) {
+			await fs.promises.rm(destDir, { recursive: true, force: true }).catch(() => undefined);
+			throw err instanceof Error ? err : new Error(String(err));
+		}
+	}
+
+	/** 读取已有 config/dio.ts 顶部注入的模板标记；不存在或读取失败一律返回 null */
+	private async readExistingTemplateMarker(destDir: string): Promise<string | null> {
+		try {
+			const content = await fs.promises.readFile(path.join(destDir, 'dio.ts'), 'utf8');
+			const m = TEMPLATE_MARKER_RE.exec(content.slice(0, 500));
+			return m ? m[1].toLowerCase() : null;
+		} catch {
+			return null;
 		}
 	}
 
@@ -507,8 +571,9 @@ export class Main {
 
 	/**
 	 * 获取配置文件（优先加载 an.config.ts，其次 an.config.json）
+	 * @param templateOverride 首次自动创建骨架时使用的请求模板；若无则在 TTY 场景弹出交互选择，非 TTY 使用默认 'axios'
 	 */
-	private async getConfig(projectRoot: string): Promise<ConfigType> {
+	private async getConfig(projectRoot: string, templateOverride?: string): Promise<ConfigType> {
 		const tsConfigPath = path.join(projectRoot, 'an.config.ts');
 		const jsonConfigPath = path.join(projectRoot, 'an.config.json');
 
@@ -526,16 +591,50 @@ export class Main {
 		// 均不存在，创建 ts 配置文件
 		isConfigFile = false;
 		log.warning('配置文件不存在，将自动创建配置文件。');
-		const tsContent = this.generateTsConfigContent();
+
+		// 决定骨架里写入的 requestTemplate
+		let template: RequestTemplate = DEFAULT_REQUEST_TEMPLATE;
+		if (templateOverride) {
+			template = normalizeRequestTemplate(templateOverride, 'CLI --template');
+		} else if (process.stdin.isTTY && process.stdout.isTTY) {
+			const { picked } = await inquirer.prompt<{ picked: RequestTemplate }>([
+				{
+					type: 'list',
+					name: 'picked',
+					message: '请选择请求模板（决定 <saveApiListFolderPath>/config/ 下的底层实现）：',
+					choices: [
+						{ name: 'axios   —— 基于 axios（浏览器/Node，需 npm i axios）', value: 'axios' },
+						{ name: 'fetch   —— 基于原生 fetch（浏览器/现代 Node，无额外依赖）', value: 'fetch' },
+						{ name: 'wx      —— 基于 wx.request（微信小程序）', value: 'wx' },
+						{ name: 'uniapp  —— 基于 uni.request（uni-app 跨端）', value: 'uniapp' },
+						{ name: 'taro    —— 基于 Taro.request（Taro 3+ 跨端）', value: 'taro' },
+					],
+					default: 'axios',
+				},
+			]);
+			template = picked;
+		} else {
+			log.warning(`未指定 --template 且当前非交互终端，requestTemplate 默认为 "${DEFAULT_REQUEST_TEMPLATE}"。可通过 --template 指定或修改 an.config.ts 后重跑。`);
+		}
+
+		const tsContent = this.generateTsConfigContent(template);
 		await writeFileRecursive(tsConfigPath, tsContent);
-		log.success('配置文件已创建，请检查项目根目录下的 an.config.ts 文件并配置后重新运行。');
+
+		// 骨架生成的同时把 config/ 也落地，避免用户需要"跑两次"才拿到底层请求实现
+		try {
+			await fs.promises.mkdir(configContent.saveApiListFolderPath, { recursive: true });
+			await this.copyAjaxConfigFiles(configContent.saveApiListFolderPath, template);
+			log.success(`配置文件已创建（requestTemplate=${template}），并已同步初始化 ${configContent.saveApiListFolderPath}/config/。请检查 an.config.ts 后重新运行以生成 API。`);
+		} catch (err) {
+			log.warning(`初始化 ${configContent.saveApiListFolderPath}/config/ 失败：${err instanceof Error ? err.message : String(err)}。配置文件已创建，请修正后重跑。`);
+		}
 		return configContent;
 	}
 
 	/**
 	 * 生成 an.config.ts 文件内容
 	 */
-	private generateTsConfigContent(): string {
+	private generateTsConfigContent(template: RequestTemplate = DEFAULT_REQUEST_TEMPLATE): string {
 		return `import { defineConfig } from 'anl/config';
 
 export default defineConfig({
@@ -544,6 +643,8 @@ export default defineConfig({
 	saveEnumFolderPath: 'src/enums',
 	importEnumPath: '../../../enums',
 	requestMethodsImportPath: './config/fetch',
+	/** 请求模板：axios | fetch | wx | uniapp | taro，切换后需删除 <saveApiListFolderPath>/config 目录重新生成 */
+	requestTemplate: '${template}',
 	formatting: {
 		indentation: '\\t',
 		lineEnding: '\\n',
@@ -637,11 +738,11 @@ export default defineConfig({
 		return picked.sort((a, b) => a - b);
 	}
 
-	async initialize(show?: 'miss' | 'gen', formatOption?: string | boolean, logLevel?: string, requestedServices?: string[]): Promise<void> {
+	async initialize(show?: 'miss' | 'gen', formatOption?: string | boolean, logLevel?: string, requestedServices?: string[], templateOverride?: string): Promise<void> {
 		const projectRoot = process.cwd();
 
 		try {
-			const userConfig = await this.getConfig(projectRoot);
+			const userConfig = await this.getConfig(projectRoot, templateOverride);
 			const mergedConfig = { ...configContent, ...userConfig };
 
 			// 设置日志输出级别：命令行参数优先于配置文件
@@ -738,8 +839,13 @@ export default defineConfig({
 			// 创建目标目录（如果不存在）
 			await fs.promises.mkdir(mergedConfig.saveApiListFolderPath, { recursive: true });
 
-			// 复制 ajax 配置文件
-			await this.copyAjaxConfigFiles(mergedConfig.saveApiListFolderPath);
+			// 解析请求模板：CLI 覆盖 > 配置文件 > 默认 'axios'
+			const resolvedTemplate = templateOverride
+				? normalizeRequestTemplate(templateOverride, 'CLI --template')
+				: normalizeRequestTemplate(mergedConfig.requestTemplate, 'an.config');
+
+			// 复制请求模板文件
+			await this.copyAjaxConfigFiles(mergedConfig.saveApiListFolderPath, resolvedTemplate);
 
 			if (isSelective) {
 				// 选择型：精准清理被选中的服务对应文件/目录，绝不动其他服务的产物

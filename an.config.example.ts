@@ -6,6 +6,8 @@ export default defineConfig({
 	saveEnumFolderPath: 'src/enums',
 	importEnumPath: '../../../enums',
 	requestMethodsImportPath: './config/fetch',
+	/** 请求模板：'axios' | 'fetch' | 'wx' | 'uniapp' | 'taro'，默认 'axios'。切换后需删除 <saveApiListFolderPath>/config 目录再次生成 */
+	requestTemplate: 'axios',
 	formatting: {
 		indentation: '\t',
 		lineEnding: '\n',

@@ -17,9 +17,10 @@
 
 - Update the configuration file according to your needs, then execute the `anl type` command again, and it will generate corresponding type information according to the specified configuration information in the configuration file
 
-- On first generation, a `config/` directory will be created under `saveApiListFolderPath`, containing axios request wrapper/config files:
+- On first generation, a `config/` directory will be created under `saveApiListFolderPath` and populated with the underlying request implementation for the selected `requestTemplate` (defaults to `axios`, also supports `fetch` / `wx` / `uniapp` / `taro`, see [Request Template](#request-template)):
   - `dio.ts`, `error-message.ts`, `fetch.ts`, `api-type.d.ts`
-  - These filenames can be modified(Not recommended modified), can modify the file contents（but not recommended modified）
+  - These filenames can be modified (not recommended), the file contents can be modified (not recommended)
+  - A marker line `// @an-cli-request-template: <template>` is injected at the top of `dio.ts`; subsequent runs warn when this marker disagrees with your current config/CLI flag
   - **Directory-level rule**: if `saveApiListFolderPath/config/` already exists locally, the tool will skip generating this folder and all files inside it; if it doesn't exist, it will recreate the folder and generate the files
 
 > [!NOTE]
@@ -193,6 +194,68 @@ $ anl type -S op -f -s miss
 - Both `models/index.ts` and `enums/index.ts` top-level barrels are updated with a "read → merge → dedupe → write" strategy, **preserving other services' export lines** (both `export *` and `export * as Xxx`)
 - Under selective mode, `--format` only formats the selected services' generated files (including their `enums/<segment>` subdirectory)
 
+#### Request Template
+
+Use the `-t` / `--template` CLI flag, or the `requestTemplate` config field, to generate the low-level request implementation under `<saveApiListFolderPath>/config/` targeting different host environments (browser, mini-programs, uni-app, Taro, etc.).
+
+##### Supported templates
+
+| Template | Underlying transport | Target                                 | External deps / typings                         |
+| -------- | -------------------- | -------------------------------------- | ----------------------------------------------- |
+| `axios`  | axios                | Browser / Node (default)               | `npm i axios`                                   |
+| `fetch`  | native fetch         | Browser / modern Node, no extra deps   | none                                            |
+| `wx`     | `wx.request`         | WeChat mini-program                    | Suggested: `npm i -D @types/wechat-miniprogram` |
+| `uniapp` | `uni.request`        | uni-app cross-platform (H5 / mp / App) | Suggested: `npm i -D @dcloudio/types`           |
+| `taro`   | `Taro.request`       | Taro 3+ cross-platform (H5 / mp / RN)  | `npm i @tarojs/taro`                            |
+
+> Every non-axios template exposes the same public API as the axios version: `dio.request(config)` and `dio.interceptors.request | response`. Application code does not need to change when switching templates.
+
+##### Priority
+
+- **CLI `-t` flag** > **`requestTemplate` in `an.config.ts`** > **default `axios`**
+- Template files are written only when `<saveApiListFolderPath>/config/` **does not exist**. If it already exists the run is skipped and a hint is printed — delete the folder first to switch template.
+
+##### Examples
+
+```bash
+# Option A: one-shot via CLI, ideal for CI or initial scaffolding
+$ anl type -t fetch
+
+# Option B: persist it in the config so teammates don't need to pass the flag
+# an.config.ts
+export default defineConfig({
+	/* ... */
+	requestTemplate: 'wx',
+});
+$ anl type
+
+# Option C: first-time run inside a TTY without -t opens an interactive picker
+# that writes both the skeleton config AND the config/ folder in one shot
+$ anl type
+```
+
+##### Switching template
+
+1. Delete the existing `<saveApiListFolderPath>/config/`:
+   ```bash
+   rm -rf src/apis/config
+   ```
+2. Update `requestTemplate` in `an.config.ts`, or override it via `-t`:
+   ```bash
+   $ anl type -t wx
+   ```
+3. If a leftover `config/` disagrees with the resolved template (detected via the marker on the first line of `dio.ts`), a warning is printed instead of silently overwriting any hand-edited code.
+
+##### Option
+
+- **Option**: `-t, --template <name>`
+- **Values**: `axios` | `fetch` | `wx` | `uniapp` | `taro`
+- **Priority**: CLI flag > `requestTemplate` in `an.config.ts` > default `axios`
+
+> [!NOTE] Mini-program typings
+>
+> `wx` / `uniapp` templates reference the global `wx.` / `uni.` at runtime. If TypeScript reports `Cannot find name 'wx' | 'uni'`, install the corresponding typing package listed above and add it to `types` in `tsconfig.json`.
+
 #### Interactive Picker (auto-triggered for multi-service configs)
 
 `anl type` automatically opens an inquirer multi-select prompt when **all** of the following are true:
@@ -255,6 +318,8 @@ export default defineConfig({
 	saveEnumFolderPath: 'src/enums',
 	importEnumPath: '../../../enums',
 	requestMethodsImportPath: './config/fetch',
+	/** Request template: axios | fetch | wx | uniapp | taro. After switching, delete <saveApiListFolderPath>/config to regenerate. */
+	requestTemplate: 'axios',
 	formatting: {
 		indentation: '\t',
 		lineEnding: '\n',
@@ -455,6 +520,7 @@ Projects with existing `an.config.json` do not need to migrate immediately — t
 | swaggerConfig[].responseModelTransform.wrapperType   | string                                                                          | No       | Replacement type string for `replace` mode. Can be any TypeScript type, e.g.: `"ApiResponse<T>"`                                                                                                                                                                                                                                                                                                                      |
 | swaggerConfig[].responseModelTransform.modelPattern  | string                                                                          | No       | Regex pattern to match response model type names. Only matching types will be transformed; non-matching types are skipped. Example: `"^ResultMessage"` only transforms types starting with `ResultMessage`                                                                                                                                                                                                            |
 | requestMethodsImportPath                             | string                                                                          | Yes      | Request method import path                                                                                                                                                                                                                                                                                                                                                                                            |
+| requestTemplate                                      | `'axios'` \| `'fetch'` \| `'wx'` \| `'uniapp'` \| `'taro'`                      | No       | Selects the underlying request implementation written to `<saveApiListFolderPath>/config/`. Default: `'axios'`. Can be overridden with CLI `-t`/`--template`. See [Request Template](#request-template)                                                                                                                                                                                                               |
 | dataLevel                                            | 'data' \| 'serve' \| 'axios'                                                    | No       | Global interface return data level configuration, default: `'serve'`. Each server can override individually                                                                                                                                                                                                                                                                                                           |
 | responseModelTransform                               | object                                                                          | No       | Global response model transformation configuration. Each server can override individually. Configuration items same as `swaggerConfig[].responseModelTransform`. See [Response Model Transform](#response-model-transform)                                                                                                                                                                                            |
 | formatting                                           | object                                                                          | No       | Code formatting configuration                                                                                                                                                                                                                                                                                                                                                                                         |

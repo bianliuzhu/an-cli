@@ -3,6 +3,9 @@ export type TDatalevel = 'data' | 'serve' | 'axios';
 /** 终端日志输出级别 */
 export type LogLevel = 'silent' | 'error' | 'warn' | 'info' | 'verbose';
 
+/** 请求模板类型 —— 决定生成到项目 `<saveApiListFolderPath>/config/` 下的底层请求实现 */
+export type RequestTemplate = 'axios' | 'fetch' | 'wx' | 'uniapp' | 'taro';
+
 /** 响应模型转换配置 */
 export interface IResponseModelTransform {
 	/** 转换类型：unwrap-剔除响应模型，wrap-添加响应模型，replace-替换响应模型 */
@@ -79,6 +82,14 @@ export interface ConfigType {
 	apiListFileName?: string;
 	/** 请求方法导入路径 */
 	requestMethodsImportPath: string;
+	/** 请求模板类型（决定生成到 `<saveApiListFolderPath>/config/` 下的底层 `dio.ts` 实现），默认 `'axios'`。
+	 *  - `axios` 基于 axios（浏览器/Node，需 `npm i axios`）
+	 *  - `fetch` 基于原生 fetch（浏览器/现代 Node，无额外依赖）
+	 *  - `wx`    基于 `wx.request`（微信小程序原生）
+	 *  - `uniapp` 基于 `uni.request`（uni-app 跨端）
+	 *  - `taro`   基于 `Taro.request`（Taro 3+ 跨端）
+	 *  注意：切换模板时需手动删除 `<saveApiListFolderPath>/config/` 目录，CLI 才会重新写入对应模板文件。 */
+	requestTemplate?: RequestTemplate;
 	/** 追加请求头 */
 	headers?: Record<string, string>;
 	/** 公共前缀（仅为兼容旧配置，最终以服务级配置为准） */
