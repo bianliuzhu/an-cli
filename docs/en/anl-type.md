@@ -4,7 +4,7 @@
 
 - Both `an.config.ts` and `an.config.json` formats are supported. **If both files exist, `an.config.ts` takes priority.**
 
-- When executing the `anl type` command, it will look for the configuration file in the user's project root directory, read its configuration information, and generate corresponding axios encapsulation, configuration, interface list, interface requests, and TS types for each interface request parameters and responses
+- When executing the `anl type` command, it will look for the configuration file in the user's project root directory, read its configuration information, and generate the selected request template's wrappers and configuration, interface list, interface requests, and TS types for each interface's request parameters and responses
 
 - Configuration items in the configuration file can be freely modified
 
@@ -208,35 +208,61 @@ Use the `-t` / `--template` CLI flag, or the `requestTemplate` config field, to 
 | `uniapp` | `uni.request`        | uni-app cross-platform (H5 / mp / App) | Suggested: `npm i -D @dcloudio/types`           |
 | `taro`   | `Taro.request`       | Taro 3+ cross-platform (H5 / mp / RN)  | `npm i @tarojs/taro`                            |
 
-> Every non-axios template exposes the same public API as the axios version: `dio.request(config)` and `dio.interceptors.request | response`. Application code does not need to change when switching templates.
+> All templates expose `dio.request(config)` and `dio.interceptors.request | response`, so generated API functions share a consistent calling convention. Non-axios templates are not full axios replacements: review and migrate any axios-specific options, types, and interceptor logic.
 
 ##### Priority
 
-- **CLI `-t` flag** > **`requestTemplate` in `an.config.ts`** > **default `axios`**
+- **CLI `-t` flag** > **`requestTemplate` in the config file** > **default `axios`**
+- Both `an.config.ts` and `an.config.json` are supported; when both exist, only `an.config.ts` is loaded
 - Template files are written only when `<saveApiListFolderPath>/config/` **does not exist**. If it already exists the run is skipped and a hint is printed — delete the folder first to switch template.
+
+##### First-time initialization and non-interactive environments
+
+First-time initialization runs only when **neither configuration file exists** in the project root:
+
+1. With `-t` / `--template`, the specified template is used without showing a template picker
+2. Without a template flag, an interactive picker appears when both stdin and stdout are TTYs
+3. In non-TTY environments such as CI or pipes, no picker is shown; without an explicit template, the CLI falls back to `axios` and prints a notice
+
+The first run writes the selected `requestTemplate` to the new `an.config.ts` and initializes the default `src/apis/config/` directory. Business APIs are not generated yet: update the Swagger URLs and output directories, then run `anl type` again. If request template initialization fails, the config file is kept; fix the issue and rerun.
+
+When a config file already exists, the template picker is not shown again. In this case, `-t` overrides the current run only and does not rewrite the config file. Update `requestTemplate` to persist your choice.
 
 ##### Examples
 
 ```bash
 # Option A: one-shot via CLI, ideal for CI or initial scaffolding
 $ anl type -t fetch
+```
 
-# Option B: persist it in the config so teammates don't need to pass the flag
-# an.config.ts
+Option B: set it in `an.config.ts` (configuration excerpt; keep the other required fields):
+
+```ts
+import { defineConfig } from 'anl/config';
+
 export default defineConfig({
 	/* ... */
 	requestTemplate: 'wx',
 });
-$ anl type
+```
 
-# Option C: first-time run inside a TTY without -t opens an interactive picker
-# that writes both the skeleton config AND the config/ folder in one shot
+Alternatively, add the same field to `an.config.json` (configuration excerpt):
+
+```json
+{
+	"requestTemplate": "wx"
+}
+```
+
+```bash
+# Generate using the config; if neither config file exists and this is a TTY,
+# select the template interactively
 $ anl type
 ```
 
 ##### Switching template
 
-1. Delete the existing `<saveApiListFolderPath>/config/`:
+1. Back up any custom base URL, authentication, interceptors, and error handling in `<saveApiListFolderPath>/config/`, then delete the directory. This example uses the default output path:
    ```bash
    rm -rf src/apis/config
    ```
@@ -245,12 +271,33 @@ $ anl type
    $ anl type -t wx
    ```
 3. If a leftover `config/` disagrees with the resolved template (detected via the marker on the first line of `dio.ts`), a warning is printed instead of silently overwriting any hand-edited code.
+4. After generation, migrate your custom logic to the new template and install its dependencies or typings. Do not overwrite the new `dio.ts` with the old file.
+
+An existing directory is skipped as a whole even if some template files are missing; missing files are not repaired automatically. Older `dio.ts` files without a template marker are also preserved, but a template mismatch cannot be detected. All four files are regenerated only when the directory does not exist. If copying fails, the newly created directory is removed so you can fix the issue and retry.
+
+##### Integration and response levels
+
+- `requestTemplate` is a global option for the entire `<saveApiListFolderPath>/config/` directory, not a per-service option under `swaggerConfig`
+- `requestMethodsImportPath` can remain `./config/fetch`; `fetch.ts` is the shared request-method wrapper filename and does not necessarily use native fetch
+- After generation, review `BASE_URL`, placeholder authentication values, login redirects, and error handling in `dio.ts` for your environment
+- Non-axios templates use `DioRequestConfig` / `DioResponse<T>`; do not reuse axios-specific types such as `AxiosRequestConfig` / `AxiosResponse<T>` without adapting them
+
+All templates retain the same `datalevel` values:
+
+| `datalevel` | Return value                                                          |
+| ----------- | --------------------------------------------------------------------- |
+| `data`      | Business data: `res.data.data`                                        |
+| `serve`     | Full business response body: `res.data`                               |
+| `axios`     | Adapter response: `res`, including fields such as `data` and `status` |
+
+The name `axios` is retained for backward compatibility and does not switch the request template. For non-axios templates, this level returns the normalized `DioResponse<ResponseModel<T>>`, not a native browser `Response` or a mini-program RequestTask. The default business response structure is `{ code, message, data, success }`; adapt both the template types and extraction logic if your backend uses a different structure.
 
 ##### Option
 
 - **Option**: `-t, --template <name>`
 - **Values**: `axios` | `fetch` | `wx` | `uniapp` | `taro`
-- **Priority**: CLI flag > `requestTemplate` in `an.config.ts` > default `axios`
+- **Priority**: CLI flag > `requestTemplate` in the config file > default `axios`
+- **Validation**: Template names are trimmed and lowercased. Unsupported names produce an error instead of silently falling back to the default.
 
 > [!NOTE] Mini-program typings
 >

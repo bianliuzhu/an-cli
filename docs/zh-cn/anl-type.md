@@ -4,7 +4,7 @@
 
 - 同时支持 `an.config.ts` 和 `an.config.json` 两种配置格式。**若两个文件同时存在，优先使用 `an.config.ts`**
 
-- 执行 `anl type` 命令时，会查找用户项目根目录下的配置文件，并读取其配置信息，生成对应的 `axios` 封装及配置文件、接口列表、每个接口的出入参TS类型
+- 执行 `anl type` 命令时，会查找用户项目根目录下的配置文件，并读取其配置信息，生成所选请求模板的封装及配置文件、接口列表、每个接口的出入参TS类型
 
 - 配置文件内的配置项是可自由修改的
 
@@ -210,34 +210,60 @@ $ anl type -S op -f -s miss
 | `uniapp` | `uni.request`  | uni-app 跨端（H5 / 小程序 / App） | 建议：`npm i -D @dcloudio/types`           |
 | `taro`   | `Taro.request` | Taro 3+ 跨端（H5 / 小程序 / RN）  | `npm i @tarojs/taro`                       |
 
-> 除 `axios` 外，其他模板都实现了与 axios 对齐的 `dio.request(config)` 与 `dio.interceptors.request | response` API，业务代码无需改动。
+> 所有模板都提供 `dio.request(config)` 与 `dio.interceptors.request | response` 入口，生成的 API 函数保持统一调用方式。但非 axios 模板并非 axios 的完整替代，已有的 axios 专属配置、类型和拦截器逻辑需要逐项检查后迁移。
 
 ##### 优先级
 
-- **CLI `-t` 参数** > **`an.config.ts` 中的 `requestTemplate`** > **默认 `axios`**
+- **CLI `-t` 参数** > **配置文件中的 `requestTemplate`** > **默认 `axios`**
+- 配置文件支持 `an.config.ts` 和 `an.config.json`；两者同时存在时只读取 `an.config.ts`
 - 仅在 `<saveApiListFolderPath>/config/` **不存在**时才会写入模板文件；若已存在会自动跳过并提示“如需切换请先删除该目录”
+
+##### 首次初始化与非交互环境
+
+仅当项目根目录中 **两种配置文件都不存在** 时，才会进入首次初始化流程：
+
+1. 传入 `-t` / `--template` 时，使用指定模板，不弹出模板选择框
+2. 未传模板参数，且标准输入、标准输出均为 TTY 时，交互选择模板
+3. CI / 管道等非 TTY 环境不弹框，未指定模板时回退到 `axios` 并打印提示
+
+首次运行会将选中的 `requestTemplate` 写入新建的 `an.config.ts`，同时初始化默认的 `src/apis/config/`。此时尚未生成业务 API，请修改配置中的 Swagger 地址及输出目录后再次运行 `anl type`。若请求模板初始化失败，配置文件仍会保留，修正问题后重跑即可。
+
+已有配置文件时不会再次询问模板。此时 `-t` 仅覆盖本次运行，不会改写配置文件；长期使用某个模板应修改 `requestTemplate`。
 
 ##### 使用示例
 
 ```bash
 # 方式 1：用 CLI 参数一次性指定，适合 CI / 首次初始化骨架
 $ anl type -t fetch
+```
 
-# 方式 2：写到配置里（以后团队成员无需额外传参）
-# an.config.ts
+方式 2：在 `an.config.ts` 中设置（以下为配置片段，保留其他必填配置）：
+
+```ts
+import { defineConfig } from 'anl/config';
+
 export default defineConfig({
 	/* ... */
 	requestTemplate: 'wx',
 });
-$ anl type
+```
 
-# 方式 3：首次在 TTY 环境运行且未传 -t 则会弹出交互选择，自动写入骨架并同步初始化 config/
+也可以在 `an.config.json` 中添加同名字段（以下为配置片段）：
+
+```json
+{
+	"requestTemplate": "wx"
+}
+```
+
+```bash
+# 按配置生成；若两种配置文件都不存在且在 TTY 环境下，则交互选择模板
 $ anl type
 ```
 
 ##### 切换模板
 
-1. 删除 `<saveApiListFolderPath>/config/` 目录：
+1. 先备份 `<saveApiListFolderPath>/config/` 中修改过的基础地址、鉴权、拦截器和错误提示逻辑，再删除该目录。以下以默认输出路径为例：
    ```bash
    rm -rf src/apis/config
    ```
@@ -246,16 +272,37 @@ $ anl type
    $ anl type -t wx
    ```
 3. 当探测到已存在的 `config/` 与当前配置/CLI 参数不一致时（依据 `dio.ts` 首行模板标记），会打印 warning 提醒，不会静默覆盖用户已修改的代码
+4. 生成后按新模板迁移备份中的自定义逻辑，并安装目标模板需要的依赖或类型包；不要直接用旧 `dio.ts` 覆盖新文件
+
+已有目录即使缺少部分模板文件，也会整体跳过，不会自动补齐。旧版本生成的 `dio.ts` 若没有模板标记，同样不会被覆盖，但无法判断模板是否匹配。只有目录不存在时才会重新生成四个文件；复制过程中失败会清理本次创建的目录，便于修正后重试。
+
+##### 接入与响应层级
+
+- `requestTemplate` 是全局配置，作用于整个 `<saveApiListFolderPath>/config/`，不是单个 `swaggerConfig` 服务的配置
+- `requestMethodsImportPath` 仍可保持 `./config/fetch`；这里的 `fetch.ts` 是统一请求方法封装文件名，不表示一定使用原生 fetch
+- 生成后检查 `dio.ts` 中的 `BASE_URL`、鉴权占位值、登录跳转及错误处理，并按项目环境调整
+- 非 axios 模板使用 `DioRequestConfig` / `DioResponse<T>`，不要直接沿用 `AxiosRequestConfig` / `AxiosResponse<T>` 等 axios 专属类型
+
+所有模板沿用相同的 `datalevel` 配置值：
+
+| `datalevel` | 返回内容                                           |
+| ----------- | -------------------------------------------------- |
+| `data`      | 业务数据 `res.data.data`                           |
+| `serve`     | 完整业务响应体 `res.data`                          |
+| `axios`     | 底层适配器响应 `res`，包含 `data`、`status` 等字段 |
+
+`axios` 是为兼容旧配置保留的层级名称，不会强制切换请求模板。对于非 axios 模板，该层返回统一的 `DioResponse<ResponseModel<T>>`，而不是浏览器原生 `Response` 或小程序原始 RequestTask。默认业务响应结构为 `{ code, message, data, success }`，后端结构不同时需同步调整模板中的类型及取值逻辑。
 
 ##### 参数说明
 
 - **参数**：`-t, --template <name>`
 - **可选值**：`axios` | `fetch` | `wx` | `uniapp` | `taro`
-- **优先级**：命令行参数 > `an.config.ts` 的 `requestTemplate` > 默认 `axios`
+- **优先级**：命令行参数 > 配置文件的 `requestTemplate` > 默认 `axios`
+- **校验**：模板名会去除首尾空格并转为小写；不支持的名称会报错，不会静默回退到默认模板
 
 > [!NOTE] 小程序模板的类型定义
 >
-> `wx` / `uniapp` 模板直接引用了全局 `wx.` / `uni.`，如果 TS 报 `Cannot find name 'wx' | 'uni'`，请在项目安装对应类型包并在 tsconfig `types` 中启用（见上方表格）。
+> `wx` / `uniapp` 模板直接引用了全局 `wx.` / `uni.`，如果 TS 报 `Cannot find name 'wx' | 'uni'`，请在项目安装对应类型包并在 `tsconfig.json` 的 `types` 中启用（见上方表格）。
 
 #### 交互式多选（多服务自动触发）
 
@@ -521,7 +568,7 @@ export default defineConfig({
 | swaggerConfig[].responseModelTransform.wrapperType   | string                                                                          | 否   | 用于 `replace` 模式的替换类型字符串。可以是任何 TypeScript 类型，例如：`"ApiResponse<T>"`                                                                                                                                                                                                                                                                                                   |
 | swaggerConfig[].responseModelTransform.modelPattern  | string                                                                          | 否   | 响应模型类型名匹配正则表达式。只有匹配的类型才会被转换，不匹配的类型将跳过转换直接保留原类型。例如：`"^ResultMessage"` 只转换以 `ResultMessage` 开头的类型                                                                                                                                                                                                                                  |
 | requestMethodsImportPath                             | string                                                                          | 是   | 请求方法导入路径                                                                                                                                                                                                                                                                                                                                                                            |
-| requestTemplate                                      | `'axios'` \| `'fetch'` \| `'wx'` \| `'uniapp'` \| `'taro'`                      | 否   | 请求模板类型，决定写入 `<saveApiListFolderPath>/config/` 的底层请求实现。默认：`'axios'`。CLI `-t`/`--template` 可临时覆盖。详见[指定请求模板](#指定请求模板-t--template)                                                                                                                                                                                                                   |
+| requestTemplate                                      | `'axios'` \| `'fetch'` \| `'wx'` \| `'uniapp'` \| `'taro'`                      | 否   | 请求模板类型，决定写入 `<saveApiListFolderPath>/config/` 的底层请求实现。默认：`'axios'`。CLI `-t`/`--template` 可临时覆盖。详见[请求模板](#请求模板)                                                                                                                                                                                                                                       |
 | dataLevel                                            | 'data' \| 'serve' \| 'axios'                                                    | 否   | 全局接口返回数据层级配置，默认值：`'serve'`。各服务器可单独配置覆盖。详见[数据层级配置](#数据层级配置-datalevel)                                                                                                                                                                                                                                                                            |
 | responseModelTransform                               | object                                                                          | 否   | 全局响应模型转换配置。各服务器可单独配置覆盖。配置项同 `swaggerConfig[].responseModelTransform`。详见[响应模型转换](#响应模型转换)                                                                                                                                                                                                                                                          |
 | formatting                                           | object                                                                          | 否   | 代码格式化配置。详见[代码格式化](#代码格式化)                                                                                                                                                                                                                                                                                                                                               |
