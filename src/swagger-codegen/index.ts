@@ -1,4 +1,15 @@
-import type { ComponentsSchemas, ConfigType, IConfigSwaggerServer, LogLevel, PathsObject, RequestTemplate } from './types';
+import type {
+	ComponentsSchemas,
+	ConfigType,
+	GeneratedInterface,
+	GenerationSummary,
+	IConfigSwaggerServer,
+	LogLevel,
+	NormalizedSwaggerServer,
+	PathsObject,
+	RequestTemplate,
+	ShowMode,
+} from './types';
 import type { OpenAPIV3 } from 'openapi-types';
 
 import chalk from 'chalk';
@@ -6,39 +17,22 @@ import fs from 'fs';
 import inquirer from 'inquirer';
 import { createJiti } from 'jiti';
 import path from 'path';
-import { exec } from 'shelljs';
 
-import { clearDir, clearDirExcept, writeFileRecursive } from '../utils';
-import { log, setLogLevel, spinner } from '../utils';
+import { clearDir, clearDirExcept, log, setLogLevel, spinner, writeFileRecursive } from '../utils';
 import Components from './components/index';
-import { createDefaultConfig, DEFAULT_REQUEST_TEMPLATE, renderTsConfig } from './config-template';
+import { createDefaultConfig, renderTsConfig } from './config-template';
 import { getSwaggerJson } from './get-data';
 import PathParse from './path/index';
-import { computeSegment, getServiceTag, segmentToNamespacePrefix } from './shared/naming';
+import { DEFAULT_REQUEST_TEMPLATE } from './shared/constants';
+import { computeSegment, getServiceIdentifier, getServiceTag, isEnumIsolated, segmentToNamespacePrefix } from './shared/naming';
+import { formatGeneratedFiles } from './shared/prettier';
+import { copyAjaxConfigFiles, normalizeRequestTemplate } from './shared/request-template';
+import { mergeNamespaceExports, readIndexLines } from './shared/writer';
 
 let isConfigFile: boolean;
 
-interface ExecResult {
-	stdout: string;
-	stderr: string;
-}
 const isDebug = process.env.NODE_ENV === 'debug';
-
-const SUPPORTED_REQUEST_TEMPLATES: readonly RequestTemplate[] = ['axios', 'fetch', 'wx', 'uniapp', 'taro'] as const;
-const REQUIRED_TEMPLATE_FILES = ['dio.ts', 'error-message.ts', 'fetch.ts', 'api-type.d.ts'] as const;
-const TEMPLATE_MARKER_RE = /@an-cli-request-template:\s*([a-z]+)/i;
-
-function normalizeRequestTemplate(input: unknown, source: string): RequestTemplate {
-	if (input === undefined || input === null || input === '') return DEFAULT_REQUEST_TEMPLATE;
-	if (typeof input !== 'string') {
-		throw new Error(`${source} 中的 requestTemplate 类型无效（期望字符串，实际 ${typeof input}），支持的值：${SUPPORTED_REQUEST_TEMPLATES.join(' | ')}`);
-	}
-	const val = input.trim().toLowerCase() as RequestTemplate;
-	if (!SUPPORTED_REQUEST_TEMPLATES.includes(val)) {
-		throw new Error(`${source} 中的 requestTemplate="${input}" 无效，支持的值：${SUPPORTED_REQUEST_TEMPLATES.join(' | ')}`);
-	}
-	return val;
-}
+const requestTemplateDir = isDebug ? path.join(__dirname, '..', '..', 'postbuild-assets', 'request-templates') : path.join(__dirname, '..', 'request-templates');
 
 const configContent = createDefaultConfig();
 if (isDebug) {
@@ -47,11 +41,6 @@ if (isDebug) {
 	configContent.saveEnumFolderPath = 'apps/enums';
 }
 
-type NormalizedSwaggerServer = Required<
-	Omit<IConfigSwaggerServer, 'name' | 'responseModelTransform' | 'includeTags' | 'excludeTags' | 'timeout' | 'namespaceIsolation' | 'enumIsolation'>
-> &
-	Pick<IConfigSwaggerServer, 'name' | 'responseModelTransform' | 'includeTags' | 'excludeTags' | 'timeout' | 'namespaceIsolation' | 'enumIsolation'>;
-
 export class Main {
 	private schemas: ComponentsSchemas = {};
 	private paths: PathsObject = {};
@@ -59,7 +48,7 @@ export class Main {
 	/**
 	 * 处理 Swagger 数据
 	 */
-	private async handle(config: ConfigType, appendMode: boolean, show?: 'miss' | 'gen'): Promise<{ path: string; method: string }[] | null> {
+	private async handle(config: ConfigType, appendMode: boolean, show?: ShowMode): Promise<GeneratedInterface[] | null> {
 		const tag = getServiceTag(config);
 		// 一个服务一段：使用 section 标题展示服务名 + URL，下面所有子任务无需重复 tag
 		log.section(tag || 'service', config.swaggerJsonUrl);
@@ -95,226 +84,6 @@ export class Main {
 				throw new Error(`Handle Swagger data failed: ${error.message}`);
 			}
 			throw new Error('Handle Swagger data failed: unknown error');
-		}
-	}
-
-	/**
-	 * 解析要使用的 prettier 可执行文件路径
-	 * 优先使用项目本地安装的 prettier，其次回退到 npx prettier
-	 */
-	private async resolvePrettierExecutable(): Promise<string> {
-		const isWindows = process.platform === 'win32';
-		const localBin = path.join(process.cwd(), 'node_modules', '.bin', isWindows ? 'prettier.cmd' : 'prettier');
-		try {
-			await fs.promises.access(localBin, fs.constants.X_OK);
-			log.info(`Using local prettier: ${localBin}`);
-			return `"${localBin}"`;
-		} catch {
-			return 'npx prettier';
-		}
-	}
-
-	/**
-	 * 自动检测项目根目录下的 prettier 配置文件
-	 * 按优先级依次查找，找到第一个即返回其路径
-	 */
-	private async detectPrettierConfig(): Promise<string | null> {
-		const configFileNames = [
-			'.prettierrc',
-			'.prettierrc.json',
-			'.prettierrc.json5',
-			'.prettierrc.yaml',
-			'.prettierrc.yml',
-			'.prettierrc.js',
-			'.prettierrc.cjs',
-			'.prettierrc.mjs',
-			'.prettierrc.ts',
-			'.prettierrc.cts',
-			'.prettierrc.mts',
-			'prettier.config.js',
-			'prettier.config.cjs',
-			'prettier.config.mjs',
-			'prettier.config.ts',
-			'prettier.config.cts',
-			'prettier.config.mts',
-		];
-		for (const fileName of configFileNames) {
-			const fullPath = path.join(process.cwd(), fileName);
-			try {
-				await fs.promises.access(fullPath);
-				log.info(`Auto-detected prettier config: ${fileName}`);
-				return fullPath;
-			} catch {
-				// 继续查找
-			}
-		}
-		// 检查 package.json 中是否存在 prettier 字段
-		try {
-			const pkgRaw = await fs.promises.readFile(path.join(process.cwd(), 'package.json'), 'utf8');
-			const pkg = JSON.parse(pkgRaw) as Record<string, unknown>;
-			if (pkg.prettier) {
-				log.info('Using prettier config from package.json');
-				return path.join(process.cwd(), 'package.json');
-			}
-		} catch {
-			// 忽略
-		}
-		return null;
-	}
-
-	/**
-	 * 执行格式化命令
-	 * @param config      全局配置
-	 * @param formatOption  true = 自动检测配置; string = 用户指定配置文件路径
-	 */
-	private async formatGeneratedFiles(config: ConfigType, formatOption: string | boolean) {
-		const prettierBin = await this.resolvePrettierExecutable();
-
-		// 解析配置文件标志
-		let configFlag = '';
-		if (typeof formatOption === 'string' && formatOption.trim()) {
-			// 用户明确指定了配置文件路径
-			const configPath = path.resolve(process.cwd(), formatOption.trim());
-			try {
-				await fs.promises.access(configPath);
-				configFlag = ` --config "${configPath}"`;
-			} catch {
-				log.warning(`Prettier config file not found: ${formatOption}, falling back to auto-detection...`);
-				const detected = await this.detectPrettierConfig();
-				if (detected) configFlag = ` --config "${detected}"`;
-			}
-		} else {
-			// 自动检测
-			const detected = await this.detectPrettierConfig();
-			if (detected) configFlag = ` --config "${detected}"`;
-		}
-
-		// 收集存在的生成目录
-		const dirsToFormat: string[] = [];
-		const checkDir = async (dir: string, pattern: string) => {
-			try {
-				await fs.promises.access(dir);
-				dirsToFormat.push(`"${dir}/${pattern}"`);
-			} catch {
-				// 目录不存在，跳过
-			}
-		};
-		await checkDir(config.saveTypeFolderPath, '**/*.{ts,d.ts}');
-		await checkDir(config.saveApiListFolderPath, '**/*.ts');
-		await checkDir(config.saveEnumFolderPath, '**/*.ts');
-
-		if (dirsToFormat.length === 0) {
-			log.warning('No generated directories found to format.');
-			return;
-		}
-
-		const formatCommand = `${prettierBin} --write ${dirsToFormat.join(' ')}${configFlag}`;
-
-		try {
-			spinner.start('Formatting generated files...');
-
-			const { stderr } = await new Promise<ExecResult>((resolve, reject) => {
-				exec(formatCommand, (error, stdout, stderr) => {
-					if (error) reject(new Error(String(error)));
-					else resolve({ stdout, stderr });
-				});
-			});
-
-			if (stderr) {
-				log.print('\n');
-				log.print('$', chalk.yellow(formatCommand));
-				log.print('\n');
-			}
-			spinner.success('File formatting successful');
-			log.print('\n');
-		} catch (error: unknown) {
-			spinner.error('Format failed');
-			log.print('');
-			log.print(error);
-			log.error('Format failed, please manually execute the following command:');
-			log.print('$', chalk.yellow(formatCommand));
-			log.print('');
-		}
-	}
-
-	/**
-	 * 复制请求模板文件（模板专属文件 <template>/ 优先，其余共通文件从 _shared/ 兜底）。
-	 * 拷贝任一步骤失败会整体回滚 destDir，避免残留半成品目录导致下次运行被误判为"已生成"。
-	 */
-	private async copyAjaxConfigFiles(saveApiListFolderPath: string, template: RequestTemplate) {
-		const baseDir = isDebug ? path.join(__dirname, '..', '..', 'postbuild-assets', 'request-templates') : path.join(__dirname, '..', 'request-templates');
-		const templateDir = path.join(baseDir, template);
-		const sharedDir = path.join(baseDir, '_shared');
-		const destDir = path.join(saveApiListFolderPath, 'config');
-
-		// 若用户本地已存在 config 文件夹，则整体跳过生成；同时基于 dio.ts 顶部的标记做一致性告警
-		try {
-			await fs.promises.access(destDir);
-			const existing = await this.readExistingTemplateMarker(destDir);
-			if (existing && existing !== template) {
-				log.warning(
-					`config folder exists at ${destDir}, but its embedded marker "${existing}" differs from configured requestTemplate="${template}". If you want to switch, delete the config folder first: rm -rf "${destDir}"`,
-				);
-			} else {
-				log.info(`config folder already exists at ${destDir}, skipping generation. (template=${template})`);
-				log.info(`  If you want to switch template, please delete the config folder first: rm -rf "${destDir}"`);
-			}
-			return;
-		} catch {
-			// destDir 不存在，继续下面的生成流程
-		}
-
-		// 先解析每个必需文件的最终源路径（模板目录优先，_shared 兜底），任一缺失立即抛错，不动 destDir
-		const resolved: { file: string; sourceFile: string }[] = [];
-		for (const file of REQUIRED_TEMPLATE_FILES) {
-			const inTemplate = path.join(templateDir, file);
-			const inShared = path.join(sharedDir, file);
-			let picked: string | null = null;
-			try {
-				await fs.promises.access(inTemplate);
-				picked = inTemplate;
-			} catch {
-				try {
-					await fs.promises.access(inShared);
-					picked = inShared;
-				} catch {
-					throw new Error(`Source file not found for template "${template}": ${file} (looked in ${templateDir} and ${sharedDir})`);
-				}
-			}
-			resolved.push({ file, sourceFile: picked });
-		}
-
-		await fs.promises.mkdir(destDir, { recursive: true });
-		log.info(`Using request template: ${chalk.cyan(template)} (template dir: ${templateDir}, shared dir: ${sharedDir})`);
-
-		try {
-			for (const { file, sourceFile } of resolved) {
-				const destFile = path.join(destDir, file);
-				if (file === 'dio.ts') {
-					const content = await fs.promises.readFile(sourceFile, 'utf8');
-					const stamped = TEMPLATE_MARKER_RE.test(content)
-						? content
-						: `// @an-cli-request-template: ${template} — 切换请求模板前请删除本 config/ 目录后重新运行 anl type\n${content}`;
-					await fs.promises.writeFile(destFile, stamped);
-				} else {
-					await fs.promises.copyFile(sourceFile, destFile);
-				}
-				log.success(`${file} create done.`);
-			}
-		} catch (err) {
-			await fs.promises.rm(destDir, { recursive: true, force: true }).catch(() => undefined);
-			throw err instanceof Error ? err : new Error(String(err));
-		}
-	}
-
-	/** 读取已有 config/dio.ts 顶部注入的模板标记；不存在或读取失败一律返回 null */
-	private async readExistingTemplateMarker(destDir: string): Promise<string | null> {
-		try {
-			const content = await fs.promises.readFile(path.join(destDir, 'dio.ts'), 'utf8');
-			const m = TEMPLATE_MARKER_RE.exec(content.slice(0, 500));
-			return m ? m[1].toLowerCase() : null;
-		} catch {
-			return null;
 		}
 	}
 
@@ -604,7 +373,7 @@ export class Main {
 		// 骨架生成的同时把 config/ 也落地，避免用户需要"跑两次"才拿到底层请求实现
 		try {
 			await fs.promises.mkdir(initialConfig.saveApiListFolderPath, { recursive: true });
-			await this.copyAjaxConfigFiles(initialConfig.saveApiListFolderPath, template);
+			await copyAjaxConfigFiles(initialConfig.saveApiListFolderPath, template, requestTemplateDir);
 			log.success(`配置文件已创建（requestTemplate=${template}），并已同步初始化 ${initialConfig.saveApiListFolderPath}/config/。请检查 an.config.ts 后重新运行以生成 API。`);
 		} catch (err) {
 			log.warning(`初始化 ${initialConfig.saveApiListFolderPath}/config/ 失败：${err instanceof Error ? err.message : String(err)}。配置文件已创建，请修正后重跑。`);
@@ -658,7 +427,7 @@ export class Main {
 	 */
 	private async promptSelectServices(servers: NormalizedSwaggerServer[]): Promise<number[]> {
 		const choices = servers.map((server, idx) => {
-			const id = (server.name ?? computeSegment(server.apiListFileName)) || `#${idx}`;
+			const id = getServiceIdentifier(server, idx);
 			return {
 				name: `${id}  (${server.apiListFileName}  ←  ${server.url})`,
 				value: idx,
@@ -681,7 +450,7 @@ export class Main {
 		return picked.sort((a, b) => a - b);
 	}
 
-	async initialize(show?: 'miss' | 'gen', formatOption?: string | boolean, logLevel?: string, requestedServices?: string[], templateOverride?: string): Promise<void> {
+	async initialize(show?: ShowMode, formatOption?: string | boolean, logLevel?: string, requestedServices?: string[], templateOverride?: string): Promise<void> {
 		const projectRoot = process.cwd();
 
 		try {
@@ -788,7 +557,7 @@ export class Main {
 				: normalizeRequestTemplate(mergedConfig.requestTemplate, 'an.config');
 
 			// 复制请求模板文件
-			await this.copyAjaxConfigFiles(mergedConfig.saveApiListFolderPath, resolvedTemplate);
+			await copyAjaxConfigFiles(mergedConfig.saveApiListFolderPath, resolvedTemplate, requestTemplateDir);
 
 			if (isSelective) {
 				// 选择型：精准清理被选中的服务对应文件/目录，绝不动其他服务的产物
@@ -800,7 +569,7 @@ export class Main {
 				await clearDir(mergedConfig.saveEnumFolderPath);
 			}
 
-			const showSummary: { serverUrl: string; list: { path: string; method: string }[] }[] = [];
+			const showSummary: GenerationSummary[] = [];
 
 			// 逐个 swagger 服务生成
 			// 选择型：appendMode 恒为 true（基于已有 index 合并写入，不会污染其他服务）
@@ -817,16 +586,12 @@ export class Main {
 			if (isolateBySegment) {
 				await this.writeTopLevelModelsBarrel(mergedConfig, segments, selectedIndices, isSelective);
 				// 至少有一个被选中的服务开启了 enum 隔离时，写入顶层 enums 聚合 barrel
-				const enumIsolatedSegments = selectedIndices
-					.filter((i) => (servers[i].enumIsolation ?? 'segment') === 'segment')
-					.map((i) => segments[i])
-					.filter(Boolean);
-				if (enumIsolatedSegments.length > 0) {
+				if (selectedIndices.some((index) => isEnumIsolated(servers[index]) && segments[index])) {
 					await this.writeTopLevelEnumsBarrel(mergedConfig, segments, servers, selectedIndices, isSelective);
 				}
 				// 仅当所有服务都启用了 enum 隔离时，顶层残留 *.ts 必定是旧版升级遗留，主动提示用户清理；
 				// 否则（存在 enumIsolation: 'none' 服务）顶层文件是合法产物，不能误报。
-				const allIsolated = servers.every((s) => (s.enumIsolation ?? 'segment') === 'segment');
+				const allIsolated = servers.every(isEnumIsolated);
 				if (allIsolated) {
 					await this.warnLegacyTopLevelEnums(mergedConfig);
 				}
@@ -834,11 +599,7 @@ export class Main {
 
 			// 对生成文件进行格式化（仅当用户传入 --format 参数时执行）
 			if (formatOption !== undefined && formatOption !== false) {
-				if (isSelective) {
-					await this.formatSelectedFiles(mergedConfig, servers, selectedIndices, segments, isolateBySegment, formatOption);
-				} else {
-					await this.formatGeneratedFiles(mergedConfig, formatOption);
-				}
+				await formatGeneratedFiles(mergedConfig, formatOption, isSelective ? { servers, selectedIndices, segments, isolateBySegment } : undefined);
 			}
 
 			log.banner('All done — see you next time!');
@@ -866,7 +627,7 @@ export class Main {
 		const selectedSet = new Set(selectedIndices);
 		log.print(chalk.cyan(isSelective ? '\n[anl type] 选择型生成，仅处理以下服务：' : '\n[anl type] 全量生成，将处理所有服务：'));
 		servers.forEach((server, idx) => {
-			const id = (server.name ?? computeSegment(server.apiListFileName)) || `#${idx}`;
+			const id = getServiceIdentifier(server, idx);
 			if (selectedSet.has(idx)) {
 				log.print(`  ${chalk.green('●')} ${id}  (${server.apiListFileName})  ${chalk.gray(server.url)}`);
 			} else {
@@ -897,7 +658,7 @@ export class Main {
 				if (seg) {
 					await clearDir(`${baseConfig.saveTypeFolderPath}/connectors/${seg}`);
 					await clearDir(`${baseConfig.saveTypeFolderPath}/models/${seg}`);
-					if ((servers[i].enumIsolation ?? 'segment') === 'segment') {
+					if (isEnumIsolated(servers[i])) {
 						await clearDir(`${baseConfig.saveEnumFolderPath}/${seg}`);
 					}
 				}
@@ -922,55 +683,9 @@ export class Main {
 	 */
 	private async writeTopLevelModelsBarrel(baseConfig: ConfigType, segments: string[], selectedIndices: number[], isSelective: boolean): Promise<void> {
 		const barrelPath = `${baseConfig.saveTypeFolderPath}/models/index.ts`;
-
-		const buildExportLine = (seg: string): string => {
-			const ns = segmentToNamespacePrefix(seg);
-			if (!ns) {
-				// 极端情况下 segment 无法派生合法 PascalCase（已有上游校验，理论不会到达）
-				throw new Error(`无法为 segment "${seg}" 生成 namespace 别名，请改用包含字母/数字的 apiListFileName。`);
-			}
-			return `export * as ${ns} from './${seg}';`;
-		};
-
 		const targetSegments = isSelective ? selectedIndices.map((i) => segments[i]).filter(Boolean) : segments.filter(Boolean);
-		const newExports = targetSegments.map((seg) => buildExportLine(seg));
-
-		// 解析现有 barrel 中每行所引用的 segment（兼容历史的 `export * from './x'` 与新 `export * as X from './x'`）
-		const segmentOf = (line: string): string | null => {
-			const m = /from\s+['"]\.\/([^'"]+)['"]/.exec(line);
-			return m ? m[1] : null;
-		};
-
-		let merged: string[];
-		if (isSelective) {
-			let existing: string[] = [];
-			try {
-				const current = await fs.promises.readFile(barrelPath, 'utf8');
-				existing = current.split('\n').filter((line) => line.trim() !== '');
-			} catch {
-				existing = [];
-			}
-			const targetSet = new Set(targetSegments);
-			// 删除现有行中属于本次目标 segment 的旧条目（避免新旧两种形式并存）
-			const kept = existing.filter((line) => {
-				const seg = segmentOf(line);
-				return !(seg && targetSet.has(seg));
-			});
-			// 顺带把保留下来的旧 `export *` 升级为 namespace 形式，统一防歧义
-			const upgraded = kept.map((line) => {
-				const seg = segmentOf(line);
-				if (!seg) return line;
-				if (/export\s+\*\s+as\s+/.test(line)) return line;
-				try {
-					return buildExportLine(seg);
-				} catch {
-					return line;
-				}
-			});
-			merged = [...upgraded, ...newExports];
-		} else {
-			merged = newExports;
-		}
+		const existing = isSelective ? await readIndexLines(barrelPath) : [];
+		const merged = mergeNamespaceExports(existing, targetSegments, targetSegments, isSelective);
 
 		const content = merged.join('\n') + '\n';
 		await writeFileRecursive(barrelPath, content);
@@ -997,25 +712,11 @@ export class Main {
 	): Promise<void> {
 		const barrelPath = `${baseConfig.saveEnumFolderPath}/index.ts`;
 
-		const buildExportLine = (seg: string): string => {
-			const ns = segmentToNamespacePrefix(seg);
-			if (!ns) {
-				throw new Error(`无法为 segment "${seg}" 生成 namespace 别名，请改用包含字母/数字的 apiListFileName。`);
-			}
-			return `export * as ${ns} from './${seg}';`;
-		};
-
-		const isolatedFor = (i: number): boolean => (servers[i].enumIsolation ?? 'segment') === 'segment';
-
-		const candidateSegments = isSelective
-			? selectedIndices
-					.filter((i) => isolatedFor(i))
-					.map((i) => segments[i])
-					.filter(Boolean)
-			: segments
-					.map((seg, i) => ({ seg, i }))
-					.filter(({ seg, i }) => Boolean(seg) && isolatedFor(i))
-					.map(({ seg }) => seg);
+		const targetIndices = isSelective ? selectedIndices : segments.map((_, index) => index);
+		const candidateSegments = targetIndices
+			.filter((index) => isEnumIsolated(servers[index]))
+			.map((index) => segments[index])
+			.filter(Boolean);
 
 		const uniqueCandidateSegments = Array.from(new Set(candidateSegments));
 		const existsChecks = await Promise.all(
@@ -1031,49 +732,8 @@ export class Main {
 			}),
 		);
 		const generatedSegments = existsChecks.filter(Boolean);
-		const newExports = generatedSegments.map((seg) => buildExportLine(seg));
-
-		const segmentOf = (line: string): string | null => {
-			const m = /from\s+['"]\.\/([^'"]+)['"]/.exec(line);
-			return m ? m[1] : null;
-		};
-
-		let merged: string[];
-		if (isSelective) {
-			let existing: string[] = [];
-			try {
-				const current = await fs.promises.readFile(barrelPath, 'utf8');
-				existing = current.split('\n').filter((line) => line.trim() !== '');
-			} catch {
-				existing = [];
-			}
-			const targetSet = new Set(uniqueCandidateSegments);
-			// 仅删除既有的属于本次目标 segment 的旧条目，其余行（含非隔离服务的扁平 `export * from './<file>'`）保持原样。
-			// 注意：此处不可像 models barrel 那样把保留行"升级"为 namespace 形式 ——
-			// 在混合 enumIsolation 场景下，扁平文件名（如 './import-task-status'）会被误识别为 segment 而错误改写。
-			const kept = existing.filter((line) => {
-				const seg = segmentOf(line);
-				return !(seg && targetSet.has(seg));
-			});
-			merged = [...kept, ...newExports];
-		} else {
-			// 全量：保留 `enumIsolation: 'none'` 服务在 writeEnums 阶段写入的扁平 `export * from './<file>'` 行，
-			// 仅追加/覆盖隔离服务的 namespace re-export 行。
-			let existing: string[] = [];
-			try {
-				const current = await fs.promises.readFile(barrelPath, 'utf8');
-				existing = current.split('\n').filter((line) => line.trim() !== '');
-			} catch {
-				existing = [];
-			}
-			const targetSet = new Set(uniqueCandidateSegments);
-			// 删除既有的属于本次目标 segment 的旧条目（含历史 `export *` 与新 `export * as`）
-			const kept = existing.filter((line) => {
-				const seg = segmentOf(line);
-				return !(seg && targetSet.has(seg));
-			});
-			merged = [...kept, ...newExports];
-		}
+		const existing = await readIndexLines(barrelPath);
+		const merged = mergeNamespaceExports(existing, uniqueCandidateSegments, generatedSegments);
 
 		const content = merged.join('\n') + '\n';
 		await writeFileRecursive(barrelPath, content);
@@ -1097,101 +757,6 @@ export class Main {
 			}
 		} catch {
 			// 目录不存在或无权限：忽略
-		}
-	}
-
-	/**
-	 * 选择型格式化：仅格式化被选中的服务对应的产物，避免误格式化其他服务文件。
-	 */
-	private async formatSelectedFiles(
-		config: ConfigType,
-		servers: NormalizedSwaggerServer[],
-		selectedIndices: number[],
-		segments: string[],
-		isolateBySegment: boolean,
-		formatOption: string | boolean,
-	): Promise<void> {
-		const targets: string[] = [];
-		for (const i of selectedIndices) {
-			const apiFile = `${config.saveApiListFolderPath}/${servers[i].apiListFileName}`;
-			try {
-				await fs.promises.access(apiFile);
-				targets.push(`"${apiFile}"`);
-			} catch {
-				/* ignore */
-			}
-
-			const segDirs =
-				isolateBySegment && segments[i]
-					? [`${config.saveTypeFolderPath}/connectors/${segments[i]}`, `${config.saveTypeFolderPath}/models/${segments[i]}`]
-					: [`${config.saveTypeFolderPath}/connectors`, `${config.saveTypeFolderPath}/models`];
-			for (const dir of segDirs) {
-				try {
-					await fs.promises.access(dir);
-					targets.push(`"${dir}/**/*.{ts,d.ts}"`);
-				} catch {
-					/* ignore */
-				}
-			}
-
-			// enum 目录：隔离启用时只格式化 <segment> 子目录（递归 glob）；
-			// 否则使用 *.ts（仅顶层）以避免误格式化其他服务的隔离子目录。
-			if (isolateBySegment && segments[i] && (servers[i].enumIsolation ?? 'segment') === 'segment') {
-				const dir = `${config.saveEnumFolderPath}/${segments[i]}`;
-				try {
-					await fs.promises.access(dir);
-					targets.push(`"${dir}/**/*.{ts,d.ts}"`);
-				} catch {
-					/* ignore */
-				}
-			} else {
-				const dir = config.saveEnumFolderPath;
-				try {
-					await fs.promises.access(dir);
-					targets.push(`"${dir}/*.ts"`);
-				} catch {
-					/* ignore */
-				}
-			}
-		}
-
-		if (targets.length === 0) {
-			log.warning('No files to format for the selected services.');
-			return;
-		}
-
-		const prettierBin = await this.resolvePrettierExecutable();
-		let configFlag = '';
-		if (typeof formatOption === 'string' && formatOption.trim()) {
-			const configPath = path.resolve(process.cwd(), formatOption.trim());
-			try {
-				await fs.promises.access(configPath);
-				configFlag = ` --config "${configPath}"`;
-			} catch {
-				const detected = await this.detectPrettierConfig();
-				if (detected) configFlag = ` --config "${detected}"`;
-			}
-		} else {
-			const detected = await this.detectPrettierConfig();
-			if (detected) configFlag = ` --config "${detected}"`;
-		}
-
-		const formatCommand = `${prettierBin} --write ${targets.join(' ')}${configFlag}`;
-		try {
-			spinner.start('Formatting selected files...');
-			await new Promise<void>((resolve, reject) => {
-				exec(formatCommand, (error) => {
-					if (error) reject(new Error(String(error)));
-					else resolve();
-				});
-			});
-			spinner.success('File formatting successful');
-			log.print('\n');
-		} catch (error: unknown) {
-			spinner.error('Format failed');
-			log.print(error);
-			log.error('Format failed, please manually execute the following command:');
-			log.print('$', chalk.yellow(formatCommand));
 		}
 	}
 }

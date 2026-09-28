@@ -1,8 +1,51 @@
-import type { ConfigType, TDatalevel } from '../../../config';
+import type { ConfigType, IConfigSwaggerServer, TDatalevel } from '../../../config';
 import type { OpenAPIV3 } from 'openapi-types';
 
 // ---- 配置相关类型统一从 config.d.ts 导出，避免重复维护 ----
 export type { TDatalevel, LogLevel, RequestTemplate, IResponseModelTransform, IIncludeInterface, IConfigSwaggerServer, ConfigType } from '../../../config';
+
+export type NormalizedSwaggerServer = Required<
+	Omit<IConfigSwaggerServer, 'name' | 'responseModelTransform' | 'includeTags' | 'excludeTags' | 'timeout' | 'namespaceIsolation' | 'enumIsolation'>
+> &
+	Pick<IConfigSwaggerServer, 'name' | 'responseModelTransform' | 'includeTags' | 'excludeTags' | 'timeout' | 'namespaceIsolation' | 'enumIsolation'>;
+
+export interface ServiceSelection {
+	servers: NormalizedSwaggerServer[];
+	selectedIndices: number[];
+	segments: string[];
+	isolateBySegment: boolean;
+}
+
+export interface ExecResult {
+	stdout: string;
+	stderr: string;
+}
+
+export interface PrettierCommand {
+	command: string;
+	args: string[];
+}
+
+export interface FormatTarget {
+	path: string;
+	pattern?: string;
+}
+
+export interface WriteIndexOptions {
+	appendMode?: boolean;
+}
+
+export type ShowMode = 'miss' | 'gen';
+
+export interface GeneratedInterface {
+	path: string;
+	method: string;
+}
+
+export interface GenerationSummary {
+	serverUrl: string;
+	list: GeneratedInterface[];
+}
 
 export type ComponentsSchemas = OpenAPIV3.ComponentsObject['schemas'];
 

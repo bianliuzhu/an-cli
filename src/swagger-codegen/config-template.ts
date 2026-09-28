@@ -1,6 +1,8 @@
 import type { ConfigType, RequestTemplate } from './types';
 
-export const DEFAULT_REQUEST_TEMPLATE: RequestTemplate = 'axios';
+import { DEFAULT_REQUEST_TEMPLATE } from './shared/constants';
+
+export { DEFAULT_REQUEST_TEMPLATE } from './shared/constants';
 
 export function createDefaultConfig(template: RequestTemplate = DEFAULT_REQUEST_TEMPLATE): ConfigType {
 	return {

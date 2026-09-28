@@ -35,6 +35,14 @@
 $ anl type
 ```
 
+#### macOS 与 Windows
+
+`anl type` 的目录清理使用 Node.js 文件系统 API，不依赖 `rm` 或 Git Bash。配置路径支持原生分隔符和空格；建议在配置中使用 `src/types` 这样的正斜杠相对路径，便于跨平台共享。
+
+启用 `--format` 后，Windows 使用本地 `prettier.cmd`，macOS 使用本地 `prettier`；未安装时均回退到 `npx prettier`。路径和配置通过独立参数传递，Windows 路径会在组成 Prettier glob 时转换为正斜杠。离线使用时请先在目标项目安装 Prettier。
+
+本仓库的兼容性 CI 配置包含 macOS、Windows 与 Node.js 22、24。维护者可执行 `pnpm run test:codegen`，构建后验证首次初始化、全量/选择型生成、带空格路径以及真实 Prettier 格式化。
+
 #### 生成结束后输出接口列表（便于复制配置）
 
 `anl type` 支持在**整个生成流程结束后**，将接口列表输出到控制台，输出格式与 `an.config.json` 中的 `includeInterface` / `excludeInterface` 一致，方便直接复制粘贴。
@@ -87,13 +95,13 @@ $ anl type -s gen
 
 ##### 执行逻辑
 
-1. **选择 Prettier 可执行文件**：优先使用项目本地 `node_modules/.bin/prettier`，未找到时回退到 `npx prettier`
+1. **选择 Prettier 可执行文件**：优先使用项目本地 `node_modules/.bin/prettier`（Windows 为 `prettier.cmd`），未找到时回退到 `npx prettier`
 2. **解析配置文件**（按以下优先级）：
    - 若通过 `--format <path>` 显式指定了配置文件路径，则直接使用；若该路径不存在，自动降级到自动检测
    - 若仅使用 `--format`（不带路径），则按优先级自动扫描项目根目录下的 prettier 配置文件（见下方列表）
    - 若检测到 `package.json` 中含有 `prettier` 字段，也会作为配置来源
    - 若未找到任何配置文件，则不附加 `--config` 参数，由 Prettier 自行使用默认规则
-3. **执行格式化**：构建完整命令后执行，失败时打印可手动执行的命令，不中断主流程
+3. **执行格式化**：通过跨平台进程调用传递参数数组，失败时打印错误、可执行文件与参数，不中断主流程
 
 **自动检测配置文件的扫描顺序：**
 

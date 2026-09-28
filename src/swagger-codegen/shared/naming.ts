@@ -1,4 +1,4 @@
-import type { ConfigType } from '../types';
+import type { ConfigType, IConfigSwaggerServer } from '../types';
 
 import { pinyin } from 'pinyin-pro';
 
@@ -113,6 +113,14 @@ export function computeSegment(apiListFileName: string | undefined): string {
 	const noExt = base.replace(/\.[^.]+$/, '');
 	const cleaned = noExt.replace(/[^a-zA-Z0-9_-]+/g, '-').replace(/^-+|-+$/g, '');
 	return cleaned;
+}
+
+export function getServiceIdentifier(server: IConfigSwaggerServer, index: number): string {
+	return (server.name ?? computeSegment(server.apiListFileName)) || `#${index}`;
+}
+
+export function isEnumIsolated(config: Pick<ConfigType, 'enumIsolation'>): boolean {
+	return (config.enumIsolation ?? 'segment') === 'segment';
 }
 
 /**
