@@ -8,10 +8,15 @@ const { PassThrough } = require('node:stream');
 const { test } = require('node:test');
 const { createJiti } = require('jiti');
 const crossSpawn = require('cross-spawn');
+const ts = require('typescript');
 
 const jiti = createJiti(__filename);
 const { Main } = jiti('../src/swagger-codegen/index.ts');
 const { createDefaultConfig } = jiti('../src/swagger-codegen/config-template.ts');
+const { ComponentSchemaResolver } = jiti('../src/swagger-codegen/components/schema-resolver.ts');
+const { EnumParser } = jiti('../src/swagger-codegen/components/enum-parser.ts');
+const { PathParse } = jiti('../src/swagger-codegen/path/index.ts');
+const { SUPPORTED_REQUEST_TYPES_ALL } = jiti('../src/swagger-codegen/shared/http.ts');
 const { REQUIRED_TEMPLATE_FILES, SUPPORTED_REQUEST_TEMPLATES } = jiti('../src/swagger-codegen/shared/constants.ts');
 const { collectFormatTargets, formatGeneratedFiles } = jiti('../src/swagger-codegen/shared/prettier.ts');
 const { copyAjaxConfigFiles, normalizeRequestTemplate } = jiti('../src/swagger-codegen/shared/request-template.ts');
@@ -48,6 +53,71 @@ function outputConfig(root) {
 		saveEnumFolderPath: `${root}/enums`,
 	};
 }
+
+test('codegen source and configuration extensions pass strict type checking', () => {
+	const root = path.resolve(__dirname, '..');
+	const loaded = ts.readConfigFile(path.join(root, 'tsconfig.json'), ts.sys.readFile);
+	assert.equal(loaded.error, undefined);
+	const parsed = ts.parseJsonConfigFileContent({ ...loaded.config, include: ['src/swagger-codegen/**/*.ts', 'config.d.ts'] }, ts.sys, root);
+	assert.deepEqual(parsed.errors, []);
+	const options = { ...parsed.options, noEmit: true };
+	const host = ts.createCompilerHost(options);
+	const contractPath = path.join(root, 'src/swagger-codegen/type-contract-test.ts');
+	const contract = `
+import { createDefaultConfig } from './config-template';
+import { applyFormattingDefaults } from './shared/format';
+import type { ContentType, Schema, SchemaRenderResult } from './types';
+const formatted = applyFormattingDefaults({
+	...createDefaultConfig(),
+	typeMapping: new Map<string, string>(),
+	__segment: 'example',
+});
+formatted.typeMapping.set('integer', 'number');
+formatted.__segment.toUpperCase();
+formatted.formatting.indentation.toUpperCase();
+const mediaType: ContentType = 'multipart/form-data';
+const reference: Schema = { $ref: '#/components/schemas/Item' };
+const rendered: SchemaRenderResult = { headerRef: '', renderStr: '' };
+`;
+	const getSourceFile = host.getSourceFile.bind(host);
+	host.getSourceFile = (fileName, languageVersion, onError, shouldCreateNewSourceFile) =>
+		fileName === contractPath ? ts.createSourceFile(fileName, contract, languageVersion, true) : getSourceFile(fileName, languageVersion, onError, shouldCreateNewSourceFile);
+	const program = ts.createProgram([...parsed.fileNames, contractPath], options, host);
+	const diagnostics = ts.getPreEmitDiagnostics(program);
+	assert.equal(diagnostics.length, 0, ts.formatDiagnosticsWithColorAndContext(diagnostics, host));
+});
+
+test('shared schema render types preserve models, enums and null results', () => {
+	const config = createDefaultConfig();
+	const resolver = new ComponentSchemaResolver(
+		{
+			Item: { type: 'object', properties: { objects: { type: 'array', items: { type: 'object' } }, count: { type: 'number', nullable: true } } },
+			Status: { type: 'integer', enum: [0, 1] },
+		},
+		config,
+	);
+	const { schemasMap, enumsMap } = resolver.main();
+	assert.equal(schemasMap.get('Item').fileName, 'item');
+	assert.match(schemasMap.get('Item').content, /objects\?: Array<Record<string, unknown>>;/);
+	assert.match(schemasMap.get('Item').content, /count\?: number \| null;/);
+	assert.equal(enumsMap.get('status').fileName, 'status');
+	assert.match(enumsMap.get('status').content, /Status/);
+	assert.equal(new EnumParser(config).parseEnum({ type: 'string' }, 'Empty'), null);
+});
+
+test('request body schema unions preserve references, arrays and media selection', () => {
+	const parser = new PathParse({}, undefined, undefined, createDefaultConfig());
+	const reference = { $ref: '#/components/schemas/Item' };
+	const requestBody = { content: { 'application/json': { schema: reference } } };
+	assert.equal(parser.pickRequestBodyContent(requestBody).schema, reference);
+	assert.match(parser.requestBodyObjectParse(requestBody), /type Body = import\('[^']+'\)\.Item/);
+	assert.match(parser.requestBodyObjectParse({ content: { 'application/json': { schema: { type: 'array', items: reference } } } }), /type Body = Array<import\('[^']+'\)\.Item>/);
+	for (const mediaType of SUPPORTED_REQUEST_TYPES_ALL) {
+		assert.equal(parser.pickRequestBodyContent({ content: { [mediaType]: { schema: reference } } }).mediaType, mediaType);
+	}
+	assert.equal(parser.pickRequestBodyContent({ content: { 'application/json': {}, 'multipart/form-data': {} } }).mediaType, 'multipart/form-data');
+	assert.equal(parser.pickRequestBodyContent({ content: { 'application/custom': {} } }).mediaType, 'application/json');
+});
 
 test('filesystem helpers support native paths, spaces and shell characters', async (context) => {
 	const root = await fixture(context);

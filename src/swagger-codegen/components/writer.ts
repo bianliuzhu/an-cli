@@ -1,4 +1,4 @@
-import type { ConfigType, RenderEntry } from '../types';
+import type { ConfigType, RenderEntry, WriteIndexOptions } from '../types';
 
 import fs from 'fs';
 
@@ -14,7 +14,7 @@ export class ComponentWriter {
 	private config: ConfigType;
 	private appendMode: boolean;
 
-	constructor(config: ConfigType, options?: { appendMode?: boolean }) {
+	constructor(config: ConfigType, options?: WriteIndexOptions) {
 		this.config = config;
 		this.appendMode = options?.appendMode ?? false;
 	}

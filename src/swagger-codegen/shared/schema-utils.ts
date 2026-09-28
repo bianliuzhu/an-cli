@@ -1,4 +1,4 @@
-import type { PathParseConfig, Schema } from '../types';
+import type { PathParseConfig, Schema, SchemaObject, SchemaTypeExpression } from '../types';
 
 import { getIndentation, getLineEnding } from './format';
 import { formatPropertyName } from './naming';
@@ -7,7 +7,7 @@ export function nullableSuffix(nullable?: boolean): string {
 	return nullable ? ' | null' : '';
 }
 
-export function applyTypeMapping(config: PathParseConfig, schemaObj: { type?: string; format?: string; nullable?: boolean }): string | undefined {
+export function applyTypeMapping(config: PathParseConfig, schemaObj: Pick<SchemaObject, 'type' | 'format' | 'nullable'>): string | undefined {
 	const nullable = nullableSuffix(schemaObj.nullable);
 
 	if (schemaObj.format && config.typeMapping?.has(schemaObj.format)) {
@@ -21,7 +21,7 @@ export function applyTypeMapping(config: PathParseConfig, schemaObj: { type?: st
 	return undefined;
 }
 
-export function stringifyArrayType(result: string | string[], config: PathParseConfig): string {
+export function stringifyArrayType(result: SchemaTypeExpression, config: PathParseConfig): string {
 	if (Array.isArray(result)) {
 		const ln = getLineEnding(config);
 		const indent = getIndentation(config);
@@ -30,7 +30,7 @@ export function stringifyArrayType(result: string | string[], config: PathParseC
 	return `Array<${result}>`;
 }
 
-export function formatObjectProperties(properties: Record<string, Schema> | undefined, config: PathParseConfig, parseSchema: (schema: Schema) => string | string[]): string[] {
+export function formatObjectProperties(properties: SchemaObject['properties'], config: PathParseConfig, parseSchema: (schema: Schema) => SchemaTypeExpression): string[] {
 	if (!properties) return [];
 	const indent = getIndentation(config);
 	const doubleIndent = indent + indent;

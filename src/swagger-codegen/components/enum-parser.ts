@@ -1,5 +1,4 @@
-import type { ConfigType, RenderEntry } from '../types';
-import type { OpenAPIV3 } from 'openapi-types';
+import type { ConfigType, NonArraySchemaObject, RenderEntry, SchemaRenderResult } from '../types';
 
 import { isValidJSON, log } from '../../utils';
 import { getIndentation } from '../shared/format';
@@ -16,20 +15,11 @@ import {
 } from '../shared/naming';
 import { nullableSuffix } from '../shared/schema-utils';
 
-type NonArraySchemaObject = OpenAPIV3.NonArraySchemaObject;
-
 interface EnumMetadata {
 	customNames?: string[];
 	descriptionMap?: Record<string, string>;
 	rawEnumJson?: string;
 }
-
-type EnumParseResult = {
-	headerRef: string;
-	renderStr: string;
-	comment?: string;
-	typeName?: string;
-} | null;
 
 /**
  * 枚举解析器类
@@ -168,7 +158,7 @@ export class EnumParser {
 	/**
 	 * 解析枚举定义
 	 */
-	parseEnum(value: NonArraySchemaObject, enumName: string): EnumParseResult {
+	parseEnum(value: NonArraySchemaObject, enumName: string): SchemaRenderResult | null {
 		if (!Array.isArray(value.enum)) return null;
 
 		const Situation = ['integer', 'number'];
@@ -233,7 +223,7 @@ export class EnumParser {
 	 * @param isRequired - 字段是否必填
 	 * @returns 枚举处理结果
 	 */
-	handleEnum(value: NonArraySchemaObject, key: string, isRequired = false): EnumParseResult {
+	handleEnum(value: NonArraySchemaObject, key: string, isRequired = false): SchemaRenderResult | null {
 		const enumName = wordsToPascalCase(resolveSchemaName(key));
 		const typeName = getEnumTypeName(this.config, enumName);
 		const fileName = typeNameToFileName(enumName);

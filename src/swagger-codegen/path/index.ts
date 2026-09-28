@@ -1,19 +1,23 @@
 import type {
-	ContentBody,
-	IContentType,
-	MapType,
+	ComponentParameters,
+	ComponentSchemas,
+	ContentType,
+	EndpointDefinition,
+	EndpointDefinitionMap,
+	GeneratedInterface,
 	NonArraySchemaObject,
 	OperationObject,
 	ParameterObject,
 	ParseError,
 	PathItemObject,
 	PathParseConfig,
+	PathsObject,
 	ReferenceObject,
 	RequestBodyObject,
 	ResponseObject,
-	SchemaObject,
+	ResponsesObject,
+	Schema,
 } from '../types';
-import type { OpenAPIV3 } from 'openapi-types';
 
 import { formatParseError, log } from '../../utils';
 import { applyFormattingDefaults, getIndentation } from '../shared/format';
@@ -23,7 +27,7 @@ import { convertEndpointString } from './naming';
 import { SchemaResolver } from './schema-resolver';
 import { PathWriter } from './writer';
 
-enum HttpMethods {
+enum HttpMethod {
 	GET = 'get',
 	PUT = 'put',
 	POST = 'post',
@@ -55,10 +59,10 @@ const defaultConfig: Partial<PathParseConfig> = {
 };
 
 export class PathParse {
-	pathsObject: OpenAPIV3.PathsObject = {};
+	pathsObject: PathsObject = {};
 	nonArrayType = ['boolean', 'object', 'number', 'string', 'integer'];
 	pathKey = '';
-	contentBody: ContentBody = {
+	contentBody: EndpointDefinition = {
 		payload: {
 			path: [],
 			query: [],
@@ -77,11 +81,11 @@ export class PathParse {
 		deprecated: false,
 		contentType: 'application/json',
 	};
-	Map: MapType = new Map();
+	Map: EndpointDefinitionMap = new Map();
 	private config: PathParseConfig;
 	private errors: ParseError[] = [];
-	private parameters: OpenAPIV3.ComponentsObject['parameters'] = {};
-	private schemas: OpenAPIV3.ComponentsObject['schemas'] = {};
+	private parameters: ComponentParameters = {};
+	private schemas: ComponentSchemas = {};
 	private schemaResolver: SchemaResolver;
 	private writer: PathWriter;
 	private apiListFileContent: string[] = [];
@@ -90,7 +94,7 @@ export class PathParse {
 	/** swagger 中全量接口 key（pathKey|METHOD），用于输出 missing/generated 列表 */
 	private allInterfaceKeys = new Set<string>();
 
-	constructor(pathsObject: OpenAPIV3.PathsObject, parameters: OpenAPIV3.ComponentsObject['parameters'], schemas: OpenAPIV3.ComponentsObject['schemas'], config: PathParseConfig) {
+	constructor(pathsObject: PathsObject, parameters: ComponentParameters, schemas: ComponentSchemas, config: PathParseConfig) {
 		this.pathsObject = pathsObject;
 		this.parameters = parameters ?? {};
 		this.schemas = schemas ?? {};
@@ -145,13 +149,13 @@ export class PathParse {
 		}
 
 		if (param.schema && typeof param.schema === 'object' && 'example' in param.schema) {
-			const example = param.schema.example as string;
+			const example: unknown = param.schema.example;
 			const exampleStr = typeof example === 'string' ? example : JSON.stringify(example);
 			commentLines.push(`@example ${exampleStr}`);
 		}
 
 		if (param.schema && typeof param.schema === 'object' && 'default' in param.schema) {
-			const defaultValue = param.schema.default as string;
+			const defaultValue: unknown = param.schema.default;
 			const defaultStr = typeof defaultValue === 'string' ? defaultValue : JSON.stringify(defaultValue);
 			commentLines.push(`@default ${defaultStr}`);
 		}
@@ -299,19 +303,19 @@ export class PathParse {
 		return keys[0];
 	}
 
-	private pickRequestBodyContent(requestBodyObject: RequestBodyObject): { mediaType: IContentType; schema: SchemaObject | null } {
+	private pickRequestBodyContent(requestBodyObject: RequestBodyObject): { mediaType: ContentType; schema: Schema | null } {
 		const content = requestBodyObject.content;
 		if (!content || typeof content !== 'object') {
 			return { mediaType: 'application/json', schema: null };
 		}
 
 		const pickedMediaType = this.pickPreferredRequestMediaType(content);
-		const mediaType = pickedMediaType && SUPPORTED_REQUEST_TYPES_ALL.includes(pickedMediaType as IContentType) ? (pickedMediaType as IContentType) : 'application/json';
+		const mediaType = pickedMediaType && SUPPORTED_REQUEST_TYPES_ALL.includes(pickedMediaType as ContentType) ? (pickedMediaType as ContentType) : 'application/json';
 		const media = pickedMediaType ? content[pickedMediaType] : null;
 
 		return {
 			mediaType,
-			schema: media && typeof media === 'object' && media.schema ? (media.schema as SchemaObject) : null,
+			schema: media && typeof media === 'object' && media.schema ? media.schema : null,
 		};
 	}
 
@@ -320,15 +324,14 @@ export class PathParse {
 		const { schema } = this.pickRequestBodyContent(requestBodyObject);
 
 		if (schema) {
-			const type = schema?.type;
-			const referenceObject = '$ref' in schema ? schema : null;
-			const arraySchemaObject = type === 'array' ? schema : null;
-			const nonArraySchemaObject = type && this.nonArrayType.includes(type) ? (schema as NonArraySchemaObject) : null;
-
-			if (referenceObject) {
-				const str = this.schemaResolver.referenceObjectParse(referenceObject as ReferenceObject);
+			if ('$ref' in schema) {
+				const str = this.schemaResolver.referenceObjectParse(schema);
 				return `${indent}type Body = ${str}`;
 			}
+
+			const type = schema.type;
+			const arraySchemaObject = type === 'array' ? schema : null;
+			const nonArraySchemaObject = type && this.nonArrayType.includes(type) ? (schema as NonArraySchemaObject) : null;
 
 			if (arraySchemaObject) {
 				const str = this.schemaResolver.arraySchemaObjectParse(arraySchemaObject);
@@ -379,7 +382,7 @@ export class PathParse {
 		return normalized;
 	}
 
-	private apiRequestItemHandle(content: ContentBody) {
+	private apiRequestItemHandle(content: EndpointDefinition) {
 		const { payload, requestPath, _response, method, typeName, apiName, contentType } = content;
 		const { _path, _query, body } = payload;
 		const dataLevel = content.dataLevel ?? this.config.dataLevel ?? 'serve';
@@ -438,7 +441,7 @@ export class PathParse {
 		return apidetails;
 	}
 
-	private pickPreferredResponse(response: OpenAPIV3.ResponsesObject): OpenAPIV3.ReferenceObject | OpenAPIV3.ResponseObject | undefined {
+	private pickPreferredResponse(response: ResponsesObject): ReferenceObject | ResponseObject | undefined {
 		const response200 = response['200'];
 		if (response200) {
 			return response200;
@@ -461,15 +464,15 @@ export class PathParse {
 		return undefined;
 	}
 
-	private responseHandle(response: OpenAPIV3.ResponsesObject) {
+	private responseHandle(response: ResponsesObject) {
 		const value = this.pickPreferredResponse(response);
 		if (!value) {
 			this.contentBody.response = `type Response = unknown`;
 			this.contentBody._response = 'unknown';
 			return;
 		}
-		const responseObject = 'content' in (value as ResponseObject) ? (value as ResponseObject) : null;
-		const referenceObject = '$ref' in (value as ReferenceObject) ? (value as ReferenceObject) : null;
+		const responseObject = 'content' in value ? value : null;
+		const referenceObject = '$ref' in value ? value : null;
 
 		if (responseObject === null && referenceObject === null) {
 			this.contentBody.response = `type Response = unknown`;
@@ -537,13 +540,13 @@ export class PathParse {
 	 * 5. result3 ∪ result4 去重 → result5（最终结果）
 	 */
 	private computeAllowedInterfaceKeys(): Set<string> {
-		interface Entry {
+		interface EndpointFilterEntry {
 			key: string;
 			pathKey: string;
 			method: string;
 			tags: string[];
 		}
-		const entries: Entry[] = [];
+		const entries: EndpointFilterEntry[] = [];
 
 		const requestPaths = Object.keys(this.pathsObject).sort();
 		for (const pathKey of requestPaths) {
@@ -551,10 +554,10 @@ export class PathParse {
 			if (!itemObject) continue;
 			const methods = Object.keys(itemObject).sort();
 			for (const method of methods) {
-				const op = itemObject[method as HttpMethods];
+				const op = itemObject[method as HttpMethod];
 				if (!op || typeof op !== 'object') continue;
 				// 只处理 HTTP 方法
-				if (!Object.values(HttpMethods).includes(method as HttpMethods)) continue;
+				if (!Object.values(HttpMethod).includes(method as HttpMethod)) continue;
 				const methodUp = String(method).toUpperCase();
 				const key = `${pathKey}|${methodUp}`;
 				const tags = Array.isArray(op.tags) ? op.tags : [];
@@ -612,7 +615,7 @@ export class PathParse {
 		// 使用 Object.keys() 并排序以确保顺序一致性
 		const methods = Object.keys(itemObject).sort();
 		for (const method of methods) {
-			const methodItems = itemObject[method as HttpMethods];
+			const methodItems = itemObject[method as HttpMethod];
 			if (methodItems) {
 				const methodUp = method.toUpperCase();
 				const mapKey = pathKey + '|' + methodUp;
@@ -655,7 +658,7 @@ export class PathParse {
 				if (!this.Map.has(mapKey)) {
 					// 深拷贝 contentBody，避免直接引用同一对象
 					const { payload } = this.contentBody;
-					const clonedContentBody: ContentBody = {
+					const clonedContentBody: EndpointDefinition = {
 						...this.contentBody,
 						payload: {
 							...payload,
@@ -672,7 +675,7 @@ export class PathParse {
 		}
 	}
 
-	private parseData(): MapType {
+	private parseData(): EndpointDefinitionMap {
 		// 先按 5 步流程计算允许生成的接口集合
 		this.allowedInterfaceKeys = this.computeAllowedInterfaceKeys();
 
@@ -728,7 +731,7 @@ export class PathParse {
 	}
 
 	/** 返回最终生成的接口列表（可粘贴为 includeInterface） */
-	getGeneratedInterfacesForOutput(): { path: string; method: string }[] {
+	getGeneratedInterfacesForOutput(): GeneratedInterface[] {
 		return [...this.allowedInterfaceKeys].sort().map((key) => {
 			const sepIndex = key.lastIndexOf('|');
 			return { path: key.slice(0, sepIndex), method: key.slice(sepIndex + 1).toLowerCase() };
@@ -736,7 +739,7 @@ export class PathParse {
 	}
 
 	/** 返回没有被生成的接口列表（Swagger 有，但最终未生成；可粘贴为 excludeInterface） */
-	getMissingInterfacesForOutput(): { path: string; method: string }[] {
+	getMissingInterfacesForOutput(): GeneratedInterface[] {
 		const missing = [...this.allInterfaceKeys].filter((key) => !this.allowedInterfaceKeys.has(key)).sort();
 		return missing.map((key) => {
 			const sepIndex = key.lastIndexOf('|');

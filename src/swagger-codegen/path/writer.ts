@@ -1,4 +1,4 @@
-import type { ContentBody, MapType, PathParseConfig } from '../types';
+import type { EndpointDefinition, EndpointDefinitionMap, PathParseConfig } from '../types';
 
 import { clearDir, log, runWithConcurrency, writeFileRecursive } from '../../utils';
 import { PAD_END } from '../shared/constants';
@@ -27,12 +27,12 @@ export class PathWriter {
 		this.config = config;
 	}
 
-	async write(map: MapType, apiListFileContent: string[], methodList: string[]): Promise<void> {
+	async write(map: EndpointDefinitionMap, apiListFileContent: string[], methodList: string[]): Promise<void> {
 		const saveTypeFolderPath = this.config.saveTypeFolderPath;
 		const segment = getServerSegment(this.config);
 		const connectorsDir = segment ? `${saveTypeFolderPath}/connectors/${segment}` : `${saveTypeFolderPath}/connectors`;
 
-		const writeOne = async (key: string, content: ContentBody) => {
+		const writeOne = async (key: string, content: EndpointDefinition) => {
 			const { payload, response, fileName } = content;
 			const [, method] = key.split('|');
 			if (!methodList.includes(method)) methodList.push(method);

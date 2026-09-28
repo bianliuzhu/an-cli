@@ -1,13 +1,32 @@
-import type { ConfigType, IConfigSwaggerServer, TDatalevel } from '../../../config';
+import type { ConfigType, IConfigSwaggerServer, IIncludeInterface, TDatalevel } from '../../../config';
+import type { ContentType } from '../shared/http';
 import type { OpenAPIV3 } from 'openapi-types';
 
 // ---- 配置相关类型统一从 config.d.ts 导出，避免重复维护 ----
 export type { TDatalevel, LogLevel, RequestTemplate, IResponseModelTransform, IIncludeInterface, IConfigSwaggerServer, ConfigType } from '../../../config';
+export type { ContentType } from '../shared/http';
 
-export type NormalizedSwaggerServer = Required<
-	Omit<IConfigSwaggerServer, 'name' | 'responseModelTransform' | 'includeTags' | 'excludeTags' | 'timeout' | 'namespaceIsolation' | 'enumIsolation'>
-> &
-	Pick<IConfigSwaggerServer, 'name' | 'responseModelTransform' | 'includeTags' | 'excludeTags' | 'timeout' | 'namespaceIsolation' | 'enumIsolation'>;
+export interface CodegenConfig extends ConfigType {
+	__segment?: string;
+	__namespacePrefix?: string;
+}
+
+export type NormalizedSwaggerServer = IConfigSwaggerServer &
+	Required<
+		Pick<
+			IConfigSwaggerServer,
+			| 'publicPrefix'
+			| 'apiListFileName'
+			| 'headers'
+			| 'dataLevel'
+			| 'parameterSeparator'
+			| 'includeInterface'
+			| 'excludeInterface'
+			| 'modulePrefix'
+			| 'namespaceIsolation'
+			| 'enumIsolation'
+		>
+	>;
 
 export interface ServiceSelection {
 	servers: NormalizedSwaggerServer[];
@@ -35,35 +54,41 @@ export interface WriteIndexOptions {
 	appendMode?: boolean;
 }
 
-export type ShowMode = 'miss' | 'gen';
+export type InterfaceOutputMode = 'miss' | 'gen';
 
-export interface GeneratedInterface {
-	path: string;
-	method: string;
-}
+export type GeneratedInterface = Pick<IIncludeInterface, 'path' | 'method'>;
 
 export interface GenerationSummary {
 	serverUrl: string;
 	list: GeneratedInterface[];
 }
 
-export type ComponentsSchemas = OpenAPIV3.ComponentsObject['schemas'];
+export type ComponentSchemas = OpenAPIV3.ComponentsObject['schemas'];
+export type ComponentParameters = OpenAPIV3.ComponentsObject['parameters'];
 
 export type ArraySchemaObject = OpenAPIV3.ArraySchemaObject;
-export type NonArraySchemaObject = OpenAPIV3.NonArraySchemaObject & { description?: string };
+export type NonArraySchemaObject = OpenAPIV3.NonArraySchemaObject;
 export type PathsObject = OpenAPIV3.PathsObject;
 
 export type PathItemObject = OpenAPIV3.PathItemObject;
 export type OperationObject = OpenAPIV3.OperationObject;
 
-export type SchemaObject = ArraySchemaObject | NonArraySchemaObject;
+export type SchemaObject = OpenAPIV3.SchemaObject;
 export type ReferenceObject = OpenAPIV3.ReferenceObject;
 export type ParameterObject = OpenAPIV3.ParameterObject;
 export type RequestBodyObject = OpenAPIV3.RequestBodyObject;
 export type Schema = ReferenceObject | SchemaObject;
 export type ResponseObject = OpenAPIV3.ResponseObject;
+export type ResponsesObject = OpenAPIV3.ResponsesObject;
+export type SchemaTypeExpression = string | string[];
 
-// 修改错误类型定义，添加新的错误类型
+export interface SchemaRenderResult {
+	headerRef: string;
+	renderStr: string;
+	comment?: string;
+	typeName?: string;
+}
+
 export interface ParseError {
 	type: 'SCHEMA' | 'PATH' | 'REFERENCE' | 'FILE_WRITE' | 'RESPONSE' | 'PARAMETERS' | 'REQUEST_BODY' | 'API';
 	message: string;
@@ -74,9 +99,7 @@ export interface ParseError {
 	details?: unknown;
 }
 
-// 修改配置类型定义，将必需属性标记出来
-export interface PathParseConfig extends ConfigType {
-	// 可选的属性
+export interface PathParseConfig extends CodegenConfig {
 	typeMapping?: Map<string, string>;
 	errorHandling?: {
 		throwOnError: boolean;
@@ -89,18 +112,7 @@ export interface PathParseConfig extends ConfigType {
 	};
 }
 
-export type IContentType =
-	| 'application/json'
-	| 'text/json'
-	| 'text/plain'
-	| 'application/x-www-form-urlencoded'
-	| 'application/xml'
-	| 'text/xml'
-	| '*/*'
-	| 'application/octet-stream'
-	| 'multipart/form-data';
-
-export interface ContentBody {
+export interface EndpointDefinition {
 	payload: {
 		path: string[];
 		_path?: Record<string, string>;
@@ -120,12 +132,12 @@ export interface ContentBody {
 	apiName: string;
 	typeName: string;
 	deprecated: boolean;
-	contentType: IContentType;
+	contentType: ContentType;
 	/** 接口级别的 dataLevel 配置，优先级最高 */
 	dataLevel?: TDatalevel;
 }
 
-export type MapType = Map<string, ContentBody>;
+export type EndpointDefinitionMap = Map<string, EndpointDefinition>;
 
 // 渲染条目类型，用于组件和枚举的文件生成
 export interface RenderEntry {

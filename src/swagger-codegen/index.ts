@@ -1,14 +1,15 @@
 import type {
-	ComponentsSchemas,
+	CodegenConfig,
+	ComponentSchemas,
 	ConfigType,
 	GeneratedInterface,
 	GenerationSummary,
 	IConfigSwaggerServer,
+	InterfaceOutputMode,
 	LogLevel,
 	NormalizedSwaggerServer,
 	PathsObject,
 	RequestTemplate,
-	ShowMode,
 } from './types';
 import type { OpenAPIV3 } from 'openapi-types';
 
@@ -42,13 +43,13 @@ if (isDebug) {
 }
 
 export class Main {
-	private schemas: ComponentsSchemas = {};
+	private schemas: ComponentSchemas = {};
 	private paths: PathsObject = {};
 
 	/**
 	 * 处理 Swagger 数据
 	 */
-	private async handle(config: ConfigType, appendMode: boolean, show?: ShowMode): Promise<GeneratedInterface[] | null> {
+	private async handle(config: ConfigType, appendMode: boolean, show?: InterfaceOutputMode): Promise<GeneratedInterface[] | null> {
 		const tag = getServiceTag(config);
 		// 一个服务一段：使用 section 标题展示服务名 + URL，下面所有子任务无需重复 tag
 		log.section(tag || 'service', config.swaggerJsonUrl);
@@ -251,8 +252,8 @@ export class Main {
 	 * @param segment 用于隔离 models/connectors 目录的子段；空串表示不隔离
 	 * @param namespacePrefix 预计算的 namespace 前缀（可与 segment 独立）；空串表示不加前缀
 	 */
-	private buildServerConfig(baseConfig: ConfigType, server: NormalizedSwaggerServer, segment: string, namespacePrefix: string): ConfigType {
-		const result: ConfigType & { __segment?: string; __namespacePrefix?: string } = {
+	private buildServerConfig(baseConfig: ConfigType, server: NormalizedSwaggerServer, segment: string, namespacePrefix: string): CodegenConfig {
+		const result: CodegenConfig = {
 			...baseConfig,
 			swaggerJsonUrl: server.url,
 			publicPrefix: server.publicPrefix ?? baseConfig.publicPrefix,
@@ -450,7 +451,7 @@ export class Main {
 		return picked.sort((a, b) => a - b);
 	}
 
-	async initialize(show?: ShowMode, formatOption?: string | boolean, logLevel?: string, requestedServices?: string[], templateOverride?: string): Promise<void> {
+	async initialize(show?: InterfaceOutputMode, formatOption?: string | boolean, logLevel?: string, requestedServices?: string[], templateOverride?: string): Promise<void> {
 		const projectRoot = process.cwd();
 
 		try {

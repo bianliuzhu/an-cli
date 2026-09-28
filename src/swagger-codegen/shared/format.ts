@@ -3,7 +3,7 @@ import type { ConfigType } from '../types';
 export const DEFAULT_INDENT = '\t';
 export const DEFAULT_LINE_ENDING = '\n';
 
-export function applyFormattingDefaults(config: ConfigType): ConfigType {
+export function applyFormattingDefaults<Config extends ConfigType>(config: Config): Config & { formatting: NonNullable<ConfigType['formatting']> } {
 	const formatting = {
 		indentation: config.formatting?.indentation ?? DEFAULT_INDENT,
 		lineEnding: config.formatting?.lineEnding ?? DEFAULT_LINE_ENDING,

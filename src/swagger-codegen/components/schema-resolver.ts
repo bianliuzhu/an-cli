@@ -1,5 +1,4 @@
-import type { ComponentsSchemas, ConfigType, RenderEntry } from '../types';
-import type { OpenAPIV3 } from 'openapi-types';
+import type { ArraySchemaObject, ComponentSchemas, ConfigType, NonArraySchemaObject, ReferenceObject, RenderEntry, SchemaObject, SchemaRenderResult } from '../types';
 
 import { isValidJSON, log } from '../../utils';
 import { getIndentation } from '../shared/format';
@@ -16,20 +15,14 @@ import {
 import { nullableSuffix } from '../shared/schema-utils';
 import { EnumParser } from './enum-parser';
 
-type SchemaObject = OpenAPIV3.SchemaObject;
-type NonArraySchemaObject = OpenAPIV3.NonArraySchemaObject;
-type ArraySchemaObject = OpenAPIV3.ArraySchemaObject;
-type ReferenceObject = OpenAPIV3.ReferenceObject;
-
-type TReturnType = {
-	headerRef: string;
-	renderStr: string;
-	comment?: string;
-	typeName?: string;
-} | null;
+interface ComponentReferenceMetadata {
+	typeName: string;
+	fileName: string;
+	dataType: string | undefined;
+}
 
 export class ComponentSchemaResolver {
-	private schemas: ComponentsSchemas;
+	private schemas: ComponentSchemas;
 	private config: ConfigType;
 	private requiredFieldSet = new Set<string>();
 	private readonly defaultReturn = { headerRef: '', renderStr: '', comment: '', typeName: '' };
@@ -37,7 +30,7 @@ export class ComponentSchemaResolver {
 
 	schemasMap = new Map<string, RenderEntry>();
 
-	constructor(schemas: ComponentsSchemas, config: ConfigType) {
+	constructor(schemas: ComponentSchemas, config: ConfigType) {
 		this.schemas = schemas;
 		this.config = config;
 		this.enumParser = new EnumParser(config);
@@ -67,9 +60,7 @@ export class ComponentSchemaResolver {
 		const indent = getIndentation(this.config);
 		const lines: string[] = [];
 
-		const schemaRecord = schemaSource as Record<string, unknown>;
-		const title = schemaRecord.title as string | undefined;
-		const description = schemaRecord.description as string | undefined;
+		const { title, description } = schemaSource;
 
 		if (title) {
 			lines.push(`@title ${title}`);
@@ -94,7 +85,7 @@ export class ComponentSchemaResolver {
 			lines.push(`@format ${schemaSource.format}`);
 		}
 
-		const constraints: [keyof OpenAPIV3.SchemaObject, string][] = [
+		const constraints: [keyof SchemaObject, string][] = [
 			['pattern', '@pattern'],
 			['minimum', '@minimum'],
 			['maximum', '@maximum'],
@@ -105,13 +96,12 @@ export class ComponentSchemaResolver {
 			['minItems', '@minItems'],
 			['maxItems', '@maxItems'],
 		];
-		const recordSource = schemaSource as Record<string, unknown>;
-		const hasConstraint = constraints.some(([key]) => recordSource[key] !== undefined);
+		const hasConstraint = constraints.some(([key]) => schemaSource[key] !== undefined);
 		if (hasConstraint) {
 			const constraintLines = constraints
 				.map(([key, tag]) => {
-					if (recordSource[key] === undefined) return '';
-					return `${tag} ${this.stringifyValue(recordSource[key])}`;
+					if (schemaSource[key] === undefined) return '';
+					return `${tag} ${this.stringifyValue(schemaSource[key])}`;
 				})
 				.filter(Boolean);
 			lines.push(...constraintLines);
@@ -132,11 +122,11 @@ export class ComponentSchemaResolver {
 		return rendered.join('\n');
 	}
 
-	private nameTheHumpCenterStroke(ref: string): { typeName: string; fileName: string; dataType: string | undefined } {
+	private nameTheHumpCenterStroke(ref: string): ComponentReferenceMetadata {
 		const rawName = ref.replace('#/components/schemas/', '');
 		const typeName = resolveSchemaName(rawName);
 		const fileName = typeNameToFileName(typeName);
-		const returnData: { typeName: string; fileName: string; dataType: string | undefined } = { typeName, fileName, dataType: '' };
+		const returnData: ComponentReferenceMetadata = { typeName, fileName, dataType: '' };
 		if (this.schemas) {
 			const data = this.schemas[rawName] as SchemaObject;
 			if (data?.enum) {
@@ -165,8 +155,8 @@ export class ComponentSchemaResolver {
 		return { headerRefStr: header, typeName, dataType };
 	}
 
-	private parseArray(schemaSource: OpenAPIV3.SchemaObject, name: string): TReturnType {
-		const arraySchema = schemaSource as OpenAPIV3.ArraySchemaObject;
+	private parseArray(schemaSource: SchemaObject, name: string): SchemaRenderResult {
+		const arraySchema = schemaSource as ArraySchemaObject;
 		const { items = {}, nullable } = arraySchema;
 		const ref = (items as ReferenceObject)?.$ref;
 
@@ -187,10 +177,10 @@ export class ComponentSchemaResolver {
 			};
 		}
 
-		const itemType = (items as OpenAPIV3.SchemaObject)?.type;
-		let finalType = itemType === 'integer' ? 'number' : itemType;
+		const itemType = (items as SchemaObject)?.type;
+		let finalType: string | undefined = itemType === 'integer' ? 'number' : itemType;
 
-		if (itemType === 'object') finalType = 'Record<string, unknown>' as 'string';
+		if (itemType === 'object') finalType = 'Record<string, unknown>';
 
 		return {
 			headerRef: '',
@@ -212,7 +202,7 @@ export class ComponentSchemaResolver {
 		}
 	}
 
-	private parseNumber(value: NonArraySchemaObject, key: string): TReturnType | null {
+	private parseNumber(value: NonArraySchemaObject, key: string): SchemaRenderResult | null {
 		if (value.type !== 'number') return null;
 
 		if (value.enum) {
@@ -253,7 +243,7 @@ export class ComponentSchemaResolver {
 		}
 	}
 
-	private parseString(value: NonArraySchemaObject, key: string): TReturnType {
+	private parseString(value: NonArraySchemaObject, key: string): SchemaRenderResult | null {
 		if (value.type !== 'string') return null;
 
 		if (value.enum) {
@@ -269,7 +259,7 @@ export class ComponentSchemaResolver {
 		};
 	}
 
-	private parseObject(obj: SchemaObject, key: string): TReturnType {
+	private parseObject(obj: SchemaObject, key: string): SchemaRenderResult | null {
 		if (obj.type !== 'object') return { headerRef: '', renderStr: '' };
 
 		const nonArraySchema = obj;
@@ -352,7 +342,7 @@ export class ComponentSchemaResolver {
 		}
 	}
 
-	private parseProperties(properties: OpenAPIV3.BaseSchemaObject['properties'], interfaceKey: string): TReturnType {
+	private parseProperties(properties: SchemaObject['properties'], interfaceKey: string): SchemaRenderResult | null {
 		const content: string[] = [];
 		const headerRef: string[] = [];
 
@@ -446,7 +436,7 @@ export class ComponentSchemaResolver {
 				}
 			}
 
-			const schema = schemaSource as OpenAPIV3.SchemaObject;
+			const schema = schemaSource as SchemaObject;
 			const comment = this.buildDocComment(schema as NonArraySchemaObject, name);
 			if (comment !== '') {
 				content.push(comment);
