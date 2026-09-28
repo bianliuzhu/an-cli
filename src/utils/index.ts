@@ -1,7 +1,6 @@
 import fs from 'fs';
 import { createRequire } from 'module';
 import path from 'path';
-import { exec } from 'shelljs';
 
 export { formatParseError, log, setLogLevel, spinner } from './logger';
 
@@ -45,13 +44,13 @@ export async function mkdirPath(pathStr: string): Promise<string> {
 	return projectPath;
 }
 
-export const writeFileRecursive = function (path: string, buffer: string): Promise<boolean> {
+export const writeFileRecursive = function (filePath: string, buffer: string): Promise<boolean> {
 	return new Promise((resolve, reject) => {
 		try {
-			const lastPath = path.substring(0, path.lastIndexOf('/'));
+			const lastPath = path.dirname(filePath);
 			fs.mkdir(lastPath, { recursive: true }, (err) => {
 				if (err) return reject(new Error('创建目录失败'));
-				fs.writeFile(path, buffer, function (err) {
+				fs.writeFile(filePath, buffer, function (err) {
 					if (err) return reject(new Error('写入文件失败'));
 					resolve(true);
 				});
@@ -143,26 +142,9 @@ export async function rmEmptyDir(path: string, level = 0): Promise<boolean> {
  * 清空指定路径下的所有文件及文件夹
  * @param {*} path
  */
-export function clearDir(path: string): Promise<boolean> {
-	return new Promise((resolve, reject) => {
-		// (async () => {
-		// 	try {
-		// 		await emptyDir(path);
-		// 		await rmEmptyDir(path);
-		// 		resolve(true);
-		// 	} catch (error) {
-		// 		console.error(error);
-		// 		reject(error);
-		// 	}
-		// })();
-		try {
-			exec(`rm -rf ${path}`);
-			resolve(true);
-		} catch (error) {
-			console.error(error);
-			reject(new Error(String(error)));
-		}
-	});
+export async function clearDir(targetPath: string): Promise<boolean> {
+	await fs.promises.rm(targetPath, { recursive: true, force: true });
+	return true;
 }
 
 /**
@@ -170,40 +152,18 @@ export function clearDir(path: string): Promise<boolean> {
  * @param {string} dirPath 目录路径
  * @param {string[]} excludeFiles 需要排除的文件名列表
  */
-export function clearDirExcept(dirPath: string, excludeFiles: string[] = []): Promise<boolean> {
-	return new Promise((resolve, reject) => {
-		try {
-			if (!fs.existsSync(dirPath)) {
-				resolve(true);
-				return;
-			}
-
-			const files = fs.readdirSync(dirPath);
-
-			files.forEach((file) => {
-				// 跳过需要排除的文件
-				if (excludeFiles.includes(file)) {
-					return;
-				}
-
-				const filePath = `${dirPath}/${file}`;
-				const stats = fs.statSync(filePath);
-
-				if (stats.isDirectory()) {
-					// 递归删除子目录
-					exec(`rm -rf ${filePath}`);
-				} else {
-					// 删除文件
-					fs.unlinkSync(filePath);
-				}
-			});
-
-			resolve(true);
-		} catch (error) {
-			console.error(error);
-			reject(new Error(String(error)));
-		}
-	});
+export async function clearDirExcept(dirPath: string, excludeFiles: string[] = []): Promise<boolean> {
+	let files: string[];
+	try {
+		files = await fs.promises.readdir(dirPath);
+	} catch (error) {
+		if ((error as NodeJS.ErrnoException).code === 'ENOENT') return true;
+		throw error;
+	}
+	for (const file of files) {
+		if (!excludeFiles.includes(file)) await clearDir(path.join(dirPath, file));
+	}
+	return true;
 }
 
 /**

@@ -7,15 +7,8 @@ import path from 'path';
 
 import { log, requireModule } from '../utils';
 
-interface DocumentCommom {
-	swagger?: string;
-	openapi?: string;
-}
-
-type TReturnType = Promise<OpenAPI.Document & DocumentCommom>;
-
 /** 获取 Swagger JSON 数据 */
-export async function getSwaggerJson(config: ConfigType): TReturnType {
+export async function getSwaggerJson(config: ConfigType): Promise<OpenAPI.Document> {
 	if (!config.swaggerJsonUrl) {
 		return Promise.reject(new Error('swaggerJsonUrl 未配置，请检查 swaggerConfig.url'));
 	}
@@ -28,7 +21,7 @@ export async function getSwaggerJson(config: ConfigType): TReturnType {
 			// 这样 an.config.json 中可以写 "./data/op.json" 这类相对路径
 			const absolutePath = path.isAbsolute(config.swaggerJsonUrl) ? config.swaggerJsonUrl : path.resolve(process.cwd(), config.swaggerJsonUrl);
 
-			const res = requireModule(absolutePath) as OpenAPI.Document & DocumentCommom;
+			const res = requireModule(absolutePath) as OpenAPI.Document;
 			return Promise.resolve(res);
 		} catch (err) {
 			log.error(String(err));
@@ -40,7 +33,7 @@ export async function getSwaggerJson(config: ConfigType): TReturnType {
 const TIME_OUT = 60000; // 60秒
 
 /** 发起请求 */
-export function requestJson(config: ConfigType): TReturnType {
+export function requestJson(config: ConfigType): Promise<OpenAPI.Document> {
 	const { swaggerJsonUrl: url = '', headers = {} } = config;
 	const timeoutMs: number = config.timeout ?? TIME_OUT;
 	return new Promise((resolve, reject) => {
@@ -65,14 +58,14 @@ export function requestJson(config: ConfigType): TReturnType {
 				res.setEncoding('utf-8'); // 解决中文乱码
 
 				let dataStr = '';
-				res.on('data', (data: Buffer) => {
+				res.on('data', (data: string) => {
 					dataStr += data.toString();
 				});
 
 				res.on('end', () => {
 					clearTimeout(TM);
 					try {
-						const json = JSON.parse(dataStr) as OpenAPI.Document & DocumentCommom;
+						const json = JSON.parse(dataStr) as OpenAPI.Document;
 						log.verbose(`Request Successful: ${url}`);
 						resolve(json);
 					} catch (error) {

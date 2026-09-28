@@ -1,5 +1,17 @@
-import type { ArraySchemaObject, IResponseModelTransform, NonArraySchemaObject, ParseError, PathParseConfig, ReferenceObject, Schema, SchemaObject } from '../types';
-import type { OpenAPIV3 } from 'openapi-types';
+import type {
+	ArraySchemaObject,
+	ComponentParameters,
+	ComponentSchemas,
+	IResponseModelTransform,
+	NonArraySchemaObject,
+	ParseError,
+	PathParseConfig,
+	ReferenceObject,
+	ResponseObject,
+	Schema,
+	SchemaObject,
+	SchemaTypeExpression,
+} from '../types';
 
 import { getIndentation, getLineEnding } from '../shared/format';
 import { SUPPORTED_REQUEST_TYPES_ALL } from '../shared/http';
@@ -21,25 +33,25 @@ const componentsPathEnum = {
 	definitions: '#/definitions/',
 };
 
-type HandleErrorFn = (error: ParseError) => void;
+type ParseErrorHandler = (error: ParseError) => void;
 
 export class SchemaResolver {
 	private config: PathParseConfig;
-	private schemas: OpenAPIV3.ComponentsObject['schemas'];
-	private parameters: OpenAPIV3.ComponentsObject['parameters'];
+	private schemas: ComponentSchemas;
+	private parameters: ComponentParameters;
 	private referenceCache = new Map<string, string>();
 	/** 拼音名 → 原始 schema 名的反向映射，用于 transformResponseModel 查找 schemas */
 	private resolvedToOriginalName = new Map<string, string>();
-	private handleError: HandleErrorFn;
+	private handleError: ParseErrorHandler;
 
-	constructor(config: PathParseConfig, schemas: OpenAPIV3.ComponentsObject['schemas'], parameters: OpenAPIV3.ComponentsObject['parameters'], onError: HandleErrorFn) {
+	constructor(config: PathParseConfig, schemas: ComponentSchemas, parameters: ComponentParameters, onError: ParseErrorHandler) {
 		this.config = config;
 		this.schemas = schemas ?? {};
 		this.parameters = parameters ?? {};
 		this.handleError = onError;
 	}
 
-	private stringifySchemaResult(result: string | string[]): string {
+	private stringifySchemaResult(result: SchemaTypeExpression): string {
 		if (Array.isArray(result)) {
 			const ln = getLineEnding(this.config);
 			const indent = getIndentation(this.config);
@@ -146,7 +158,7 @@ export class SchemaResolver {
 		}
 	}
 
-	nonArraySchemaObjectParse(nonArraySchemaObject: NonArraySchemaObject): string | string[] {
+	nonArraySchemaObjectParse(nonArraySchemaObject: NonArraySchemaObject): SchemaTypeExpression {
 		if (!nonArraySchemaObject) return 'unknown';
 		if (nonArraySchemaObject.format === 'binary' || (nonArraySchemaObject.type === 'string' && nonArraySchemaObject.format === 'binary')) {
 			return 'File';
@@ -192,7 +204,7 @@ export class SchemaResolver {
 		return '';
 	}
 
-	propertiesParse(properties: OpenAPIV3.BaseSchemaObject['properties']): string[] {
+	propertiesParse(properties: SchemaObject['properties']): string[] {
 		return formatObjectProperties(properties, this.config, (schema) => this.main(schema));
 	}
 
@@ -210,7 +222,7 @@ export class SchemaResolver {
 	 * 3. replace: 替换响应模型为指定类型
 	 *    例如: ResultMessage<Boolean> -> CustomType
 	 */
-	transformResponseModel(responseType: string | string[], transform?: IResponseModelTransform): string | string[] {
+	transformResponseModel(responseType: SchemaTypeExpression, transform?: IResponseModelTransform): SchemaTypeExpression {
 		if (!transform) return responseType;
 
 		// 如果配置了 modelPattern，只对匹配的类型名进行转换
@@ -246,7 +258,7 @@ export class SchemaResolver {
 						const originalName = this.resolvedToOriginalName.get(typeName) ?? typeName;
 						const schema = this.schemas?.[originalName];
 						if (schema && !('$ref' in schema)) {
-							const schemaObj = schema as SchemaObject;
+							const schemaObj = schema;
 							// 如果有 properties 并且包含指定的 data 字段
 							if (schemaObj.properties?.[dataField]) {
 								const dataFieldSchema = schemaObj.properties[dataField];
@@ -330,7 +342,7 @@ export class SchemaResolver {
 		}
 	}
 
-	responseObjectParse(responseObject: OpenAPIV3.ResponseObject) {
+	responseObjectParse(responseObject: ResponseObject): SchemaTypeExpression {
 		try {
 			const content = responseObject.content;
 			if (!content) return '';
@@ -359,7 +371,7 @@ export class SchemaResolver {
 		}
 	}
 
-	main(schema: Schema | undefined): string | string[] {
+	main(schema: Schema | undefined): SchemaTypeExpression {
 		try {
 			if (!schema) return 'unknown';
 

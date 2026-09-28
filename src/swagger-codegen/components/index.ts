@@ -1,4 +1,4 @@
-import type { ComponentsSchemas, ConfigType } from '../types';
+import type { ComponentSchemas, ConfigType, WriteIndexOptions } from '../types';
 
 import { applyFormattingDefaults } from '../shared/format';
 import { ComponentSchemaResolver } from './schema-resolver';
@@ -8,7 +8,7 @@ class Components {
 	private parser: ComponentSchemaResolver;
 	private writer: ComponentWriter;
 
-	constructor(schemas: ComponentsSchemas, config: ConfigType, options?: { appendMode?: boolean }) {
+	constructor(schemas: ComponentSchemas, config: ConfigType, options?: WriteIndexOptions) {
 		const normalizedConfig = applyFormattingDefaults(config);
 		this.parser = new ComponentSchemaResolver(schemas, normalizedConfig);
 		this.writer = new ComponentWriter(normalizedConfig, options);

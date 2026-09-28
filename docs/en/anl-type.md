@@ -33,6 +33,14 @@
 $ anl type
 ```
 
+#### macOS and Windows
+
+`anl type` uses Node.js filesystem APIs for cleanup and does not require `rm` or Git Bash. Configuration paths support native separators and spaces. Prefer forward-slash relative paths such as `src/types` when sharing configuration across platforms.
+
+With `--format`, Windows uses the local `prettier.cmd` and macOS uses the local `prettier`; both fall back to `npx prettier` when unavailable. Paths and configuration are passed as separate arguments, and Windows paths are converted to forward slashes for Prettier globs. Install Prettier in the target project before working offline.
+
+The compatibility CI matrix includes macOS, Windows, and Node.js 22 and 24. Maintainers can run `pnpm run test:codegen` to build and test initialization, full/selective generation, paths containing spaces, and real Prettier execution.
+
 #### Print interface list after generation (copy-friendly)
 
 `anl type` can print an interface list **after the whole generation finishes**. The output format matches `includeInterface` / `excludeInterface` in `an.config.json`, so you can copy & paste directly.
@@ -85,13 +93,13 @@ Formatting covers all three generated directories:
 
 ##### Execution logic
 
-1. **Resolve Prettier executable**: Prefers locally installed `node_modules/.bin/prettier`; falls back to `npx prettier` if not found
+1. **Resolve Prettier executable**: Prefers locally installed `node_modules/.bin/prettier` (`prettier.cmd` on Windows); falls back to `npx prettier` if not found
 2. **Resolve config file** (in priority order):
    - If a path is explicitly provided via `--format <path>`, it is used directly; if the path does not exist, falls back to auto-detection
    - If `--format` is passed without a value, the project root is scanned for a prettier config file (see list below)
    - If a `prettier` key exists in `package.json`, it is also treated as a valid config source
    - If no config file is found, no `--config` flag is appended and Prettier uses its default rules
-3. **Run formatting**: Executes the constructed command; on failure, prints the command for manual execution without interrupting the main process
+3. **Run formatting**: Uses a cross-platform process launcher with an argument array; on failure, prints the error, executable, and arguments without interrupting the main process
 
 **Auto-detection scan order:**
 

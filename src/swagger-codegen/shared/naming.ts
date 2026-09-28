@@ -1,4 +1,4 @@
-import type { ConfigType } from '../types';
+import type { CodegenConfig, ConfigType, IConfigSwaggerServer } from '../types';
 
 import { pinyin } from 'pinyin-pro';
 
@@ -115,12 +115,20 @@ export function computeSegment(apiListFileName: string | undefined): string {
 	return cleaned;
 }
 
+export function getServiceIdentifier(server: IConfigSwaggerServer, index: number): string {
+	return (server.name ?? computeSegment(server.apiListFileName)) || `#${index}`;
+}
+
+export function isEnumIsolated(config: Pick<ConfigType, 'enumIsolation'>): boolean {
+	return (config.enumIsolation ?? 'segment') === 'segment';
+}
+
 /**
  * 读取预先计算好的 segment（在 buildServerConfig 阶段写入 `__segment`）。
  * 多服务隔离时返回非空字符串，否则返回空串。
  */
-export function getServerSegment(config: object): string {
-	return (config as { __segment?: string }).__segment ?? '';
+export function getServerSegment(config: CodegenConfig): string {
+	return config.__segment ?? '';
 }
 
 /**
@@ -149,8 +157,8 @@ export function segmentToNamespacePrefix(segment: string): string {
  * 优先读取 buildServerConfig 阶段预计算的 `__namespacePrefix`（允许单服务也能出现前缀，
  * 只要能从 apiListFileName 派生 segment）；未写入时回退到“读 __segment + isolation”的旧逻辑。
  */
-export function getNamespacePrefix(config: ConfigType): string {
-	const injected = (config as { __namespacePrefix?: string }).__namespacePrefix;
+export function getNamespacePrefix(config: CodegenConfig): string {
+	const injected = config.__namespacePrefix;
 	if (typeof injected === 'string') return injected;
 	const isolation = config.namespaceIsolation ?? 'segment';
 	if (isolation === 'none') return '';
@@ -211,7 +219,7 @@ export function adjustImportPathForSegment(importPath: string, segment: string):
 export function getEnumSegment(config: ConfigType): string {
 	const segment = getServerSegment(config);
 	if (!segment) return '';
-	const isolation = (config as { enumIsolation?: 'segment' | 'none' }).enumIsolation ?? 'segment';
+	const isolation = config.enumIsolation ?? 'segment';
 	if (isolation === 'none') return '';
 	return segment;
 }
