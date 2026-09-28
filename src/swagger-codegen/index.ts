@@ -11,6 +11,7 @@ import { exec } from 'shelljs';
 import { clearDir, clearDirExcept, writeFileRecursive } from '../utils';
 import { log, setLogLevel, spinner } from '../utils';
 import Components from './components/index';
+import { createDefaultConfig, DEFAULT_REQUEST_TEMPLATE, renderTsConfig } from './config-template';
 import { getSwaggerJson } from './get-data';
 import PathParse from './path/index';
 import { computeSegment, getServiceTag, segmentToNamespacePrefix } from './shared/naming';
@@ -24,7 +25,6 @@ interface ExecResult {
 const isDebug = process.env.NODE_ENV === 'debug';
 
 const SUPPORTED_REQUEST_TEMPLATES: readonly RequestTemplate[] = ['axios', 'fetch', 'wx', 'uniapp', 'taro'] as const;
-const DEFAULT_REQUEST_TEMPLATE: RequestTemplate = 'axios';
 const REQUIRED_TEMPLATE_FILES = ['dio.ts', 'error-message.ts', 'fetch.ts', 'api-type.d.ts'] as const;
 const TEMPLATE_MARKER_RE = /@an-cli-request-template:\s*([a-z]+)/i;
 
@@ -40,32 +40,12 @@ function normalizeRequestTemplate(input: unknown, source: string): RequestTempla
 	return val;
 }
 
-const configContent: ConfigType = {
-	saveTypeFolderPath: isDebug ? 'apps/types' : 'src/types',
-	saveApiListFolderPath: isDebug ? 'apps/types' : 'src/apis',
-	saveEnumFolderPath: isDebug ? 'apps/enums' : 'src/enums',
-	importEnumPath: '../../../enums',
-	requestMethodsImportPath: './config/fetch',
-	requestTemplate: DEFAULT_REQUEST_TEMPLATE,
-	formatting: {
-		indentation: '\t',
-		lineEnding: '\n',
-	},
-	swaggerConfig: {
-		url: 'https://generator3.swagger.io/openapi.json',
-		apiListFileName: 'index.ts',
-		headers: {},
-		dataLevel: 'serve',
-		parameterSeparator: '_',
-		includeInterface: [],
-		excludeInterface: [],
-	},
-	enmuConfig: {
-		erasableSyntaxOnly: false,
-		varnames: 'enum-varnames',
-		comment: 'enum-descriptions',
-	},
-};
+const configContent = createDefaultConfig();
+if (isDebug) {
+	configContent.saveTypeFolderPath = 'apps/types';
+	configContent.saveApiListFolderPath = 'apps/types';
+	configContent.saveEnumFolderPath = 'apps/enums';
+}
 
 type NormalizedSwaggerServer = Required<
 	Omit<IConfigSwaggerServer, 'name' | 'responseModelTransform' | 'includeTags' | 'excludeTags' | 'timeout' | 'namespaceIsolation' | 'enumIsolation'>
@@ -617,56 +597,19 @@ export class Main {
 			log.warning(`未指定 --template 且当前非交互终端，requestTemplate 默认为 "${DEFAULT_REQUEST_TEMPLATE}"。可通过 --template 指定或修改 an.config.ts 后重跑。`);
 		}
 
-		const tsContent = this.generateTsConfigContent(template);
+		const initialConfig = createDefaultConfig(template);
+		const tsContent = renderTsConfig(initialConfig);
 		await writeFileRecursive(tsConfigPath, tsContent);
 
 		// 骨架生成的同时把 config/ 也落地，避免用户需要"跑两次"才拿到底层请求实现
 		try {
-			await fs.promises.mkdir(configContent.saveApiListFolderPath, { recursive: true });
-			await this.copyAjaxConfigFiles(configContent.saveApiListFolderPath, template);
-			log.success(`配置文件已创建（requestTemplate=${template}），并已同步初始化 ${configContent.saveApiListFolderPath}/config/。请检查 an.config.ts 后重新运行以生成 API。`);
+			await fs.promises.mkdir(initialConfig.saveApiListFolderPath, { recursive: true });
+			await this.copyAjaxConfigFiles(initialConfig.saveApiListFolderPath, template);
+			log.success(`配置文件已创建（requestTemplate=${template}），并已同步初始化 ${initialConfig.saveApiListFolderPath}/config/。请检查 an.config.ts 后重新运行以生成 API。`);
 		} catch (err) {
-			log.warning(`初始化 ${configContent.saveApiListFolderPath}/config/ 失败：${err instanceof Error ? err.message : String(err)}。配置文件已创建，请修正后重跑。`);
+			log.warning(`初始化 ${initialConfig.saveApiListFolderPath}/config/ 失败：${err instanceof Error ? err.message : String(err)}。配置文件已创建，请修正后重跑。`);
 		}
-		return configContent;
-	}
-
-	/**
-	 * 生成 an.config.ts 文件内容
-	 */
-	private generateTsConfigContent(template: RequestTemplate = DEFAULT_REQUEST_TEMPLATE): string {
-		return `import { defineConfig } from 'anl/config';
-
-export default defineConfig({
-	saveTypeFolderPath: 'src/types',
-	saveApiListFolderPath: 'src/apis',
-	saveEnumFolderPath: 'src/enums',
-	importEnumPath: '../../../enums',
-	requestMethodsImportPath: './config/fetch',
-	/** 请求模板：axios | fetch | wx | uniapp | taro，切换后需删除 <saveApiListFolderPath>/config 目录重新生成 */
-	requestTemplate: '${template}',
-	formatting: {
-		indentation: '\\t',
-		lineEnding: '\\n',
-	},
-	swaggerConfig: [
-		{
-			url: 'https://generator3.swagger.io/openapi.json',
-			apiListFileName: 'index.ts',
-			headers: {},
-			dataLevel: 'serve',
-			parameterSeparator: '_',
-			includeInterface: [],
-			excludeInterface: [],
-		},
-	],
-	enmuConfig: {
-		erasableSyntaxOnly: false,
-		varnames: 'enum-varnames',
-		comment: 'enum-descriptions',
-	},
-});
-`;
+		return initialConfig;
 	}
 
 	/**
