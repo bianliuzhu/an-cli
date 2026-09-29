@@ -18,3 +18,7 @@ export function getIndentation(config: ConfigType): string {
 export function getLineEnding(config: ConfigType): string {
 	return config.formatting?.lineEnding ?? DEFAULT_LINE_ENDING;
 }
+
+export function indentContinuationLines(value: string, indentation: string): string {
+	return value.replace(/\r?\n/g, `\n${indentation}`);
+}

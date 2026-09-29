@@ -1,3 +1,4 @@
+import type { SchemaDiagnostics } from '../shared/schema-diagnostics';
 import type {
 	ComponentParameters,
 	ComponentSchemas,
@@ -5,7 +6,6 @@ import type {
 	EndpointDefinition,
 	EndpointDefinitionMap,
 	GeneratedInterface,
-	NonArraySchemaObject,
 	OperationObject,
 	ParameterObject,
 	ParseError,
@@ -20,7 +20,7 @@ import type {
 } from '../types';
 
 import { formatParseError, log } from '../../utils';
-import { applyFormattingDefaults, getIndentation } from '../shared/format';
+import { applyFormattingDefaults, getIndentation, indentContinuationLines } from '../shared/format';
 import { SUPPORTED_REQUEST_TYPES_ALL, SUPPORTED_REQUEST_UPLOAD_TYPES } from '../shared/http';
 import { formatPropertyName, sanitizeIdentifierName } from '../shared/naming';
 import { convertEndpointString } from './naming';
@@ -47,10 +47,6 @@ const defaultConfig: Partial<PathParseConfig> = {
 		['number', 'number'],
 		['null', 'null'],
 		['undefined', 'undefined'],
-		['date', 'Date'],
-		['time', 'Date'],
-		['datetime', 'Date'],
-		['timestamp', 'Date'],
 	]),
 	errorHandling: {
 		throwOnError: false,
@@ -94,7 +90,7 @@ export class PathParse {
 	/** swagger 中全量接口 key（pathKey|METHOD），用于输出 missing/generated 列表 */
 	private allInterfaceKeys = new Set<string>();
 
-	constructor(pathsObject: PathsObject, parameters: ComponentParameters, schemas: ComponentSchemas, config: PathParseConfig) {
+	constructor(pathsObject: PathsObject, parameters: ComponentParameters, schemas: ComponentSchemas, config: PathParseConfig, diagnostics?: SchemaDiagnostics) {
 		this.pathsObject = pathsObject;
 		this.parameters = parameters ?? {};
 		this.schemas = schemas ?? {};
@@ -106,7 +102,7 @@ export class PathParse {
 		} as PathParseConfig);
 
 		this.config = normalized;
-		this.schemaResolver = new SchemaResolver(this.config, this.schemas, this.parameters, this.handleError.bind(this));
+		this.schemaResolver = new SchemaResolver(this.config, this.schemas, this.parameters, this.handleError.bind(this), diagnostics);
 		this.writer = new PathWriter(this.config);
 	}
 
@@ -201,7 +197,7 @@ export class PathParse {
 				return;
 			}
 
-			const v2value = this.schemaResolver.main(V2.schema);
+			const v2value = this.schemaResolver.main(V2.schema, 'request');
 
 			if (!v2value || typeof v2value !== 'string') {
 				this.handleError({
@@ -219,7 +215,7 @@ export class PathParse {
 				// Path 参数位于 namespace Path {} 内，用 type 声明，不支持引号包裹的名称
 				// 中划线转下划线确保生成合法的 TS 标识符（如 file-id -> file_id）
 				const paramName = sanitizeIdentifierName(V2.name);
-				path.push(`${doubleIndent}type ${paramName} = ${v2value};`);
+				path.push(`${doubleIndent}type ${paramName} = ${indentContinuationLines(v2value, doubleIndent)};`);
 				if (this.contentBody.payload._path) {
 					this.contentBody.payload._path[paramName] = v2value;
 				} else {
@@ -231,7 +227,7 @@ export class PathParse {
 
 				const optional = V2.required !== true ? '?' : '';
 				const propertyName = formatPropertyName(V2.name);
-				query.push(`${doubleIndent}${propertyName}${optional}: ${v2value};`);
+				query.push(`${doubleIndent}${propertyName}${optional}: ${indentContinuationLines(v2value, doubleIndent)};`);
 
 				if (this.contentBody.payload._query) {
 					this.contentBody.payload._query[V2.name] = v2value;
@@ -244,7 +240,7 @@ export class PathParse {
 
 				const optional = V2.required !== true ? '?' : '';
 				const propertyName = formatPropertyName(V2.name);
-				header.push(`${doubleIndent}${propertyName}${optional}: ${v2value};`);
+				header.push(`${doubleIndent}${propertyName}${optional}: ${indentContinuationLines(v2value, doubleIndent)};`);
 
 				if (this.contentBody.payload._header) {
 					this.contentBody.payload._header[V2.name] = v2value;
@@ -324,32 +320,9 @@ export class PathParse {
 		const { schema } = this.pickRequestBodyContent(requestBodyObject);
 
 		if (schema) {
-			if ('$ref' in schema) {
-				const str = this.schemaResolver.referenceObjectParse(schema);
-				return `${indent}type Body = ${str}`;
-			}
-
-			const type = schema.type;
-			const arraySchemaObject = type === 'array' ? schema : null;
-			const nonArraySchemaObject = type && this.nonArrayType.includes(type) ? (schema as NonArraySchemaObject) : null;
-
-			if (arraySchemaObject) {
-				const str = this.schemaResolver.arraySchemaObjectParse(arraySchemaObject);
-				return `${indent}type Body = ${str}`;
-			}
-
-			if (nonArraySchemaObject) {
-				const result = this.schemaResolver.nonArraySchemaObjectParse(nonArraySchemaObject);
-				if (Array.isArray(result)) {
-					if (result.length === 0) {
-						return [`${indent}type Body = ${nonArraySchemaObject.type};`];
-					} else {
-						return [`${indent}interface Body {`, ...result, `}`];
-					}
-				} else {
-					return [`${indent}type Body = ${result}`];
-				}
-			}
+			const result = this.schemaResolver.main(schema, 'request');
+			const type = Array.isArray(result) ? `{ ${result.join('\n')} }` : result;
+			return `${indent}type Body = ${indentContinuationLines(type, indent)};`;
 		}
 	}
 
@@ -358,7 +331,7 @@ export class PathParse {
 		const referenceObject = '$ref' in requestBody ? requestBody : null;
 		const requestBodyObject = 'content' in requestBody ? requestBody : null;
 		if (referenceObject) {
-			const typeName = this.schemaResolver.referenceObjectParse(referenceObject);
+			const typeName = this.schemaResolver.referenceObjectParse(referenceObject, 'request');
 			return `${this.getIndentation()}type Body = ${typeName}`;
 		}
 		if (requestBodyObject && Object.keys(requestBody).length !== 0) {
@@ -480,7 +453,7 @@ export class PathParse {
 		}
 
 		if (referenceObject) {
-			let typeName = this.schemaResolver.referenceObjectParse(referenceObject);
+			let typeName = this.schemaResolver.referenceObjectParse(referenceObject, 'response');
 
 			// 应用响应模型转换
 			if (this.config.responseModelTransform) {
@@ -509,7 +482,7 @@ export class PathParse {
 				}
 				this.contentBody._response = `${responsess.join('\n')}`;
 			} else {
-				this.contentBody.response = `type Response = ${responsess}`;
+				this.contentBody.response = `type Response = ${indentContinuationLines(responsess, this.getIndentation())};`;
 				this.contentBody._response = `${responsess}`;
 			}
 		}

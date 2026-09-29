@@ -1,18 +1,18 @@
-import type { ArraySchemaObject, ComponentSchemas, ConfigType, NonArraySchemaObject, ReferenceObject, RenderEntry, SchemaObject, SchemaRenderResult } from '../types';
+import type { SchemaDiagnostics } from '../shared/schema-diagnostics';
+import type { ArraySchemaObject, ComponentSchemas, ConfigType, NonArraySchemaObject, ReferenceObject, RenderEntry, SchemaObject } from '../types';
 
-import { isValidJSON, log } from '../../utils';
-import { getIndentation } from '../shared/format';
+import { log } from '../../utils';
+import { getIndentation, getLineEnding } from '../shared/format';
+import { adjustImportPathForSegment, appendEnumSegment, createSchemaNameMap, getEnumSegment, getEnumTypeName, getServerSegment, typeNameToFileName } from '../shared/naming';
 import {
-	adjustImportPathForSegment,
-	appendEnumSegment,
-	formatPropertyName,
-	getEnumSegment,
-	getEnumTypeName,
-	getServerSegment,
-	resolveSchemaName,
-	typeNameToFileName,
-} from '../shared/naming';
-import { nullableSuffix } from '../shared/schema-utils';
+	directionalTypeName,
+	hasMixedAdditionalProperties,
+	isNamedEnumSchema,
+	renderSchemaType,
+	resolveLocalSchemaReference,
+	type SchemaDirection,
+	schemaNeedsDirection,
+} from '../shared/schema-type';
 import { EnumParser } from './enum-parser';
 
 interface ComponentReferenceMetadata {
@@ -24,27 +24,22 @@ interface ComponentReferenceMetadata {
 export class ComponentSchemaResolver {
 	private schemas: ComponentSchemas;
 	private config: ConfigType;
-	private requiredFieldSet = new Set<string>();
-	private readonly defaultReturn = { headerRef: '', renderStr: '', comment: '', typeName: '' };
 	private enumParser: EnumParser;
+	private schemaNames: Map<string, string>;
+	private originalNames: Map<string, string>;
 
 	schemasMap = new Map<string, RenderEntry>();
 
-	constructor(schemas: ComponentSchemas, config: ConfigType) {
+	constructor(
+		schemas: ComponentSchemas,
+		config: ConfigType,
+		private readonly diagnostics?: SchemaDiagnostics,
+	) {
 		this.schemas = schemas;
 		this.config = config;
 		this.enumParser = new EnumParser(config);
-	}
-
-	private nullable(v?: boolean) {
-		return nullableSuffix(v);
-	}
-
-	private isRequired(fieldName: string): boolean {
-		// 属性名可能被 formatPropertyName 加上引号（如 "form-data"），
-		// 这里去掉引号以保证与 requiredFieldSet 中的原始名匹配
-		const unquoted = fieldName.startsWith('"') && fieldName.endsWith('"') ? fieldName.slice(1, -1) : fieldName;
-		return this.requiredFieldSet.has(unquoted);
+		this.schemaNames = createSchemaNameMap(schemas, config.enmuConfig.erasableSyntaxOnly);
+		this.originalNames = new Map([...this.schemaNames].map(([raw, name]) => [name, raw]));
 	}
 
 	private stringifyValue(value: unknown): string {
@@ -57,7 +52,6 @@ export class ComponentSchemaResolver {
 	}
 
 	private buildDocComment(schemaSource: NonArraySchemaObject | ArraySchemaObject, _fieldName?: string): string {
-		const indent = getIndentation(this.config);
 		const lines: string[] = [];
 
 		const { title, description } = schemaSource;
@@ -109,27 +103,28 @@ export class ComponentSchemaResolver {
 
 		if (!lines.length) return '';
 
-		const rendered = [`${indent}/**`];
+		const rendered = ['/**'];
 		lines.forEach((line) => {
 			if (!line) return;
+			line = line.replace(/\*\//g, '* /');
 			if (line.includes('\n')) {
-				line.split('\n').forEach((sub) => rendered.push(`${indent} * ${sub}`));
+				line.split('\n').forEach((sub) => rendered.push(` * ${sub}`));
 			} else {
-				rendered.push(`${indent} * ${line}`);
+				rendered.push(` * ${line}`);
 			}
 		});
-		rendered.push(`${indent} */`);
+		rendered.push(' */');
 		return rendered.join('\n');
 	}
 
 	private nameTheHumpCenterStroke(ref: string): ComponentReferenceMetadata {
-		const rawName = ref.replace('#/components/schemas/', '');
-		const typeName = resolveSchemaName(rawName);
+		const rawName = ref;
+		const typeName = this.schemaNames.get(rawName)!;
 		const fileName = typeNameToFileName(typeName);
 		const returnData: ComponentReferenceMetadata = { typeName, fileName, dataType: '' };
 		if (this.schemas) {
 			const data = this.schemas[rawName] as SchemaObject;
-			if (data?.enum) {
+			if (data && isNamedEnumSchema(data)) {
 				returnData.dataType = 'enum';
 			} else {
 				returnData.dataType = data?.type;
@@ -155,390 +150,66 @@ export class ComponentSchemaResolver {
 		return { headerRefStr: header, typeName, dataType };
 	}
 
-	private parseArray(schemaSource: SchemaObject, name: string): SchemaRenderResult {
-		const arraySchema = schemaSource as ArraySchemaObject;
-		const { items = {}, nullable } = arraySchema;
-		const ref = (items as ReferenceObject)?.$ref;
-
-		if (ref) {
-			const { headerRefStr, typeName, dataType } = this.parseRef(ref);
-			const rawExample: unknown = arraySchema.example;
-			if (dataType === 'enum' && typeof rawExample === 'string' && isValidJSON(rawExample)) {
-				const enumContent = this.enumParser.convertJsonToEnumString(rawExample, typeName);
-				this.enumParser.addEnumByName(typeName, enumContent);
-			}
-
-			const finalTypeName = dataType === 'enum' ? getEnumTypeName(this.config, typeName) : typeName;
-
-			return {
-				headerRef: headerRefStr,
-				renderStr: `${getIndentation(this.config)}${name}${this.isRequired(name) ? '' : '?'}: Array<${finalTypeName}>${this.nullable(nullable)};`,
-				typeName: finalTypeName,
-			};
-		}
-
-		const itemType = (items as SchemaObject)?.type;
-		let finalType: string | undefined = itemType === 'integer' ? 'number' : itemType;
-
-		if (itemType === 'object') finalType = 'Record<string, unknown>';
-
-		return {
-			headerRef: '',
-			renderStr: `${getIndentation(this.config)}${name}${this.isRequired(name) ? '' : '?'}: Array<${finalType}>${this.nullable(nullable)};`,
-			typeName: finalType,
-		};
+	private renderType(schema: SchemaObject | ReferenceObject, key: string, imports: string[], direction?: SchemaDirection, exactObject = false): string {
+		const diagnostics = new Set<string>();
+		const result = renderSchemaType(schema, {
+			path: `#/components/schemas/${(this.originalNames.get(key) ?? key).replace(/~/g, '~0').replace(/\//g, '~1')}`,
+			schemaPath: (child) => this.diagnostics?.pathFor(child),
+			direction,
+			schemas: this.schemas,
+			exactObject,
+			reference: (reference) => {
+				const target = resolveLocalSchemaReference(reference, this.schemas, (message) => diagnostics.add(message));
+				if (!target) return 'unknown';
+				const { headerRefStr, typeName, dataType } = this.parseRef(target.name);
+				if (typeName !== key && !imports.includes(headerRefStr)) imports.push(headerRefStr);
+				return dataType === 'enum' ? getEnumTypeName(this.config, typeName) : directionalTypeName(typeName, target.schema, this.schemas, direction);
+			},
+			property: (child, name, required) => {
+				if ('$ref' in child || !isNamedEnumSchema(child)) return undefined;
+				const result = this.enumParser.handleEnum({ ...child, nullable: false } as NonArraySchemaObject, name, required);
+				if (result?.headerRef && !imports.includes(result.headerRef)) imports.push(result.headerRef);
+				return result?.typeName;
+			},
+			comment: (child) => this.buildDocComment(child),
+			indentation: getIndentation(this.config),
+			diagnostic: (message, path, kind) => {
+				if (this.diagnostics) this.diagnostics.add(message, path, kind);
+				else if (kind === 'runtime') log.verbose(`${path}: ${message}`);
+				else diagnostics.add(`${path}: ${message}`);
+			},
+		});
+		for (const message of diagnostics) log.warn(`${key}: ${message}`);
+		return result;
 	}
 
-	private parseBoolean(schemaObject: NonArraySchemaObject, key: string): string {
-		return schemaObject.type === 'boolean' ? `${getIndentation(this.config)}${key}${this.isRequired(key) ? '' : '?'}: boolean${this.nullable(schemaObject.nullable)};` : '';
-	}
-
-	private parseInteger(value: NonArraySchemaObject, key: string): string {
-		if (Array.isArray(value.enum)) {
-			const enumResult = this.enumParser.handleEnum(value, key, this.isRequired(key));
-			return enumResult?.renderStr ?? '';
-		} else {
-			return `${getIndentation(this.config)}${key}${this.isRequired(key) ? '' : '?'}: number${this.nullable(value.nullable)};`;
-		}
-	}
-
-	private parseNumber(value: NonArraySchemaObject, key: string): SchemaRenderResult | null {
-		if (value.type !== 'number') return null;
-
-		if (value.enum) {
-			const enumResult = this.enumParser.handleEnum(value, key, this.isRequired(key));
-			if (enumResult) return enumResult;
-		}
-
-		return {
-			headerRef: '',
-			renderStr: `${getIndentation(this.config)}${key}${this.isRequired(key) ? '' : '?'}: number${this.nullable(value.nullable)};`,
-		};
-	}
-
-	private getStringTypeByFormat(format?: string): string {
-		if (!format) return 'string';
-
-		switch (format) {
-			case 'date-time':
-			case 'date':
-			case 'time':
-				return 'Date';
-			case 'email':
-			case 'idn-email':
-			case 'uuid':
-			case 'uri':
-			case 'uri-reference':
-			case 'iri':
-			case 'iri-reference':
-			case 'hostname':
-			case 'idn-hostname':
-			case 'ipv4':
-			case 'ipv6':
-				return 'string';
-			case 'binary':
-				return 'File';
-			default:
-				return 'string';
-		}
-	}
-
-	private parseString(value: NonArraySchemaObject, key: string): SchemaRenderResult | null {
-		if (value.type !== 'string') return null;
-
-		if (value.enum) {
-			const enumResult = this.enumParser.handleEnum(value, key, this.isRequired(key));
-			if (enumResult) return enumResult;
-		}
-
-		const strType = this.getStringTypeByFormat(value.format);
-
-		return {
-			headerRef: '',
-			renderStr: `${getIndentation(this.config)}${key}${this.isRequired(key) ? '' : '?'}: ${strType}${this.nullable(value.nullable)};`,
-		};
-	}
-
-	private parseObject(obj: SchemaObject, key: string): SchemaRenderResult | null {
-		if (obj.type !== 'object') return { headerRef: '', renderStr: '' };
-
-		const nonArraySchema = obj;
-		const indent = getIndentation(this.config);
-		const optional = this.isRequired(key) ? '' : '?';
-		const nullable = this.nullable(nonArraySchema.nullable);
-		const additionalProperties = nonArraySchema.additionalProperties;
-
-		if (additionalProperties && typeof additionalProperties === 'object') {
-			const value = this.parseArray(additionalProperties as ArraySchemaObject, key) ?? this.defaultReturn;
-			return { headerRef: value?.headerRef ?? '', renderStr: value?.renderStr ?? '' };
-		}
-
-		if (nonArraySchema.properties && Object.keys(nonArraySchema.properties).length > 0) {
-			const localHeaderRefs: string[] = [];
-			const inlineType = this.renderInlineObjectType(nonArraySchema, localHeaderRefs);
-			return {
-				headerRef: localHeaderRefs.join('\n'),
-				renderStr: `${indent}${key}${optional}: ${inlineType}${nullable};`,
-			};
-		}
-
-		if (additionalProperties === true) {
-			return { headerRef: '', renderStr: `${indent}${key}${optional}: Record<string, unknown>${nullable};` };
-		}
-
-		return { headerRef: '', renderStr: `${indent}${key}${optional}: object${nullable};` };
-	}
-
-	// 内联对象 schema（无独立 component）递归渲染成 TS 对象字面量类型。
-	// $ref 与嵌套对象都会被展开，$ref 的 import 收集到 headerRefs 交由外层去重。
-	private renderInlineObjectType(schema: NonArraySchemaObject, headerRefs: string[]): string {
-		const properties = schema.properties;
-		if (!properties || Object.keys(properties).length === 0) {
-			return schema.additionalProperties === true ? 'Record<string, unknown>' : 'object';
-		}
-
-		const requiredSet = new Set(schema.required ?? []);
-		const propStrs: string[] = [];
-		for (const propName of Object.keys(properties).sort()) {
-			const propSchema = properties[propName];
-			const displayName = formatPropertyName(propName);
-			const propKey = displayName.startsWith('"') && displayName.endsWith('"') ? displayName.slice(1, -1) : displayName;
-			const opt = requiredSet.has(propKey) ? '' : '?';
-			const typeStr = this.renderInlineTypeString(propSchema, headerRefs);
-			const nullableFlag = !('$ref' in propSchema) ? this.nullable((propSchema as NonArraySchemaObject).nullable) : '';
-			propStrs.push(`${displayName}${opt}: ${typeStr}${nullableFlag};`);
-		}
-		return `{ ${propStrs.join(' ')} }`;
-	}
-
-	private renderInlineTypeString(schema: SchemaObject | ReferenceObject, headerRefs: string[]): string {
-		if ('$ref' in schema && schema.$ref) {
-			const { headerRefStr, typeName, dataType } = this.parseRef(schema.$ref);
-			if (headerRefStr && !headerRefs.includes(headerRefStr)) headerRefs.push(headerRefStr);
-			return dataType === 'enum' ? getEnumTypeName(this.config, typeName) : typeName;
-		}
-
-		const s = schema as SchemaObject;
-		switch (s.type) {
-			case 'string': {
-				if (Array.isArray(s.enum)) return s.enum.map((v) => `'${v}'`).join(' | ');
-				return this.getStringTypeByFormat(s.format);
-			}
-			case 'integer':
-			case 'number': {
-				if (Array.isArray(s.enum)) return s.enum.join(' | ');
-				return 'number';
-			}
-			case 'boolean':
-				return 'boolean';
-			case 'array': {
-				const itemStr = this.renderInlineTypeString(s.items, headerRefs);
-				return `Array<${itemStr}>`;
-			}
-			case 'object':
-				return this.renderInlineObjectType(s, headerRefs);
-			default:
-				return 'unknown';
-		}
-	}
-
-	private parseProperties(properties: SchemaObject['properties'], interfaceKey: string): SchemaRenderResult | null {
-		const content: string[] = [];
-		const headerRef: string[] = [];
-
-		// 提前处理 undefined 情况
-		if (!properties) {
-			return {
-				headerRef: '',
-				renderStr: `export interface ${interfaceKey} {}`,
-			};
-		}
-
-		// 使用 Object.keys() 并排序以确保顺序一致性
-		const propertyNames = Object.keys(properties).sort();
-		for (const rawName of propertyNames) {
-			const schemaSource = properties[rawName];
-			// 不规范属性名（如 form-data）使用引号包裹，
-			// 保留后端原始字段名，保证 JSON.stringify 后与 wire 协议一致
-			const name = formatPropertyName(rawName);
-
-			if ((schemaSource as ReferenceObject)?.$ref) {
-				const { headerRefStr, typeName, dataType } = this.parseRef((schemaSource as ReferenceObject).$ref);
-				if (!headerRef.includes(headerRefStr) && typeName !== interfaceKey) headerRef.push(headerRefStr);
-
-				const schema = schemaSource as SchemaObject;
-				const comment = this.buildDocComment(schema as NonArraySchemaObject, name);
-				if (comment !== '') {
-					content.push(comment);
-				}
-
-				const finalTypeName = dataType === 'enum' ? getEnumTypeName(this.config, typeName) : typeName;
-				content.push(`${getIndentation(this.config)}${name}${this.isRequired(name) ? '' : '?'}: ${finalTypeName};`);
-
-				const example = (schemaSource as SchemaObject).example as string;
-				if (dataType === 'enum' && example && isValidJSON(example)) {
-					const enumContent = this.enumParser.convertJsonToEnumString(example, typeName);
-					this.enumParser.addEnumByName(typeName, enumContent);
-				}
-				continue;
-			}
-
-			if ('allOf' in schemaSource || 'anyOf' in schemaSource || 'oneOf' in schemaSource) {
-				const compositeKey = schemaSource.allOf?.length ? 'allOf' : schemaSource.anyOf?.length ? 'anyOf' : schemaSource.oneOf?.length ? 'oneOf' : null;
-
-				if (compositeKey) {
-					const separator = compositeKey === 'allOf' ? ' & ' : ' | ';
-					const items = schemaSource[compositeKey]!;
-					const typeNames: string[] = [];
-
-					for (const item of items) {
-						if ((item as ReferenceObject)?.$ref) {
-							const { headerRefStr, typeName, dataType } = this.parseRef((item as ReferenceObject).$ref);
-							const finalTypeName = dataType === 'enum' ? getEnumTypeName(this.config, typeName) : typeName;
-							if (!headerRef.includes(headerRefStr) && typeName !== interfaceKey) headerRef.push(headerRefStr);
-							typeNames.push(finalTypeName);
-						} else {
-							const inlineSchema = item as SchemaObject;
-							switch (inlineSchema.type) {
-								case 'string':
-									typeNames.push('string');
-									break;
-								case 'number':
-								case 'integer':
-									typeNames.push('number');
-									break;
-								case 'boolean':
-									typeNames.push('boolean');
-									break;
-								case 'array':
-									typeNames.push('unknown[]');
-									break;
-								case 'object':
-									typeNames.push('Record<string, unknown>');
-									break;
-								default:
-									typeNames.push('unknown');
-									break;
-							}
-						}
-					}
-
-					if (typeNames.length > 0) {
-						const comment = this.buildDocComment(schemaSource as NonArraySchemaObject, name);
-						if (comment !== '') content.push(comment);
-
-						const compositeType = typeNames.join(separator);
-						const needsParens = typeNames.length > 1 && schemaSource.nullable;
-						const finalType = needsParens ? `(${compositeType})` : compositeType;
-						content.push(`${getIndentation(this.config)}${name}${this.isRequired(name) ? '' : '?'}: ${finalType}${this.nullable(schemaSource.nullable)};`);
-						continue;
-					}
-				}
-			}
-
-			const schema = schemaSource as SchemaObject;
-			const comment = this.buildDocComment(schema as NonArraySchemaObject, name);
-			if (comment !== '') {
-				content.push(comment);
-			}
-
-			switch (schema.type) {
-				case 'array':
-					{
-						const arrayVal = this.parseArray(schema, name) ?? this.defaultReturn;
-						content.push(arrayVal?.renderStr ?? '');
-						if (!headerRef.includes(arrayVal.headerRef) && interfaceKey !== arrayVal.typeName) headerRef.push(arrayVal.headerRef);
-					}
-					break;
-
-				case 'boolean':
-					content.push(this.parseBoolean(schema, name));
-					break;
-
-				case 'integer':
-					content.push(this.parseInteger(schema, name));
-					break;
-
-				case 'number':
-					{
-						const numberResult = this.parseNumber(schema, name);
-						if (numberResult) {
-							if (numberResult.headerRef && !headerRef.includes(numberResult.headerRef)) headerRef.push(numberResult.headerRef);
-							content.push(numberResult.renderStr);
-						}
-					}
-					break;
-
-				case 'string':
-					{
-						if (schema.enum) {
-							const enumResult = this.enumParser.handleEnum(schema, name, this.isRequired(name));
-							if (enumResult) {
-								if (enumResult.headerRef && !headerRef.includes(enumResult.headerRef)) {
-									headerRef.push(enumResult.headerRef);
-								}
-								if (enumResult.renderStr) {
-									content.push(enumResult.renderStr);
-								}
-							}
-						} else {
-							content.push(this.parseString(schema, name)?.renderStr ?? '');
-						}
-					}
-					break;
-
-				case 'object':
-					{
-						const { headerRef: _headerObj, renderStr: _renderStr } = this.parseObject(schema, name) ?? this.defaultReturn;
-						content.push(_renderStr);
-						if (!headerRef.includes(_headerObj)) headerRef.push(_headerObj);
-					}
-					break;
+	private generateContent(schema: SchemaObject | ReferenceObject, key: string): string {
+		const imports: string[] = [];
+		const type = this.renderType(schema, key, imports);
+		const variants: string[] = [];
+		for (const direction of ['request', 'response'] as const) {
+			if (schemaNeedsDirection(schema, this.schemas, direction)) {
+				variants.push(`export type ${direction === 'request' ? 'Request' : 'Response'} = ${this.renderType(schema, key, imports, direction)};`);
 			}
 		}
-
-		const interfaceName = `export interface ${interfaceKey} {`;
-		const result = [interfaceName, ...content, `}`];
-
-		if (headerRef.length > 0) {
-			const head = headerRef.filter((e) => e !== '');
-			if (head.length > 0) head.push('');
-			result.unshift(...head);
+		if (hasMixedAdditionalProperties(schema)) {
+			variants.push(`export type Exact<Value extends ${key}> = Value & (${this.renderType(schema, key, imports, undefined, true)});`);
 		}
-		const v = result.join('\n');
-
-		return {
-			headerRef: headerRef.join('\n'),
-			renderStr: v,
-		};
-	}
-
-	private generateContent(schemaObject: NonArraySchemaObject | ArraySchemaObject, key: string): string {
-		if ('items' in schemaObject) {
-			log.warn(`数组类型未处理: ${key}`);
-			return '';
+		const variantBody = variants
+			.join('\n')
+			.split('\n')
+			.map((line) => `${getIndentation(this.config)}${line}`)
+			.join('\n');
+		const namespace = variants.length ? `\nexport namespace ${key} {\n${variantBody}\n}` : '';
+		const joinContent = (declaration: string) => (imports.length ? `${imports.join('\n')}\n\n${declaration}` : declaration).replace(/\n/g, getLineEnding(this.config));
+		const simpleObject = !('$ref' in schema) && schema.type === 'object' && !schema.nullable && !schema.allOf && !schema.anyOf && !schema.oneOf && !schema.enum;
+		if (simpleObject && type.startsWith('{')) {
+			return joinContent(`export interface ${key} ${type}${namespace}`);
 		}
-
-		switch (schemaObject.type) {
-			case 'boolean':
-				return this.parseBoolean(schemaObject, key);
-			case 'integer':
-				return this.parseInteger(schemaObject, key);
-			case 'number': {
-				const result = this.parseNumber(schemaObject, key);
-				return result?.renderStr ?? '';
-			}
-			case 'object': {
-				const result = this.parseProperties(schemaObject.properties, key);
-				return result?.renderStr ?? '';
-			}
-			case 'string': {
-				const result = this.parseString(schemaObject, key);
-				return result?.renderStr ?? '';
-			}
-			default:
-				return '';
+		if (simpleObject && type.startsWith('Record<') && type.includes(key)) {
+			return joinContent(`export interface ${key} extends ${type} {}${namespace}`);
 		}
+		return joinContent(`export type ${key} = ${type};${namespace}`);
 	}
 
 	main(): { enumsMap: Map<string, RenderEntry>; schemasMap: Map<string, RenderEntry> } {
@@ -551,19 +222,9 @@ export class ComponentSchemaResolver {
 		const schemaKeys = Object.keys(this.schemas).sort();
 		for (const key of schemaKeys) {
 			const schema = this.schemas[key];
-			if ('$ref' in schema) {
-				log.warn(`跳过 ReferenceObject: ${key}`);
-				continue;
-			}
 
-			const schemaObject = ('type' in schema ? schema : null)!;
-			if (!schemaObject?.type) {
-				log.warn(`无效的 schema 对象: ${key}`);
-				continue;
-			}
-
-			if (Array.isArray((schema as NonArraySchemaObject).enum)) {
-				const resolvedEnumKey = resolveSchemaName(key);
+			if (!('$ref' in schema) && isNamedEnumSchema(schema)) {
+				const resolvedEnumKey = this.schemaNames.get(key)!;
 				const enumResult = this.enumParser.parseEnum(schema as NonArraySchemaObject, resolvedEnumKey);
 				if (enumResult?.renderStr && !this.enumParser.hasEnum(resolvedEnumKey)) {
 					this.enumParser.addEnumByName(resolvedEnumKey, enumResult.renderStr);
@@ -571,11 +232,9 @@ export class ComponentSchemaResolver {
 				continue;
 			}
 
-			this.requiredFieldSet = new Set(schema.required ?? []);
-
-			const resolvedKey = resolveSchemaName(key);
+			const resolvedKey = this.schemaNames.get(key)!;
 			const fileName = typeNameToFileName(resolvedKey);
-			const content = this.generateContent(schemaObject, resolvedKey);
+			const content = this.generateContent(schema, resolvedKey);
 			if (content) {
 				const isEnum = content.includes('export enum ') || (content.includes('export const ') && content.includes('as const'));
 

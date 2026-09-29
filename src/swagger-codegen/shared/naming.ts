@@ -1,5 +1,6 @@
-import type { CodegenConfig, ConfigType, IConfigSwaggerServer } from '../types';
+import type { CodegenConfig, ComponentSchemas, ConfigType, IConfigSwaggerServer } from '../types';
 
+import { createHash } from 'node:crypto';
 import { pinyin } from 'pinyin-pro';
 
 import { log } from '../../utils';
@@ -76,24 +77,53 @@ function ensureValidIdentifier(name: string): string {
  * 将 schema 名称标准化：如果包含中文则转为拼音命名，处理空格和特殊字符等非法标识符字符
  */
 export function resolveSchemaName(name: string): string {
-	if (!name) return 'Unknown';
-	if (containsChinese(name)) {
-		return ensureValidIdentifier(chineseNameToEnglish(name));
+	const normalized = name
+		.split(/[^a-zA-Z0-9$\u4e00-\u9fff]+/)
+		.filter(Boolean)
+		.map((segment) => capitalize(chineseNameToEnglish(segment)))
+		.join('_');
+	return ensureValidIdentifier(normalized);
+}
+
+export function createSchemaNameMap(schemas: ComponentSchemas, erasableSyntaxOnly = false): Map<string, string> {
+	const entries = Object.keys(schemas ?? {})
+		.sort()
+		.map((raw) => {
+			const schema = schemas![raw];
+			const hasEnumAlias = erasableSyntaxOnly && !('$ref' in schema) && !!schema.enum?.length && ['string', 'number', 'integer'].includes(schema.type ?? '');
+			return { raw, name: resolveSchemaName(raw), hasEnumAlias };
+		});
+	const keysFor = (name: string, hasEnumAlias: boolean) => [`file:${typeNameToFileName(name)}`, `type:${name}`, ...(hasEnumAlias ? [`type:${name}Type`] : [])];
+	const counts = new Map<string, number>([['file:index', 1]]);
+	for (const { name, hasEnumAlias } of entries) {
+		for (const key of keysFor(name, hasEnumAlias)) counts.set(key, (counts.get(key) ?? 0) + 1);
 	}
-	// 检测是否包含非法标识符字符（非字母、数字、下划线、$）
-	if (/[^a-zA-Z0-9_$]/.test(name)) {
-		return ensureValidIdentifier(wordsToPascalCase(name));
+	const occupied = new Set(counts.keys());
+	const names = new Map<string, string>();
+	for (const { raw, name, hasEnumAlias } of entries) {
+		if (keysFor(name, hasEnumAlias).every((key) => counts.get(key) === 1)) {
+			names.set(raw, name);
+			continue;
+		}
+		const suffix = createHash('sha256').update(raw).digest('hex').slice(0, 8);
+		let candidate = `${name}_${suffix}`;
+		let attempt = 2;
+		while (keysFor(candidate, hasEnumAlias).some((key) => occupied.has(key))) candidate = `${name}_${suffix}_${attempt++}`;
+		for (const key of keysFor(candidate, hasEnumAlias)) occupied.add(key);
+		names.set(raw, candidate);
 	}
-	return ensureValidIdentifier(name);
+	return names;
 }
 
 export function typeNameToFileName(str: string): string {
-	return str
-		.replace(/[^a-zA-Z0-9]+/g, '-')
-		.replace(/([a-z])([A-Z])/g, '$1-$2')
-		.toLowerCase()
-		.replace(/-+/g, '-')
-		.replace(/^-|-$/g, '');
+	return (
+		str
+			.replace(/[^a-zA-Z0-9]+/g, '-')
+			.replace(/([a-z])([A-Z])/g, '$1-$2')
+			.toLowerCase()
+			.replace(/-+/g, '-')
+			.replace(/^-|-$/g, '') || 'unknown'
+	);
 }
 
 /**

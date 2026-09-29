@@ -1,3 +1,4 @@
+import type { SchemaDiagnostics } from '../shared/schema-diagnostics';
 import type { ComponentSchemas, ConfigType, WriteIndexOptions } from '../types';
 
 import { applyFormattingDefaults } from '../shared/format';
@@ -8,9 +9,9 @@ class Components {
 	private parser: ComponentSchemaResolver;
 	private writer: ComponentWriter;
 
-	constructor(schemas: ComponentSchemas, config: ConfigType, options?: WriteIndexOptions) {
+	constructor(schemas: ComponentSchemas, config: ConfigType, options?: WriteIndexOptions, diagnostics?: SchemaDiagnostics) {
 		const normalizedConfig = applyFormattingDefaults(config);
-		this.parser = new ComponentSchemaResolver(schemas, normalizedConfig);
+		this.parser = new ComponentSchemaResolver(schemas, normalizedConfig, diagnostics);
 		this.writer = new ComponentWriter(normalizedConfig, options);
 	}
 
