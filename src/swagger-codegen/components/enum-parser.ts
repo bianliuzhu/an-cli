@@ -11,7 +11,6 @@ import {
 	resolveSchemaName,
 	sanitizeIdentifierName,
 	typeNameToFileName,
-	wordsToPascalCase,
 } from '../shared/naming';
 import { nullableSuffix } from '../shared/schema-utils';
 
@@ -179,12 +178,13 @@ export class EnumParser {
 		}
 
 		const enumEntries = normalizedEnumValues.map((item, index) => {
-			const memberName = this.resolveEnumMemberName(item, index, {
+			const rawMemberName = this.resolveEnumMemberName(item, index, {
 				customNames,
 				isNumericEnum,
 				treatStringAsNumeric,
 			});
-			const literalValue = isNumericEnum ? `${item}` : `'${String(item)}'`;
+			const memberName = /^[A-Za-z_$][\w$]*$/.test(rawMemberName) ? rawMemberName : JSON.stringify(rawMemberName);
+			const literalValue = isNumericEnum ? `${item}` : JSON.stringify(String(item));
 			const assignment = useConstObject ? `${memberName}: ${literalValue},` : `${memberName} = ${literalValue},`;
 			const description = descriptionMap?.[String(item)];
 
@@ -224,7 +224,7 @@ export class EnumParser {
 	 * @returns 枚举处理结果
 	 */
 	handleEnum(value: NonArraySchemaObject, key: string, isRequired = false): SchemaRenderResult | null {
-		const enumName = wordsToPascalCase(resolveSchemaName(key));
+		const enumName = resolveSchemaName(key);
 		const typeName = getEnumTypeName(this.config, enumName);
 		const fileName = typeNameToFileName(enumName);
 

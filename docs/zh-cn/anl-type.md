@@ -43,6 +43,62 @@ $ anl type
 
 本仓库的兼容性 CI 配置包含 macOS、Windows 与 Node.js 22、24。维护者可执行 `pnpm run test:codegen`，构建后验证首次初始化、全量/选择型生成、带空格路径以及真实 Prettier 格式化。
 
+#### OpenAPI Schema 兼容范围
+
+模型和接口内联类型共用解析核心，接受 OpenAPI 3.0.x 和 3.1.x。3.1 文档通过 schema 兼容层处理，覆盖 FastAPI 常见的 `anyOf` 空值联合、`type: 'null'`、`type` 数组、`const`、布尔 schema、`$ref` 同级约束及数值形式的排他边界；不会改写输入文件或示例数据。其他版本仍会在生成前报错。
+
+这不是完整的 JSON Schema 2020-12 实现：`prefixItems`、`patternProperties`、`unevaluatedProperties`、自定义方言和外部引用等高级特性仍未完整支持。3.1 中的旧 `nullable` 不参与类型约束，应使用 `null` 类型或空值联合；现有 3.0 文档继续使用原来的 `nullable` 规则。
+
+- `additionalProperties` 省略、`true` 或 `{}` 时允许额外字段；纯字典生成 `Record<string, unknown>`，指定值 schema 时递归生成 `Record<string, T>`。
+- `additionalProperties: false` 且没有固定字段时生成 `Record<string, never>`；有固定字段时保留字段，不生成开放索引签名。
+- 同时声明固定字段和动态字段时保留固定字段，索引值类型包含动态值及固定字段类型。TS 不能表示“除这些固定键以外的任意字符串键”，因此会给出放宽索引签名的警告。
+- 混合字典额外导出 `Model.Exact<Value>`，按 `Value` 的实际键集合检查额外字段类型。例如 `JSONObject.Exact<{ empty: boolean; custom: { value: number } }>` 允许固定布尔字段与额外对象字段，而 `JSONObject.Exact<{ custom: boolean }>` 不接受布尔类型的 `custom`。它不会改变原始模型的宽松索引签名，也不执行运行时校验；已被提前拓宽为原始模型的变量无法借此恢复精确键集合。
+- 含 `readOnly` / `writeOnly` 的模型及其引用方按需导出 `Model.Request` / `Model.Response`。请求参数、请求体自动选用请求方向，响应及 `unwrap(data)` 自动选用响应方向。请求中的 `readOnly`、响应中的 `writeOnly` 字段生成可选 `never`，不再参与必填要求，且不会被开放索引签名重新允许。原始 `Model` 保留全部字段用于兼容；递归模型、字典、数组及组合类型中的引用也会传播方向。
+- `required` 决定属性是否可省略，`nullable` 决定是否允许空值，两者独立。3.0 的 `nullable` 只扩展同层显式 `type`，不能覆盖 `enum`、`allOf` 等约束；数组元素单独递归处理。
+- `allOf` 按交集处理：可安全合并的开放对象会合并属性和 `required`，重复数组合并元素约束，避免数组交叉类型导致 `map` 回调推断变宽；同名属性不会按后者覆盖前者，而是保留交集。分页字段可复用其他分支中的类型定义，未定义类型的必填字段仍保留 `unknown`。封闭对象、受限字典、可空分支、额外校验约束等不能安全合并的场景继续生成交叉类型；复杂数组交叉类型仍可能存在方法推断限制。`anyOf` 映射联合类型，单分支 `oneOf` 直接等价于该分支，不发出排他性警告；多分支 `oneOf` 以联合类型近似并警告。多个组合关键字和同层类型约束共同生效。
+- 支持顶层字典、数组、原始类型、组合类型、别名和本地递归模型。缺失引用、纯别名循环及未支持的外部/非组件引用会诊断并降级为 `unknown`，不会生成不存在的导入。
+- 日期及时间格式默认生成 JSON 传输类型 `string`，不再隐式生成 `Date`；这可能需要调整已有调用方。生成器不会自动进行日期反序列化。
+- 响应类型优先使用已有媒体类型选择顺序，未命中时也解析 `text/html` 和自定义媒体类型中的 schema；缺失 schema 使用 `unknown`，不会生成空的类型声明。
+
+生成的 TS 类型不是运行时校验器。正则、数值范围、数组唯一性、`not`、`oneOf` 的排他性、非空对象的严格额外属性检查，以及闭合对象与 `allOf` 的作用域规则不能完全由 TS 保证。相关场景会输出诊断，必须使用与文档方言匹配的校验器验证实际载荷。开启 TypeScript `exactOptionalPropertyTypes` 可进一步阻止向可选 `never` 字段显式赋值 `undefined`；该值本身不会作为对象字段被 JSON 序列化。
+
+Schema 诊断在每个服务生成结束后按用途分级输出，不把合法的运行时约束当成生成错误：
+
+- `Schema runtime validation`：数值范围、正则、字符串长度、数组数量/唯一性、对象属性数量，以及非空对象的 `additionalProperties: false`。默认 `info` 级别仅输出一行数量摘要，不逐项刷屏；生成的 TS 类型没有执行这些校验。
+- `Schema warnings`：未支持的关键字、`not`、多分支 `oneOf` 近似、混合字典索引签名放宽等需要审查的情况，继续在 `warn` 级别展示消息与位置。缺失引用等解析问题也保留原有警告/错误处理，不受运行时提示降级影响。
+- 执行 `anl type --log-level verbose`，或设置 `logLevel: 'verbose'`，可查看全部运行时提示和路径；`warn` 隐藏运行时摘要但保留解析警告，`error`/`silent` 沿用原有日志过滤规则。
+
+相同分类、字段和提示只列一次，模型、请求/响应方向变体及响应解包共享去重记录；不同字段即使约束相同也分别计数。详细提示包含约束名称及 JSON Pointer 路径，例如 `#/components/schemas/Example/properties/count` 或 `#/paths/~1items/get/parameters/0/schema`。路径中的 `~1` 表示 `/`，`~0` 表示 `~`。详细信息按消息和路径排序，没有诊断时不输出摘要。
+
+以本次 `dot-ai-agent` 文档为例，原来的 73 项、9 类提示由 71 个数值/长度/数组约束位置和 2 个闭合对象模型组成，不代表 73 个生成错误。`AgentKnowledgeHubSearchDTO.query` 的 `maxLength: 200` 仍生成 `string`，`AgentKnowledgeHubFetchByCodesDTO.codes` 的 1～200 项限制仍生成字符串数组。`TriggerSearchRequest.agent_id` 的 `exclusiveMinimum: 0` 在内部兼容层表示为 `minimum: 0, exclusiveMinimum: true`，因此详细提示中出现两个关键字；原始规则仍是大于 0，输入文档不会被改写。
+
+OpenAPI 3.1 Schema Object 基于 JSON Schema 2020-12；官方规定了对实际数据的校验语义，但没有定义将所有校验规则无损转换为 TypeScript 类型的策略，也没有要求代码生成器将这些规则作为警告输出。`additionalProperties: false` 是合法规则，不应为了消除提示改成 `true`；TypeScript 对对象字面量的额外属性检查不等于运行时的严格对象校验，变量赋值也可能绕过该检查。
+
+需要完整校验时，应在请求/响应边界使用与原始文档方言匹配的 JSON Schema 校验器，并保留引用上下文；不要把内部兼容层归一化后的 Schema 当成原始 2020-12 Schema 使用。检查 OpenAPI 文档本身是否合规，与校验实际业务载荷是两件事。此命令仍只生成类型与 API，不自动安装校验器、修改请求模板或改变发送数据。
+
+参考：[OpenAPI 3.0 Schema Object](https://spec.openapis.org/oas/v3.0.3.html#schema-object)、[OpenAPI 3.1 Schema Object](https://spec.openapis.org/oas/v3.1.0.html#schema-object)、[JSON Schema 2020-12 Validation](https://json-schema.org/draft/2020-12/json-schema-validation)、[JSON Schema 对象与额外属性](https://json-schema.org/understanding-json-schema/reference/object#additionalproperties)。
+
+#### 模型与枚举命名
+
+类型名保留完整的 Schema 限定信息，使用**单下划线**连接各段，各段首字母大写，保留已有驼峰和缩写；文件名继续使用小写短横线。属性名、接口路径和枚举值属于传输协议，不随类型名修改。
+
+| Swagger Schema 名                              | TypeScript 名（无冲突时）                   | 文件名                                          |
+| ---------------------------------------------- | ------------------------------------------- | ----------------------------------------------- |
+| `services__card__types__WidgetType`            | `Services_Card_Types_WidgetType`            | `services-card-types-widget-type.ts`            |
+| `models__response__page_notice_vo__WidgetType` | `Models_Response_Page_Notice_Vo_WidgetType` | `models-response-page-notice-vo-widget-type.ts` |
+| `ApiResult_List_Dict__`                        | `ApiResult_List_Dict`                       | `api-result-list-dict.ts`                       |
+| `MediaDto-Input`                               | `MediaDto_Input`                            | `media-dto-input.ts`                            |
+| `UserDTO`                                      | `UserDTO`                                   | `user-dto.ts`                                   |
+
+- 连续下划线、短横线、点号、空格及其他非标识符分隔符合并为单下划线，去掉首尾分隔符。不会把 `vo` 猜测为 `VO`，避免未经声明的缩写转换。
+- 中文部分转拼音；数字开头加 `_` 保证标识符合法；空名称或只有分隔符时回退为 `Unknown`；合法 `$` 保留。
+- 不直接取最后一段 `WidgetType`：不同模块可以各自声明同名模型，保留前缀才能区分。
+- 按每个服务的完整 Schema 集合统一分配名称。不同原名若产生同一类型名或同一文件名，冲突项追加 `_` 和原名 SHA-256 的前 8 位；若后缀仍冲突，追加递增编号。分配按原名排序，不依赖 JSON 对象顺序，并避开 `index.ts` 导出入口与 `erasableSyntaxOnly` 模式的枚举 `Type` 别名。
+- 例如 `ApiResult_Dict_` 与 `ApiResult_dict_` 不能静默覆盖或任意合并：即使类型名大小写不同，文件名也可能相同。仅冲突项添加后缀；新增碰撞 Schema 时原有相关名称也可能变化。
+- 声明、导入、递归引用、接口出入参和响应解包使用同一份映射；`responseModelTransform.modelPattern` 同时兼容原始名称和生成名称。诊断仍定位原始 JSON Pointer。
+
+这是生成符号名称的变更，手写代码中引用旧名称（例如 `services__card__types__WidgetType`）的地方需要同步修改。升级后应重新生成整个受影响服务，不能只替换枚举文件；已有规范名称且无冲突的模型保持不变。
+
 #### 生成结束后输出接口列表（便于复制配置）
 
 `anl type` 支持在**整个生成流程结束后**，将接口列表输出到控制台，输出格式与 `an.config.json` 中的 `includeInterface` / `excludeInterface` 一致，方便直接复制粘贴。

@@ -11,7 +11,6 @@ import type {
 	PathsObject,
 	RequestTemplate,
 } from './types';
-import type { OpenAPIV3 } from 'openapi-types';
 
 import chalk from 'chalk';
 import fs from 'fs';
@@ -26,8 +25,10 @@ import { getSwaggerJson } from './get-data';
 import PathParse from './path/index';
 import { DEFAULT_REQUEST_TEMPLATE } from './shared/constants';
 import { computeSegment, getServiceIdentifier, getServiceTag, isEnumIsolated, segmentToNamespacePrefix } from './shared/naming';
+import { normalizeOpenApiDocument } from './shared/openapi-document';
 import { formatGeneratedFiles } from './shared/prettier';
 import { copyAjaxConfigFiles, normalizeRequestTemplate } from './shared/request-template';
+import { SchemaDiagnostics } from './shared/schema-diagnostics';
 import { mergeNamespaceExports, readIndexLines } from './shared/writer';
 
 let isConfigFile: boolean;
@@ -58,29 +59,37 @@ export class Main {
 			// 若需要本地调试示例数据，可以在 an.config.json 中将 swaggerConfig.url
 			// 配置为本地文件路径（例如 ./data/openapi.json.js），getSwaggerJson 会自动处理。
 			spinner.start('Fetching Swagger data...');
-			const response = (await getSwaggerJson(config)) as OpenAPIV3.Document;
+			const document = await getSwaggerJson(config);
 
-			if (!response) {
+			if (!document) {
 				spinner.error('Failed to fetch Swagger data');
 				throw new Error('无法获取 Swagger 数据');
 			}
+			const response = normalizeOpenApiDocument(document, (message) => log.warn(message));
 			spinner.success('Swagger data fetched');
 
 			this.schemas = response.components?.schemas ?? {};
 			this.paths = response.paths ?? {};
 
-			const components = new Components(this.schemas, config, { appendMode });
-			const paths = new PathParse(this.paths, response.components?.parameters, this.schemas, config);
+			const diagnostics = new SchemaDiagnostics(response);
+			const components = new Components(this.schemas, config, { appendMode }, diagnostics);
+			const paths = new PathParse(this.paths, response.components?.parameters, this.schemas, config, diagnostics);
 
 			spinner.start('Generating types and APIs...');
 			await components.handle();
 			await paths.handle();
 			spinner.success('Types and APIs generated');
+			diagnostics.flush((message, level) => {
+				if (level === 'info') log.print(message);
+				else if (level === 'verbose') log.verbose(message);
+				else log.warn(message);
+			});
 
 			if (show === 'gen') return paths.getGeneratedInterfacesForOutput();
 			if (show === 'miss') return paths.getMissingInterfacesForOutput();
 			return null;
 		} catch (error: unknown) {
+			spinner.error('Swagger generation failed');
 			if (error instanceof Error) {
 				throw new Error(`Handle Swagger data failed: ${error.message}`);
 			}

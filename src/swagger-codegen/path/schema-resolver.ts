@@ -1,3 +1,4 @@
+import type { SchemaDiagnostics } from '../shared/schema-diagnostics';
 import type {
 	ArraySchemaObject,
 	ComponentParameters,
@@ -13,25 +14,12 @@ import type {
 	SchemaTypeExpression,
 } from '../types';
 
-import { getIndentation, getLineEnding } from '../shared/format';
+import { log } from '../../utils';
+import { getIndentation, getLineEnding, indentContinuationLines } from '../shared/format';
 import { SUPPORTED_REQUEST_TYPES_ALL } from '../shared/http';
-import {
-	adjustImportPathForSegment,
-	appendEnumSegment,
-	containsChinese,
-	getEnumSegment,
-	getEnumTypeName,
-	getServerSegment,
-	resolveSchemaName,
-	typeNameToFileName,
-} from '../shared/naming';
-import { applyTypeMapping, formatObjectProperties, nullableSuffix, stringifyArrayType } from '../shared/schema-utils';
-
-const componentsPathEnum = {
-	schemas: '#/components/schemas/',
-	parameters: '#/components/parameters/',
-	definitions: '#/definitions/',
-};
+import { adjustImportPathForSegment, appendEnumSegment, createSchemaNameMap, getEnumSegment, getEnumTypeName, getServerSegment, typeNameToFileName } from '../shared/naming';
+import { directionalTypeName, isNamedEnumSchema, renderSchemaType, resolveLocalSchemaReference, type SchemaDirection } from '../shared/schema-type';
+import { formatObjectProperties } from '../shared/schema-utils';
 
 type ParseErrorHandler = (error: ParseError) => void;
 
@@ -40,13 +28,22 @@ export class SchemaResolver {
 	private schemas: ComponentSchemas;
 	private parameters: ComponentParameters;
 	private referenceCache = new Map<string, string>();
-	/** 拼音名 → 原始 schema 名的反向映射，用于 transformResponseModel 查找 schemas */
+	private schemaDiagnostics = new Set<string>();
+	private schemaNames: Map<string, string>;
 	private resolvedToOriginalName = new Map<string, string>();
 	private handleError: ParseErrorHandler;
 
-	constructor(config: PathParseConfig, schemas: ComponentSchemas, parameters: ComponentParameters, onError: ParseErrorHandler) {
+	constructor(
+		config: PathParseConfig,
+		schemas: ComponentSchemas,
+		parameters: ComponentParameters,
+		onError: ParseErrorHandler,
+		private readonly diagnostics?: SchemaDiagnostics,
+	) {
 		this.config = config;
 		this.schemas = schemas ?? {};
+		this.schemaNames = createSchemaNameMap(schemas, config.enmuConfig.erasableSyntaxOnly);
+		this.resolvedToOriginalName = new Map([...this.schemaNames].map(([raw, name]) => [name, raw]));
 		this.parameters = parameters ?? {};
 		this.handleError = onError;
 	}
@@ -62,90 +59,46 @@ export class SchemaResolver {
 	}
 
 	handleComplexType(schema: SchemaObject): string {
-		try {
-			if (schema.oneOf) {
-				return schema.oneOf.map((type) => this.stringifySchemaResult(this.main(type))).join(' | ');
-			}
-
-			if (schema.allOf) {
-				return schema.allOf.map((type) => this.stringifySchemaResult(this.main(type))).join(' & ');
-			}
-
-			if (schema.anyOf) {
-				return schema.anyOf.map((type) => this.stringifySchemaResult(this.main(type))).join(' | ');
-			}
-
-			if (schema.enum) {
-				if (schema.type === 'number' || schema.type === 'integer') {
-					return schema.enum.join(' | ');
-				}
-				return schema.enum.map((v) => `'${v}'`).join(' | ');
-			}
-
-			return 'unknown';
-		} catch (error) {
-			this.handleError({
-				type: 'SCHEMA',
-				message: 'Failed to handle complex type',
-				details: error,
-			});
-			return 'unknown';
-		}
+		return this.stringifySchemaResult(this.main(schema));
 	}
 
-	referenceObjectParse(refobj: ReferenceObject): string {
+	referenceObjectParse(refobj: ReferenceObject, direction?: SchemaDirection): string {
 		try {
 			const refKey = refobj.$ref;
-			const cachedValue = this.referenceCache.get(refKey);
+			const cacheKey = `${direction ?? 'shared'}:${refKey}`;
+			const cachedValue = this.referenceCache.get(cacheKey);
 			if (cachedValue) {
 				return cachedValue;
 			}
 
-			let typeName = refKey;
+			const target = resolveLocalSchemaReference(refKey, this.schemas, (message) => this.handleError({ type: 'REFERENCE', message }));
+			if (!target) return 'unknown';
+			const typeName = target.name;
 
-			if (refKey.startsWith(componentsPathEnum.schemas)) {
-				typeName = refKey.replace(componentsPathEnum.schemas, '');
-			}
-
-			if (refKey.startsWith(componentsPathEnum.parameters)) {
-				typeName = refKey.replace(componentsPathEnum.parameters, '');
-			}
-
-			if (refKey.startsWith(componentsPathEnum.definitions)) {
-				typeName = refKey.replace(componentsPathEnum.definitions, '');
-			}
-
-			const resolvedName = resolveSchemaName(typeName);
+			const resolvedName = this.schemaNames.get(typeName)!;
 			const fileName = typeNameToFileName(resolvedName);
 			const schema = this.schemas?.[typeName];
 
-			// 记录拼音名到原始名的映射，供 transformResponseModel 反查
-			if (containsChinese(typeName)) {
-				this.resolvedToOriginalName.set(resolvedName, typeName);
-			}
 			let isEnum = false;
 
 			if (schema && !('$ref' in schema)) {
 				const isObject = 'properties' in schema || schema.type === 'object';
 				const isArray = schema.type === 'array' || 'items' in schema;
-				const hasEnumField = 'enum' in schema && Array.isArray(schema.enum);
+				const hasEnumField = isNamedEnumSchema(schema);
 
 				if (hasEnumField && !isObject && !isArray) {
 					isEnum = true;
 				}
-			} else {
-				const regEnum = /Enum$/i;
-				isEnum = regEnum.test(typeName);
 			}
 
-			const finalTypeName = isEnum ? getEnumTypeName(this.config, resolvedName) : resolvedName;
+			const finalTypeName = isEnum ? getEnumTypeName(this.config, resolvedName) : directionalTypeName(resolvedName, target.schema, this.schemas, direction);
 
 			const segment = getServerSegment(this.config);
 			const enumImportPath = appendEnumSegment(adjustImportPathForSegment(this.config.importEnumPath ?? '', segment), getEnumSegment(this.config));
 			const modelsRelative = segment ? `../../models/${segment}` : '../models';
-			const importStatement = isEnum ? `import('${enumImportPath}/${fileName}').${finalTypeName}` : `import('${modelsRelative}/${fileName}').${resolvedName}`;
+			const importStatement = isEnum ? `import('${enumImportPath}/${fileName}').${finalTypeName}` : `import('${modelsRelative}/${fileName}').${finalTypeName}`;
 
-			this.referenceCache.set(refKey, importStatement);
+			this.referenceCache.set(cacheKey, importStatement);
 
 			return importStatement;
 		} catch (error) {
@@ -159,49 +112,12 @@ export class SchemaResolver {
 	}
 
 	nonArraySchemaObjectParse(nonArraySchemaObject: NonArraySchemaObject): SchemaTypeExpression {
-		if (!nonArraySchemaObject) return 'unknown';
-		if (nonArraySchemaObject.format === 'binary' || (nonArraySchemaObject.type === 'string' && nonArraySchemaObject.format === 'binary')) {
-			return 'File';
-		}
-
-		switch (nonArraySchemaObject.type) {
-			case 'boolean':
-				return 'boolean';
-			case 'integer':
-			case 'number':
-				return 'number';
-			case 'object':
-				return this.propertiesParse(nonArraySchemaObject.properties);
-			case 'string':
-				if (nonArraySchemaObject.format === 'binary') {
-					return 'File';
-				}
-				return 'string';
-			default:
-				return 'unknown';
-		}
+		return this.main(nonArraySchemaObject);
 	}
 
 	arraySchemaObjectParse(arraySchemaObject: ArraySchemaObject): string {
 		if (arraySchemaObject.type !== 'array') return '';
-		const { items } = arraySchemaObject;
-		const referenceObject = '$ref' in (items as ReferenceObject) ? (items as ReferenceObject) : null;
-		const schemaObject = items as SchemaObject;
-
-		if (referenceObject) {
-			const val = this.referenceObjectParse(referenceObject);
-			return `Array<${val}>`;
-		}
-
-		if (schemaObject) {
-			const val = this.main(items);
-			if (Array.isArray(val)) {
-				return `Array<{${val.join('\n')}}>`;
-			} else {
-				return `Array<${val}>`;
-			}
-		}
-		return '';
+		return this.stringifySchemaResult(this.main(arraySchemaObject));
 	}
 
 	propertiesParse(properties: SchemaObject['properties']): string[] {
@@ -227,10 +143,10 @@ export class SchemaResolver {
 
 		// 如果配置了 modelPattern，只对匹配的类型名进行转换
 		if (transform.modelPattern && typeof responseType === 'string') {
-			const importMatch = /^import\('[^']+'\)\.(\w+)$/.exec(responseType);
+			const importMatch = /^import\('[^']+'\)\.([\w$]+)(?:\.(?:Request|Response))?$/.exec(responseType);
 			const typeNameForMatch = importMatch ? importMatch[1] : responseType;
 			const pattern = new RegExp(transform.modelPattern);
-			if (!pattern.test(typeNameForMatch)) {
+			if (!pattern.test(this.resolvedToOriginalName.get(typeNameForMatch) ?? typeNameForMatch) && !pattern.test(typeNameForMatch)) {
 				return responseType;
 			}
 		}
@@ -251,7 +167,7 @@ export class SchemaResolver {
 					}
 
 					// 检查是否是导入类型（例如: import('../models/result-message-boolean').ResultMessageBoolean）
-					const importMatch = /^import\('([^']+)'\)\.(\w+)$/.exec(responseType);
+					const importMatch = /^import\('([^']+)'\)\.([\w$]+)(?:\.(?:Request|Response))?$/.exec(responseType);
 					if (importMatch) {
 						const [, _importPath, typeName] = importMatch;
 						// 查找对应的 schema（优先通过反向映射查找原始中文名称）
@@ -263,7 +179,7 @@ export class SchemaResolver {
 							if (schemaObj.properties?.[dataField]) {
 								const dataFieldSchema = schemaObj.properties[dataField];
 								// 解析 data 字段的类型
-								const dataType = this.main(dataFieldSchema as Schema);
+								const dataType = this.main(dataFieldSchema as Schema, 'response');
 								if (Array.isArray(dataType)) {
 									// 如果 data 字段是对象类型，返回对象字段数组
 									return dataType;
@@ -306,7 +222,7 @@ export class SchemaResolver {
 								const objContent = responseType.join('\n');
 								fields.push(`${doubleIndent}${fieldName}?: {${objContent}\n${doubleIndent}};`);
 							} else {
-								fields.push(`${doubleIndent}${fieldName}?: ${responseType};`);
+								fields.push(`${doubleIndent}${fieldName}?: ${indentContinuationLines(responseType, doubleIndent)};`);
 							}
 						} else {
 							fields.push(`${doubleIndent}${fieldName}?: ${fieldType};`);
@@ -345,7 +261,7 @@ export class SchemaResolver {
 	responseObjectParse(responseObject: ResponseObject): SchemaTypeExpression {
 		try {
 			const content = responseObject.content;
-			if (!content) return '';
+			if (!content) return 'unknown';
 
 			let schema;
 
@@ -355,63 +271,48 @@ export class SchemaResolver {
 					break;
 				}
 			}
+			schema ??= Object.keys(content)
+				.sort()
+				.map((type) => content[type].schema)
+				.find((candidate) => candidate !== undefined);
 
 			if (schema) {
-				return this.main(schema);
+				return this.main(schema, 'response');
 			}
 
-			return '';
+			return 'unknown';
 		} catch (error) {
 			this.handleError({
 				type: 'RESPONSE',
 				message: 'Failed to parse response object',
 				details: error,
 			});
-			return '';
+			return 'unknown';
 		}
 	}
 
-	main(schema: Schema | undefined): SchemaTypeExpression {
+	main(schema: Schema | undefined, direction?: SchemaDirection): SchemaTypeExpression {
 		try {
 			if (!schema) return 'unknown';
-
-			if ('oneOf' in schema || 'allOf' in schema || 'anyOf' in schema || 'enum' in schema) {
-				return this.handleComplexType(schema);
-			}
-
-			if ('$ref' in schema) {
-				return this.referenceObjectParse(schema);
-			}
-
-			const schemaObj = schema;
-			const type = schemaObj.type;
-			const nullableStr = nullableSuffix(schemaObj.nullable);
-
-			const mappedType = applyTypeMapping(this.config, schemaObj);
-			if (mappedType) {
-				return mappedType;
-			}
-
-			if (type === 'array' && schemaObj.items) {
-				const itemType = this.main(schemaObj.items as Schema);
-				return stringifyArrayType(itemType, this.config);
-			}
-
-			if (type === 'object' || typeof schemaObj === 'object') {
-				if (schemaObj.properties) {
-					const props = this.propertiesParse(schemaObj.properties);
-					return props.length ? props : ['unknown'];
-				}
-				if (schemaObj.additionalProperties === true) {
-					return 'Record<string, unknown>' + nullableStr;
-				}
-				if (typeof schemaObj.additionalProperties === 'object') {
-					const valueType = this.main(schemaObj.additionalProperties as Schema) as string;
-					return `Record<string, ${valueType}>` + nullableStr;
-				}
-			}
-
-			return 'unknown';
+			return renderSchemaType(schema, {
+				schemaPath: (child) => this.diagnostics?.pathFor(child),
+				indentation: getIndentation(this.config),
+				direction,
+				schemas: this.schemas,
+				reference: (reference) => this.referenceObjectParse({ $ref: reference }, direction),
+				mapping: (child) => this.config.typeMapping?.get(child.format ?? '') ?? this.config.typeMapping?.get(child.type ?? ''),
+				diagnostic: (message, path, kind) => {
+					if (this.diagnostics) {
+						this.diagnostics.add(message, path, kind);
+						return;
+					}
+					const entry = `${kind}: ${path}: ${message}`;
+					if (this.schemaDiagnostics.has(entry)) return;
+					this.schemaDiagnostics.add(entry);
+					if (kind === 'runtime') log.verbose(`${path}: ${message}`);
+					else log.warn(`${path}: ${message}`);
+				},
+			});
 		} catch (error) {
 			this.handleError({
 				type: 'SCHEMA',

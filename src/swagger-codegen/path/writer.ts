@@ -2,7 +2,7 @@ import type { EndpointDefinition, EndpointDefinitionMap, PathParseConfig } from 
 
 import { clearDir, log, runWithConcurrency, writeFileRecursive } from '../../utils';
 import { PAD_END } from '../shared/constants';
-import { getIndentation } from '../shared/format';
+import { getIndentation, getLineEnding } from '../shared/format';
 import { getServerSegment } from '../shared/naming';
 
 // 限制并发文件写入数，避免在 macOS 上触发 EMFILE: too many open files
@@ -51,7 +51,7 @@ export class PathWriter {
 			];
 
 			const _path = `${connectorsDir}/${fileName}.d.ts`;
-			await writeFileRecursive(_path, contentArray.join('\n'));
+			await writeFileRecursive(_path, contentArray.join('\n').replace(/\r?\n/g, getLineEnding(this.config)));
 			log.info(`${_path.padEnd(PAD_END)} - Write done!`);
 		};
 
