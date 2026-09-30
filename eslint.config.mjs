@@ -54,8 +54,7 @@ export default defineConfig([
 			},
 			parser: tseslint.parser,
 			parserOptions: {
-				// 只引用仓库中真实存在的 tsconfig，避免 ESLint type-aware 解析失败
-				project: ['./tsconfig.json'],
+				projectService: true,
 				tsconfigRootDir: import.meta.dirname,
 			},
 		},

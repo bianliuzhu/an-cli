@@ -14,6 +14,7 @@
 > an-cli is a frontend command-line tool that includes the following commands:
 >
 > - `anl type` command: A command-line tool that automatically generates TypeScript type definitions and API request functions based on Swagger JSON.
+> - `anl mock` command: Generates Mock.js JSON files from local service response types for mock-service-plugin. [Documentation](https://bianliuzhu.github.io/an-cli/#/en/anl-mock).
 > - `anl lint` command: Generates eslint, stylelint, prettier, commitLint, and VSCode related configurations for React or Vue projects
 > - `anl git` command: Generates git local configuration with optional features: gitflow standard branch creation, git commit messages subject, and git custom command configuration
 
@@ -58,6 +59,7 @@
 > an-cli 是前端命令行工具，包含以下命令:
 >
 > - `anl type` 命令：基于 Swagger JSON 自动生成 TypeScript 类型定义和 API 请求函数的命令行工具。
+> - `anl mock` 命令：从本地服务响应类型生成供 mock-service-plugin 使用的 Mock.js JSON 文件。[使用文档](https://bianliuzhu.github.io/an-cli/#/zh-cn/anl-mock)。
 > - `anl lint` 命令: 生成 react 或 vue 项目 eslint、stylelint、prettier、commitLint、VSCode相关配置
 > - `anl git` 命令: 生成 git 本地配置，并设有可选功能： gitflow 标准分支创建、git commit messages 主题、git 自定义命令配置
 

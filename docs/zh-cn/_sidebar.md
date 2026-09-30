@@ -3,6 +3,7 @@
 - [概览](zh-cn/)
 - [安装](zh-cn/install)
 - [type 命令](zh-cn/anl-type)
+- [mock 命令](zh-cn/anl-mock)
 - [skill 命令](zh-cn/anl-skill)
 - [lint 命令](zh-cn/anl-lint)
 - [git 命令](zh-cn/anl-git)
