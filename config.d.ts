@@ -26,6 +26,22 @@ export interface IIncludeInterface {
 	dataLevel?: TDatalevel;
 }
 
+export type MockValue = string | number | boolean | null | MockValue[] | { [key: string]: MockValue };
+
+export interface MockGenerationOptions {
+	/** 数组默认元素数量，默认 1，取值 1-100 */
+	arrayLength?: number;
+	/** 类型递归最大深度，默认 8，取值 1-30 */
+	maxDepth?: number;
+	/** 覆盖响应根节点已有字段的模板值，例如 { code: 200, msg: 'OK' }；不会添加未声明字段 */
+	responseDefaults?: Record<string, MockValue>;
+}
+
+export interface MockConfig extends MockGenerationOptions {
+	/** mock-service-plugin 扫描的根目录，相对于项目根目录，默认 mocks */
+	mockDir?: string;
+}
+
 export interface IConfigSwaggerServer {
 	/** 服务名称，作为 `anl type --service <name>` 的匹配标识，建议在多服务场景下显式指定。
 	 * 未指定时，会回退到 apiListFileName 去扩展名后的值作为标识。 */
@@ -54,6 +70,8 @@ export interface IConfigSwaggerServer {
 	modulePrefix?: string;
 	/** 响应模型转换配置 */
 	responseModelTransform?: IResponseModelTransform;
+	/** 当前服务的 mock 生成选项，覆盖全局 mock 配置 */
+	mock?: MockGenerationOptions;
 	/** 请求超时时间（毫秒），默认 60000 */
 	timeout?: number;
 	/** 命名空间隔离策略（服务级配置）：
@@ -74,6 +92,8 @@ export interface ConfigType {
 	saveTypeFolderPath: string;
 	/** 存放生成的 api 文件的文件夹路径 */
 	saveApiListFolderPath: string;
+	/** anl mock 生成选项 */
+	mock?: MockConfig;
 	/** 兼容旧配置的 swagger json 地址（已迁移到 swaggerConfig 中） */
 	swaggerJsonUrl?: string;
 	/** swagger 服务器列表 */

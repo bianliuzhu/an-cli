@@ -3,6 +3,7 @@ import inquirer from 'inquirer';
 
 import data from '../package.json';
 import { type GitFeatureOption, gitHandle } from './git-local-config';
+import { type MockCommandOptions, mockHandle } from './mock-generator';
 import { skillHandle } from './skill-init';
 import { lintHandle } from './standard/lint-init';
 import { Main } from './swagger-codegen';
@@ -40,6 +41,21 @@ program
 		const Instance = new Main();
 		Instance.initialize(show, options.format, options.logLevel, services, options.template).catch((error) => {
 			console.error(error);
+		});
+	});
+
+program
+	.command('mock')
+	.description('generate Mock.js JSON files from generated service response types')
+	.option('-S, --service <names>', 'generate specified services; comma-separated names or API file names without extension')
+	.option('-a, --all', 'generate all available services without prompting')
+	.option('-d, --mock-dir <path>', 'override mock.mockDir (default: mocks)')
+	.option('--overwrite', 'overwrite existing mocks; existing files are skipped by default')
+	.option('-l, --log-level <level>', 'set log output level: silent | error | warn | info | verbose')
+	.action((options: MockCommandOptions) => {
+		mockHandle(options).catch((error: unknown) => {
+			console.error(error instanceof Error ? error.message : error);
+			process.exitCode = 1;
 		});
 	});
 
