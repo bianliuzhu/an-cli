@@ -3,8 +3,10 @@
 > an-cli 是前端命令行工具，包含以下命令:
 >
 > - `anl type` 命令：基于 Swagger JSON 自动生成 TypeScript 类型定义和 API 请求函数的命令行工具。
+> - `anl mock` 命令：根据本地 API 响应类型递归生成 Mock.js JSON 模板，供 mock-service-plugin 提供 HTTP mock 服务。
 > - `anl lint` 命令: 生成 react 或 vue 项目 eslint、stylelint、prettier、commitLint、VSCode相关配置
 > - `anl git` 命令: 生成 git 本地配置，并设有可选功能： gitflow 标准分支创建、git commit messages 主题、git 自定义命令配置
+> - `anl skill` 命令：初始化 AI 辅助开发的 Agent Skill 文件，支持 api-report 和 api-mock。
 
 ## 工具介绍
 
@@ -24,6 +26,13 @@
   - 可配置的代码生成选项
   - 支持多 Swagger 服务器配置
   - 支持 OPTIONS、HEAD、SEARCH 等 HTTP 方法
+
+- `anl mock`
+  - 选择单个、多个或全部已生成的服务
+  - 根据响应类型和请求方法推导响应外壳，递归生成 Mock.js 模板
+  - 自动生成 `@url`、`@method` 注释，按服务目录输出文件
+  - 默认保留已有 mock，可通过 `--overwrite` 显式覆盖
+  - [使用说明与插件安装](zh-cn/anl-mock)
 
 - `anl lint`
   - 一键配置各种 lint 工具
@@ -49,12 +58,13 @@
 >
 > 1. 如果初次使用，不清楚会产生什么结果，建议先执行命令，观察会在项目中发生什么变化，然后再结合文档进一步修改配置，再次生成，最终达到自己理想中的样子
 > 2. 或者跟着文档步骤一步一步做
-> 3. 请在项目根目录执行 `anl type`、`anl lint`、`anl git` 命令
+> 3. 请在项目根目录执行 `anl type`、`anl mock`、`anl lint`、`anl git`、`anl skill` 命令
 
 ## 下一步
 
 - [安装](zh-cn/install)
 - [type 命令](zh-cn/anl-type)
+- [mock 命令与插件安装](zh-cn/anl-mock)
 - [lint 命令](zh-cn/anl-lint)
 - [git 命令](zh-cn/anl-git)
 - [skill 命令](zh-cn/anl-skill)

@@ -11,6 +11,12 @@
 | **api-report** | API 变更检测报告 — 对比 API 文件的 git 变更，分析类型变化和影响范围，生成结构化报告 |
 | **api-mock**   | Mock 数据生成 — 根据 API 定义和关联类型，生成符合 MockJS 语法的 mock 数据文件       |
 
+### 与 anl mock 的区别
+
+`anl skill` 的 `api-mock` 选项只生成供 AI 工具使用的 Skill 文件，需要后续调用 AI 才会生成 mock。`anl mock` 则是独立的 CLI 命令，直接解析本地 TypeScript 响应类型并生成 Mock.js 模板，不依赖 AI，也不需要先运行 `anl skill`。
+
+需要直接生成服务 mock 时，使用 `anl mock` 或 `anl mock -S <服务名>`。两种方式生成的模板都需要 mock 服务来响应 HTTP 请求，插件安装和启动示例见 [mock 命令与插件安装](zh-cn/anl-mock)。
+
 ### 前置条件
 
 - 项目根目录下必须存在 `an.config.json` 配置文件

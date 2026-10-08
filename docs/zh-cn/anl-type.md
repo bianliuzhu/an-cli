@@ -35,6 +35,8 @@
 $ anl type
 ```
 
+类型和接口列表生成后，可运行 `anl mock` 选择服务，或使用 `anl mock -S growth` 生成指定服务的 mock 文件（将 `growth` 替换为实际服务名）。`anl type` 本身不生成 mock，也不启动服务；插件安装、响应类型推导和启动步骤见 [mock 命令](zh-cn/anl-mock)。
+
 #### macOS 与 Windows
 
 `anl type` 的目录清理使用 Node.js 文件系统 API，不依赖 `rm` 或 Git Bash。配置路径支持原生分隔符和空格；建议在配置中使用 `src/types` 这样的正斜杠相对路径，便于跨平台共享。

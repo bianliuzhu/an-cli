@@ -2,6 +2,8 @@
 
 `anl mock` 根据 `anl type` 已生成的 API 列表和 TypeScript 响应类型，生成供 `mock-service-plugin` 读取的 Mock.js JSON 模板。只生成文件，不启动 mock 服务，不访问 Swagger，也不执行项目中的 API 或请求模块。
 
+尚未安装 CLI 时，先参考 [anl 安装说明](zh-cn/install)。无需安装 AI 工具或执行 `anl skill`；后者初始化的是供 AI 使用的指令文件，详见 [skill 命令](zh-cn/anl-skill)。
+
 ## 安装 mock 服务插件
 
 插件安装包地址：[mock-service-plugin（npm）](https://www.npmjs.com/package/mock-service-plugin)。该页面也提供插件的使用说明。
@@ -48,6 +50,7 @@ anl mock -S growth --mock-dir mocks --log-level verbose
 
 例如 `appGrowthSurvey_code_GET` 使用 `/app/growth/survey/${code}`，生成文件为 `mocks/growth/appGrowthSurvey_code_GET.json`，路径参数保留原名 `:code`。下面省略了部分响应字段：
 
+<!-- prettier-ignore -->
 ```jsonc
 /**
  * Survey response
@@ -60,13 +63,60 @@ anl mock -S growth --mock-dir mocks --log-level verbose
 	"data": {
 		"code": "@string",
 		"id": "@guid",
-		"version": "@integer(0,100)",
+		"version": "@integer(0,100)"
 	},
-	"success": true,
+	"success": true
 }
 ```
 
-文件是插件约定的“头部注释 + JSON”，不能直接把整个文件传给 `JSON.parse`。插件会移除注释，再用 `Mock.mock()` 渲染内容。`mock-service-plugin` 会递归扫描子目录，所以 `startServer` 的 `mockDir` 指向 `mocks` 根目录即可，原有 `npm run mock` 启动方式不需要改变。
+文件是插件约定的“头部注释 + JSON”，不能直接把整个文件传给 `JSON.parse`。插件会移除注释，对正文执行 `JSON.parse` 后再用 `Mock.mock()` 渲染，因此正文必须是严格 JSON，不能有尾逗号或额外注释。`mock-service-plugin` 会递归扫描子目录，所以 `startServer` 的 `mockDir` 指向 `mocks` 根目录即可。
+
+## 启动 mock 服务
+
+首次接入可采用以下独立启动方式，推荐使用 Node.js 22 或 24。在用户项目中新增 `scripts/mock-server.mjs`，`.mjs` 可直接使用 ESM，无需修改项目的 `type` 配置或安装 TypeScript 执行器：
+
+```mjs
+import { mkdirSync } from 'node:fs';
+import { fileURLToPath } from 'node:url';
+import { startServer } from 'mock-service-plugin';
+
+const mockDir = fileURLToPath(new URL('../mocks/', import.meta.url));
+mkdirSync(mockDir, { recursive: true });
+
+startServer({ mockDir, port: 3008 });
+```
+
+`mockDir` 必须与 `an.config.ts` 中的 `mock.mockDir` 或 `--mock-dir` 指定的目录一致。`3008` 已被占用时，选择其他空闲端口，并同步修改前端开发代理。
+
+将下面的命令合并到项目现有 `package.json` 的 `scripts` 中，保留其他脚本：
+
+```json
+{
+	"scripts": {
+		"mock:generate": "anl mock",
+		"mock:server": "node scripts/mock-server.mjs"
+	}
+}
+```
+
+完成 API 生成后，先生成 mock，再启动服务：
+
+```bash
+npm run mock:generate -- -S growth
+npm run mock:server
+```
+
+将 `growth` 替换为项目实际服务。使用 pnpm/Yarn 时，分别运行 `pnpm run mock:generate -S growth`、`yarn mock:generate -S growth`，再通过 `pnpm run mock:server`、`yarn mock:server` 启动。
+
+服务启动后，在另一个终端使用实际接口路径验证，例如：
+
+```bash
+curl 'http://localhost:3008/app/growth/survey/example-code'
+```
+
+前端开发服务需要单独启动，并将需要 mock 的请求通过开发代理转发到 `http://localhost:3008`，保留与 `@url` 一致的完整路径，例如 `/app/...` 或 `/dot-ai-agent/...`。生成文件和启动插件不会自动修改应用的请求地址。插件仅用于开发，不应加入生产启动流程。
+
+如果已有 `npm run mock` 会调用 `startServer({ mockDir, port })`（例如 app-h5-view 的 Nuxt mock 模式），继续使用原命令即可，不要再同时启动第二个 mock 服务。
 
 ## 配置
 
@@ -114,6 +164,18 @@ export default defineConfig({
 - 循环引用、最大深度和单接口 10000 个展开节点的上限会截断输出并提示；截断处可能需要人工补全。字符串模式等无法安全推导的结构会提供占位和警告。
 - 这里只生成 JSON 模板，不构建流、文件响应或业务场景。数组间的 ID 关联、标签与颜色映射、成功码语义等不能仅凭 TypeScript 类型确定。
 
-诊断摘要会显示待检查字段数量，`--log-level verbose` 可查看具体接口和字段路径。生成后仍通过项目已有的 `npm run mock` 启动插件。
+## 查看生成警告
+
+```bash
+anl mock -S agent --log-level verbose
+```
+
+`field(s) need review` 统计的是字段位置，不是失败接口数。详细输出包含接口名、字段路径和原因；例如 `dictionary values have no inferable structure; emitted {}` 表示当前声明是没有具体结构的字典，`unknown ... emitted null` 表示值类型未知。这些警告不会阻止其他字段或接口生成。
+
+增大 `maxDepth` 只对 `maximum depth ... reached` 有帮助，不能补足 `unknown` 的结构，也不能解除循环引用。固定结构应完善类型定义后重新生成；动态 JSON 则需要手工完善 mock。
+
+`generated` 是新建文件数，`overwritten` 是显式覆盖数，`skipped` 是保留已有文件数。诊断先于文件跳过判断收集，因此已跳过接口仍可能出现字段警告；仅查看警告不需要加 `--overwrite`。后续要更新已有文件时，再确认使用该选项。
+
+生成后通过上述 `npm run mock:server` 或项目已有的 `npm run mock` 启动插件。
 
 Mock.js 语法参考：[数据模板和占位符规范](https://github.com/nuysoft/Mock/wiki/Syntax-Specification)、[基础类型](https://github.com/nuysoft/Mock/wiki/Basic)、[GUID 与身份证号](https://github.com/nuysoft/Mock/wiki/Miscellaneous)。
