@@ -2,6 +2,11 @@
 
 [English](https://bianliuzhu.github.io/an-cli/#/en/) | [简体中文](https://bianliuzhu.github.io/an-cli/#/zh-cn/) | [日本語](https://bianliuzhu.github.io/an-cli/#/jp/) | [Español](https://bianliuzhu.github.io/an-cli/#/es/) | [Français](https://bianliuzhu.github.io/an-cli/#/fr/) | [Русский](https://bianliuzhu.github.io/an-cli/#/ru/) | [العربية](https://bianliuzhu.github.io/an-cli/#/ar/)
 
+> [!NOTE]
+> Starting from version **26.201.0**, new features are documented only in **English** and **简体中文**. Other language versions are no longer updated.
+>
+> 从 **26.201.0** 版本开始，新增功能仅更新 **英文** 和 **简体中文** 文档，其他语言文档不再更新。
+
 ---
 
 # Overview
@@ -12,6 +17,7 @@
 > - `anl mock` command: Generates Mock.js JSON files from local service response types for mock-service-plugin. [Documentation](https://bianliuzhu.github.io/an-cli/#/en/anl-mock).
 > - `anl lint` command: Generates eslint, stylelint, prettier, commitLint, and VSCode related configurations for React or Vue projects
 > - `anl git` command: Generates git local configuration with optional features: gitflow standard branch creation, git commit messages subject, and git custom command configuration
+> - `anl skill` command: Initializes Agent Skill files for AI-assisted development, supporting api-report and api-mock skills.
 
 ## Features
 
@@ -27,6 +33,13 @@
   - 🌐 Supports multiple Swagger server configurations
   - 🔧 Supports HTTP methods like OPTIONS, HEAD, SEARCH
 
+- `anl mock`
+  - Select one, multiple, or all generated services
+  - Recursively generate Mock.js templates with inferred response envelopes
+  - Write service-scoped JSON files with `@url` and `@method` headers
+  - Preserve existing mocks unless `--overwrite` is specified
+  - [Usage and plugin installation](https://bianliuzhu.github.io/an-cli/#/en/anl-mock)
+
 - `anl lint`
   - 🔍 One-click configuration for various lint tools
   - 🎨 Automated ESLint configuration
@@ -41,6 +54,11 @@
   - 🔄 Provides git custom command configuration and entry points
   - 📦 Automated generation with zero configuration
 
+- `anl skill`
+  - Initialize Agent Skill files for AI-assisted development
+  - Support api-report for API change reports and api-mock for AI-assisted mock generation
+  - [Usage](https://bianliuzhu.github.io/an-cli/#/en/anl-skill)
+
 ---
 
 # 功能概述
@@ -51,6 +69,7 @@
 > - `anl mock` 命令：从本地服务响应类型生成供 mock-service-plugin 使用的 Mock.js JSON 文件。[使用文档](https://bianliuzhu.github.io/an-cli/#/zh-cn/anl-mock)。
 > - `anl lint` 命令: 生成 react 或 vue 项目 eslint、stylelint、prettier、commitLint、VSCode相关配置
 > - `anl git` 命令: 生成 git 本地配置，并设有可选功能： gitflow 标准分支创建、git commit messages 主题、git 自定义命令配置
+> - `anl skill` 命令：初始化 AI 辅助开发的 Agent Skill 文件，支持 api-report 和 api-mock。
 
 ## 功能特点
 
@@ -66,6 +85,13 @@
   - 🌐 支持多 Swagger 服务器配置
   - 🔧 支持 OPTIONS、HEAD、SEARCH 等 HTTP 方法
 
+- `anl mock`
+  - 选择单个、多个或全部已生成的服务
+  - 推导响应外壳并递归生成 Mock.js 模板
+  - 按服务目录输出带有 `@url`、`@method` 注释的 JSON 文件
+  - 默认保留已有 mock，仅在指定 `--overwrite` 时覆盖
+  - [使用说明与插件安装](https://bianliuzhu.github.io/an-cli/#/zh-cn/anl-mock)
+
 - `anl lint`
   - 🔍 一键配置各种 lint 工具
   - 🎨 ESLint 配置自动化
@@ -79,6 +105,11 @@
   - 🎯 符合 CommitLint 提交规范的主题自动设置
   - 🔄 提供 git 自定义命令配置以及入口
   - 📦 自动化生成 0 配置
+
+- `anl skill`
+  - 初始化 AI 辅助开发的 Agent Skill 文件
+  - 支持 api-report 接口变更报告与 api-mock AI 辅助 mock 生成
+  - [使用说明](https://bianliuzhu.github.io/an-cli/#/zh-cn/anl-skill)
 
 ---
 

@@ -50,6 +50,87 @@ export declare function GET<Data>(url: string, params: unknown, level?: 'data'):
 export declare function GET<Data>(url: string, params: unknown, level?: 'axios'): Promise<{ data: ResponseModel<Data>; status: number }>;
 `;
 
+test('mock documentation covers maintained entry points, installation and valid examples', async () => {
+	const root = path.resolve(__dirname, '..');
+	const readDocument = (fileName) => fs.readFile(path.join(root, fileName), 'utf8');
+	const source = ts.createSourceFile('src/index.ts', await readDocument('src/index.ts'), ts.ScriptTarget.Latest, true);
+	const commands = new Set();
+	const visit = (node) => {
+		if (
+			ts.isCallExpression(node) &&
+			ts.isPropertyAccessExpression(node.expression) &&
+			node.expression.name.text === 'command' &&
+			node.arguments[0] &&
+			ts.isStringLiteral(node.arguments[0])
+		) {
+			commands.add(node.arguments[0].text);
+		}
+		ts.forEachChild(node, visit);
+	};
+	visit(source);
+	assert.ok(commands.has('mock'));
+	const checkOverview = (text, context) => {
+		for (const command of commands) {
+			assert.ok(text.includes(`> - \`anl ${command}\``), `${context}: missing ${command} summary`);
+			assert.ok(text.includes(`\n- \`anl ${command}\``), `${context}: missing ${command} features`);
+		}
+	};
+	for (const fileName of ['README.md', 'docs/README.md']) {
+		const text = await readDocument(fileName);
+		for (const heading of ['# Overview', '# 功能概述']) {
+			assert.ok(text.includes(heading), `${fileName}: missing ${heading}`);
+			checkOverview(text.slice(text.indexOf(heading) + heading.length).split('\n# ')[0], `${fileName} ${heading}`);
+		}
+	}
+	for (const locale of ['zh-cn', 'en']) {
+		const directory = `docs/${locale}`;
+		const overview = await readDocument(`${directory}/README.md`);
+		const sidebar = await readDocument(`${directory}/_sidebar.md`);
+		checkOverview(overview, directory);
+		for (const command of commands) {
+			const link = `(${locale}/anl-${command})`;
+			assert.ok(overview.includes(link), `${directory}: missing overview link ${command}`);
+			assert.ok(sidebar.includes(link), `${directory}: missing sidebar link ${command}`);
+			await fs.access(path.join(root, directory, `anl-${command}.md`));
+		}
+		const install = await readDocument(`${directory}/install.md`);
+		const installExample = install.match(/```json\n([\s\S]*?)\n```/);
+		assert.ok(installExample, `${directory}: missing installation scripts`);
+		const { scripts } = JSON.parse(installExample[1]);
+		for (const command of commands) {
+			assert.ok(install.includes(command), `${directory}: missing installed command ${command}`);
+			assert.ok(
+				Object.values(scripts).some((value) => value.includes(`anl ${command}`)),
+				`${directory}: missing script ${command}`,
+			);
+		}
+		for (const page of ['install.md', 'anl-type.md', 'anl-skill.md']) {
+			assert.ok((await readDocument(`${directory}/${page}`)).includes(`(${locale}/anl-mock)`), `${directory}/${page}: missing mock link`);
+		}
+		const mock = await readDocument(`${directory}/anl-mock.md`);
+		assert.ok(mock.includes('https://www.npmjs.com/package/mock-service-plugin'));
+		for (const command of [
+			'npm install -D mock-service-plugin',
+			'pnpm add -D mock-service-plugin',
+			'yarn add -D mock-service-plugin',
+			'npm run mock:generate -- -S growth',
+			'npm run mock:server',
+		]) {
+			assert.ok(mock.includes(command), `${directory}: missing ${command}`);
+		}
+		assert.ok(mock.includes('anl mock -S agent --log-level verbose'));
+		const examples = [...mock.matchAll(/```jsonc?\n([\s\S]*?)\n```/g)].map((match) => JSON.parse(match[1].replace(/^\s*\/\*[\s\S]*?\*\//, '')));
+		assert.equal(examples.find((example) => example.scripts)?.scripts['mock:server'], 'node scripts/mock-server.mjs');
+		const response = examples.find((example) => example.data);
+		assert.ok(response, `${directory}: missing response example`);
+		assert.equal(Mock.mock(response).success, true);
+		const starter = mock.match(/```mjs\n([\s\S]*?)\n```/);
+		assert.ok(starter, `${directory}: missing startup example`);
+		const checked = spawnSync(process.execPath, ['--input-type=module', '--check'], { input: starter[1], encoding: 'utf8' });
+		assert.equal(checked.status, 0, checked.stderr);
+	}
+});
+
 test('reader infers the HTTP envelope for every data level without modifying API files', async (context) => {
 	const apiSource = `
 import { GET as read } from './config/fetch';

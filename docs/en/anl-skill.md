@@ -11,6 +11,12 @@ Currently supports two Skills:
 | **api-report** | API Change Detection Report — compares API file changes via git diff, analyzes type changes and impact scope, generates a structured report |
 | **api-mock**   | Mock Data Generation — generates MockJS-compliant mock data files based on API definitions and associated types                             |
 
+### Difference from anl mock
+
+The `api-mock` option in `anl skill` only creates Skill files for an AI tool; generating mocks requires a subsequent AI invocation. `anl mock` is a separate CLI command that directly reads local TypeScript response types and writes Mock.js templates. It does not require AI or a prior `anl skill` run.
+
+To generate service mocks directly, use `anl mock` or `anl mock -S <service>`. Templates from either workflow need a mock server to respond to HTTP requests. See [mock Command and Plugin Installation](en/anl-mock) for installation and startup examples.
+
 ### Prerequisites
 
 - An `an.config.json` configuration file must exist in the project root

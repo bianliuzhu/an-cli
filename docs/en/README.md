@@ -3,6 +3,7 @@
 > an-cli is a frontend command-line tool that includes the following commands:
 >
 > - `anl type` command: A command-line tool that automatically generates TypeScript type definitions and API request functions based on Swagger JSON.
+> - `anl mock` command: Recursively generates Mock.js JSON templates from local API response types for mock-service-plugin to serve over HTTP.
 > - `anl lint` command: Generates eslint, stylelint, prettier, commitLint, and VSCode related configurations for React or Vue projects
 > - `anl git` command: Generates git local configuration with optional features: gitflow standard branch creation, git commit messages subject, and git custom command configuration
 > - `anl skill` command: Initializes Agent Skill files for AI-assisted development, supporting api-report and api-mock skills
@@ -25,6 +26,13 @@
   - 🛠 Configurable code generation options
   - 🌐 Supports multiple Swagger server configurations
   - 🔧 Supports HTTP methods like OPTIONS, HEAD, SEARCH
+
+- `anl mock`
+  - Select one, multiple, or all generated services
+  - Infer response envelopes from request methods and recursively generate Mock.js templates from response types
+  - Generate `@url` and `@method` headers and organize files by service
+  - Preserve existing mocks by default; overwrite explicitly with `--overwrite`
+  - [Usage and plugin installation](en/anl-mock)
 
 - `anl lint`
   - 🔍 One-click configuration for various lint tools
@@ -50,12 +58,13 @@
 >
 > 1. If you're using it for the first time and unsure about the results, it's recommended to execute the command first, observe what changes occur in the project, then combine with the documentation to further modify the configuration and regenerate until you achieve your ideal setup
 > 2. Or follow the steps below step by step for results
-> 3. Please execute `anl type`, `anl lint`, `anl git` commands in the project root directory
+> 3. Please execute `anl type`, `anl mock`, `anl lint`, `anl git`, and `anl skill` commands in the project root directory
 
 ## Next Steps
 
 - [Installation](en/install)
 - [type Command](en/anl-type)
+- [mock Command and Plugin Installation](en/anl-mock)
 - [lint Command](en/anl-lint)
 - [git Command](en/anl-git)
 - [skill Command](en/anl-skill)

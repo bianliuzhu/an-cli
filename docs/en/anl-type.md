@@ -33,6 +33,8 @@
 $ anl type
 ```
 
+After generating the API files and types, run `anl mock` to select services, or `anl mock -S growth` to generate mocks for a specific service (replace `growth` with its actual name). `anl type` does not generate mocks or start a server. See the [mock command](en/anl-mock) for plugin installation, response type inference and server startup.
+
 #### macOS and Windows
 
 `anl type` uses Node.js filesystem APIs for cleanup and does not require `rm` or Git Bash. Configuration paths support native separators and spaces. Prefer forward-slash relative paths such as `src/types` when sharing configuration across platforms.
