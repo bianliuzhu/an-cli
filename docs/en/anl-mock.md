@@ -137,6 +137,36 @@ export default defineConfig({
 
 Each `swaggerConfig` service can override `mock.arrayLength`, `mock.maxDepth`, and `mock.responseDefaults`. Response defaults merge by field and only replace declared root fields, never add fields. Relative paths resolve from the project root. `arrayLength` accepts 1-100; `maxDepth` accepts 1-30. Configure the plugin to scan the same `mockDir`.
 
+### Service Path Prefix
+
+`mockUrlPrefix` has been renamed to `mockPathPrefix` without a compatibility alias. Also rename `publicPrefix` to `stripPathPrefix` and `modulePrefix` to `requestPathPrefix`. See [Path Prefix Migration](en/anl-type?id=path-prefix-migration) for the complete migration and processing order.
+
+Set `mockPathPrefix` on a `swaggerConfig` service to prepend a path to its generated mock `@url`. For example, if `stripPathPrefix: '/api'` made the generated API path `/lark/im/messages/refund`, the following configuration generates `/api/lark/im/messages/refund`:
+
+```ts
+import { defineConfig } from 'anl/config';
+
+export default defineConfig({
+	swaggerConfig: [
+		{
+			url: './data/bff.json',
+			apiListFileName: 'bff.ts',
+			stripPathPrefix: '/api',
+			mockPathPrefix: '/api',
+		},
+	],
+});
+```
+
+Merge this field into the existing service configuration, retaining other settings. It affects only `anl mock` for that service. It does not modify API files or affect `anl type`; regenerating APIs is unnecessary.
+
+- The prefix is prepended to the actual generated request path, preserving any existing `requestPathPrefix`. Neither `stripPathPrefix` nor `requestPathPrefix` is used to infer a mock prefix.
+- An omitted value, empty string or `/` adds nothing. `api`, `/api` and `/api/` normalize to `/api`; the join uses one slash and preserves path parameters.
+- Path segments are not deduplicated: `/api/items` with prefix `/api` becomes `/api/api/items`.
+- Only path prefixes are accepted, without a host, protocol, whitespace, query, fragment, backslash or comment terminator.
+- Route conflict detection uses the complete prefixed URL. Service folders cannot isolate identical methods and URLs.
+- Existing mocks with the same filename are skipped by default. After changing the prefix, run `anl mock -S bff --overwrite` to update their `@url` and regenerate their response templates. Old files are not deleted; manually renamed files still using the old URL require manual handling.
+
 ## Type Resolution
 
 - The TypeScript Compiler API resolves generated request calls and referenced declarations. Analysis uses the `serve` overload in memory to infer the HTTP envelope through types such as `RServe<T>` and `ResponseModel<T>`. API files remain unchanged; `data` and `axios` return levels do not change the generated HTTP payload.

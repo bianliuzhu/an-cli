@@ -47,14 +47,14 @@ function toPascalCase(segment: string): string {
 	return words.map((word) => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase()).join('');
 }
 
-function normalizePrefix(publicPrefix?: string): string {
-	if (!publicPrefix) return '';
-	return publicPrefix.replace(/^\/+|\/+$/g, '');
+function normalizePrefix(stripPathPrefix?: string): string {
+	if (!stripPathPrefix) return '';
+	return stripPathPrefix.replace(/^\/+|\/+$/g, '');
 }
 
 function normalizePathPrefix(config: PathParseConfig, rawPath: string): string {
 	let normalizedPath = rawPath.replace(/^\/+/, '');
-	const normalizedPrefix = normalizePrefix(config.publicPrefix);
+	const normalizedPrefix = normalizePrefix(config.stripPathPrefix);
 
 	if (normalizedPrefix && normalizedPath.startsWith(normalizedPrefix + '/')) {
 		normalizedPath = normalizedPath.slice(normalizedPrefix.length + 1);

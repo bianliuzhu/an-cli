@@ -48,8 +48,16 @@ export interface IConfigSwaggerServer {
 	name?: string;
 	/** swagger json 的 url */
 	url: string;
-	/** 公共前缀 */
-	publicPrefix?: string;
+	/** @deprecated 已移除，禁止使用；请改用 stripPathPrefix。为此字段配置前缀会产生类型错误，运行时不会生效。 */
+	publicPrefix?: never;
+	/** 从 OpenAPI 路径开头移除的前缀，按完整路径段匹配；同时影响生成的函数名、类型名、文件名和请求路径。未匹配时保留原路径。 */
+	stripPathPrefix?: string;
+	/** @deprecated 已移除，禁止使用；请改用 requestPathPrefix。为此字段配置前缀会产生类型错误，运行时不会生效。 */
+	modulePrefix?: never;
+	/** 添加到裁剪后的请求路径前的前缀，不影响生成名称；自动补齐开头斜杠并移除末尾斜杠，不去重路径段。 */
+	requestPathPrefix?: string;
+	/** 仅 anl mock 使用的额外路径前缀，如 '/api'。添加到已生成 API 的实际路径前，保留 requestPathPrefix，不修改 API 代码；自动处理首尾斜杠，不去重路径段，未配置、空字符串或 '/' 时不追加。 */
+	mockPathPrefix?: string;
 	/** 生成接口默认返回数据层级（服务级配置） */
 	dataLevel?: TDatalevel;
 	/** 参数分隔符（服务级配置） */
@@ -66,8 +74,6 @@ export interface IConfigSwaggerServer {
 	includeTags?: string[];
 	/** 排除的模块（tag）列表，与 includeTags 互斥，优先级低于 includeInterface/excludeInterface（在单接口过滤之后应用） */
 	excludeTags?: string[];
-	/** path 前缀 */
-	modulePrefix?: string;
 	/** 响应模型转换配置 */
 	responseModelTransform?: IResponseModelTransform;
 	/** 当前服务的 mock 生成选项，覆盖全局 mock 配置 */
@@ -87,6 +93,11 @@ export interface IConfigSwaggerServer {
 	enumIsolation?: 'segment' | 'none';
 }
 
+/**
+ * CLI 配置。
+ * 已移除的前缀字段：publicPrefix 改用 stripPathPrefix，modulePrefix 改用 requestPathPrefix，mockUrlPrefix 改用服务级 mockPathPrefix。
+ * 旧前缀字段运行时不再读取，不提供兼容别名；publicPrefix 和 modulePrefix 仅保留 never 类型声明，用于类型报错和迁移提示。
+ */
 export interface ConfigType {
 	/** 存放生成的类型文件的文件夹路径 */
 	saveTypeFolderPath: string;
@@ -94,11 +105,17 @@ export interface ConfigType {
 	saveApiListFolderPath: string;
 	/** anl mock 生成选项 */
 	mock?: MockConfig;
-	/** 兼容旧配置的 swagger json 地址（已迁移到 swaggerConfig 中） */
+	/**
+	 * 兼容旧配置的 Swagger JSON 地址。
+	 * @deprecated 请改用 swaggerConfig.url；多服务时在 swaggerConfig 数组的每个服务中配置 url。
+	 */
 	swaggerJsonUrl?: string;
 	/** swagger 服务器列表 */
 	swaggerConfig: IConfigSwaggerServer[] | IConfigSwaggerServer;
-	/** api list 生成文件名，单个 swaggerServer 可省略，默认 index.ts */
+	/**
+	 * 兼容旧配置的 API 列表生成文件名，默认 index.ts。
+	 * @deprecated 请改用 swaggerConfig.apiListFileName；多服务时为每个服务配置唯一文件名，单服务可省略。
+	 */
 	apiListFileName?: string;
 	/** 请求方法导入路径 */
 	requestMethodsImportPath: string;
@@ -110,10 +127,19 @@ export interface ConfigType {
 	 *  - `taro`   基于 `Taro.request`（Taro 3+ 跨端）
 	 *  注意：切换模板时需手动删除 `<saveApiListFolderPath>/config/` 目录，CLI 才会重新写入对应模板文件。 */
 	requestTemplate?: RequestTemplate;
-	/** 追加请求头 */
+	/**
+	 * 兼容旧配置的全局请求头，服务级配置优先。
+	 * @deprecated 请改用 swaggerConfig.headers；多服务时将公共请求头配置到各服务的 headers 中。
+	 */
 	headers?: Record<string, string>;
-	/** 公共前缀（仅为兼容旧配置，最终以服务级配置为准） */
-	publicPrefix?: string;
+	/** @deprecated 已移除，禁止使用；请改用 stripPathPrefix，或服务级 swaggerConfig.stripPathPrefix。为此字段配置前缀会产生类型错误，运行时不会生效。 */
+	publicPrefix?: never;
+	/** 从 OpenAPI 路径开头移除的全局默认前缀，同时影响生成名称和请求路径；服务级配置优先，空字符串可清除全局默认值。 */
+	stripPathPrefix?: string;
+	/** @deprecated 已移除，禁止使用；请改用 requestPathPrefix，或服务级 swaggerConfig.requestPathPrefix。为此字段配置前缀会产生类型错误，运行时不会生效。 */
+	modulePrefix?: never;
+	/** 添加到裁剪后的请求路径前的全局默认前缀，不影响生成名称；服务级配置优先，空字符串可清除全局默认值。 */
+	requestPathPrefix?: string;
 	/** 生成接口默认返回数据层级（服务级配置注入） */
 	dataLevel?: TDatalevel;
 	/** 参数分隔符（服务级配置注入） */
@@ -126,8 +152,6 @@ export interface ConfigType {
 	includeTags?: string[];
 	/** 排除的模块（tag）列表（服务级配置注入） */
 	excludeTags?: string[];
-	/** path 前缀（服务级配置注入） */
-	modulePrefix?: string;
 	/** 响应模型转换配置（服务级配置注入） */
 	responseModelTransform?: IResponseModelTransform;
 	/** 请求超时时间（毫秒），默认 60000 */

@@ -22,7 +22,7 @@
 		{
 			"url": "./data/op.json",
 			"apiListFileName": "op.ts",
-			"publicPrefix": "/forward",
+			"stripPathPrefix": "/forward",
 			"headers": {},
 			"includeInterface": [],
 			"excludeInterface": [],
@@ -37,7 +37,9 @@
 		{
 			"url": "./data/df.json",
 			"apiListFileName": "df.ts",
-			"publicPrefix": "/api",
+			"stripPathPrefix": "/api",
+			"requestPathPrefix": "",
+			"mockPathPrefix": "/api",
 			"headers": {},
 			"includeInterface": [],
 			"excludeInterface": [],
@@ -58,7 +60,7 @@
 		{
 			"url": "./data/sau.json",
 			"apiListFileName": "sau.ts",
-			"publicPrefix": "/api",
+			"stripPathPrefix": "/api",
 			"headers": {},
 			"includeInterface": [],
 			"excludeInterface": [],
@@ -68,6 +70,21 @@
 		}
 	],
 	"_documentation": {
+		"stripPathPrefix": {
+			"description": "从 OpenAPI 路径开头移除的前缀，按完整路径段匹配；同时影响函数名、类型名、文件名和请求路径。服务级配置优先于全局默认值。",
+			"example": "/api/v1",
+			"result": "/api/v1/users -> /users"
+		},
+		"requestPathPrefix": {
+			"description": "添加到裁剪后的请求路径前，不影响生成名称；服务级配置优先于全局默认值。不去重路径段。",
+			"example": "/gateway",
+			"result": "/users -> /gateway/users"
+		},
+		"mockPathPrefix": {
+			"description": "swaggerConfig 服务级配置，仅 anl mock 使用。在生成 API 的实际路径前追加前缀，自动处理首尾斜杠，不去重路径段；未配置或空字符串时保持原路径。已有 mock 需 --overwrite 才更新。",
+			"example": "/api",
+			"result": "/lark/im/messages/refund -> /api/lark/im/messages/refund"
+		},
 		"logLevel": {
 			"description": "终端日志输出级别，控制 swagger-codegen 在终端的信息输出量",
 			"values": {

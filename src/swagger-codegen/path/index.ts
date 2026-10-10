@@ -340,12 +340,12 @@ export class PathParse {
 		return '{}';
 	}
 
-	private normalizemodulePrefix(modulePrefix?: string): string {
-		if (!modulePrefix || modulePrefix.trim() === '') {
+	private normalizeRequestPathPrefix(requestPathPrefix?: string): string {
+		if (!requestPathPrefix || requestPathPrefix.trim() === '') {
 			return '';
 		}
 
-		let normalized = modulePrefix.trim();
+		let normalized = requestPathPrefix.trim();
 		normalized = normalized.replace(/\/+$/g, '');
 
 		if (!normalized.startsWith('/')) {
@@ -359,7 +359,7 @@ export class PathParse {
 		const { payload, requestPath, _response, method, typeName, apiName, contentType } = content;
 		const { _path, _query, body } = payload;
 		const dataLevel = content.dataLevel ?? this.config.dataLevel ?? 'serve';
-		const modulePrefix = this.normalizemodulePrefix(this.config.modulePrefix);
+		const requestPathPrefix = this.normalizeRequestPathPrefix(this.config.requestPathPrefix);
 
 		const pathParamsHandle = () => {
 			const arr = [];
@@ -405,7 +405,7 @@ export class PathParse {
 			method,
 			`${_response ? '<' + `${typeName}.Response` + '>' : ''}`,
 			'(',
-			'`' + `${modulePrefix}${requestPath}` + '`,',
+			'`' + `${requestPathPrefix}${requestPath}` + '`,',
 			objParamsHandle(),
 			`'${dataLevel}'`,
 			');',

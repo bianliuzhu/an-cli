@@ -70,6 +70,9 @@ test('mock documentation covers maintained entry points, installation and valid 
 	visit(source);
 	assert.ok(commands.has('mock'));
 	const checkOverview = (text, context) => {
+		for (const field of ['stripPathPrefix', 'requestPathPrefix', 'mockPathPrefix']) {
+			assert.ok(text.includes(field), `${context}: missing path prefix migration notice for ${field}`);
+		}
 		for (const command of commands) {
 			assert.ok(text.includes(`> - \`anl ${command}\``), `${context}: missing ${command} summary`);
 			assert.ok(text.includes(`\n- \`anl ${command}\``), `${context}: missing ${command} features`);
@@ -108,6 +111,14 @@ test('mock documentation covers maintained entry points, installation and valid 
 			assert.ok((await readDocument(`${directory}/${page}`)).includes(`(${locale}/anl-mock)`), `${directory}/${page}: missing mock link`);
 		}
 		const mock = await readDocument(`${directory}/anl-mock.md`);
+		const typeGuide = await readDocument(`${directory}/anl-type.md`);
+		for (const field of ['stripPathPrefix', 'requestPathPrefix', 'mockPathPrefix']) {
+			assert.ok(typeGuide.includes(`swaggerConfig[].${field}`), `${directory}: missing path prefix configuration ${field}`);
+		}
+		assert.ok(typeGuide.includes('/local/gateway/users'), `${directory}: missing path prefix processing example`);
+		assert.doesNotMatch(typeGuide, /only affects generated function names|只影响生成的函数名|仅影响生成的函数名/i);
+		assert.ok(mock.includes("mockPathPrefix: '/api'"), `${directory}: missing service URL prefix example`);
+		assert.ok(mock.includes('anl mock -S bff --overwrite'), `${directory}: missing URL prefix migration command`);
 		assert.ok(mock.includes('https://www.npmjs.com/package/mock-service-plugin'));
 		for (const command of [
 			'npm install -D mock-service-plugin',
@@ -170,6 +181,117 @@ test('reader reports unresolved response declarations instead of generating empt
 		'apis/config/fetch.d.ts': requestDeclarations,
 	});
 	assert.throws(() => readMockOperations(readerOptions(root)), /Cannot resolve the response type of survey_GET/);
+});
+
+test('mockPathPrefix applies only to its service without changing API files', async (context) => {
+	const apiSource = "import { GET } from './config/fetch'; export const refund_GET = () => GET<string>('/lark/im/messages/refund', {}, 'serve');";
+	const root = await fixture(context, {
+		'an.config.json': JSON.stringify({
+			saveApiListFolderPath: 'apis',
+			saveTypeFolderPath: 'types',
+			logLevel: 'silent',
+			swaggerConfig: [
+				{ url: 'unused', apiListFileName: 'bff.ts', stripPathPrefix: '/api', mockPathPrefix: '/api/' },
+				{ url: 'unused', apiListFileName: 'other.ts', stripPathPrefix: '/ignored', requestPathPrefix: '/ignored' },
+			],
+		}),
+		'apis/bff.ts': apiSource,
+		'apis/other.ts': "import { GET } from './config/fetch'; export const other_GET = () => GET<string>('/other', {}, 'serve');",
+		'apis/config/api-type.d.ts': responseDeclarations,
+		'apis/config/fetch.d.ts': requestDeclarations,
+	});
+	const result = await mockHandle({ all: true }, root);
+	assert.equal(result.generated, 2);
+	assert.match(await fs.readFile(path.join(root, 'mocks/bff/refund_GET.json'), 'utf8'), /@url \/api\/lark\/im\/messages\/refund\n/);
+	assert.match(await fs.readFile(path.join(root, 'mocks/other/other_GET.json'), 'utf8'), /@url \/other\n/);
+	assert.equal(await fs.readFile(path.join(root, 'apis/bff.ts'), 'utf8'), apiSource);
+	const configPath = path.join(root, 'an.config.json');
+	const config = JSON.parse(await fs.readFile(configPath, 'utf8'));
+	config.swaggerConfig[0].mockPathPrefix = '/v2';
+	await fs.writeFile(configPath, JSON.stringify(config));
+	assert.equal((await mockHandle({ all: true }, root)).skipped, 2);
+	assert.match(await fs.readFile(path.join(root, 'mocks/bff/refund_GET.json'), 'utf8'), /@url \/api\/lark\/im\/messages\/refund\n/);
+	assert.equal((await mockHandle({ service: 'bff', overwrite: true }, root)).overwritten, 1);
+	assert.match(await fs.readFile(path.join(root, 'mocks/bff/refund_GET.json'), 'utf8'), /@url \/v2\/lark\/im\/messages\/refund\n/);
+});
+
+test('mockPathPrefix normalizes boundary slashes and preserves repeated segments and parameters', async (context) => {
+	const root = await fixture(context, {
+		'apis/bff.ts': "import { GET } from './config/fetch'; export const item_GET = (id: string) => GET<string>(`/api/items/${id}`, {}, 'serve');",
+		'apis/config/api-type.d.ts': responseDeclarations,
+		'apis/config/fetch.d.ts': requestDeclarations,
+	});
+	for (const [prefix, expected] of [
+		[undefined, '/api/items/:id'],
+		['', '/api/items/:id'],
+		['/', '/api/items/:id'],
+		['api', '/api/api/items/:id'],
+		['/api/', '/api/api/items/:id'],
+		['///gateway/v1///', '/gateway/v1/api/items/:id'],
+	]) {
+		await fs.writeFile(
+			path.join(root, 'an.config.json'),
+			JSON.stringify({
+				saveApiListFolderPath: 'apis',
+				saveTypeFolderPath: 'types',
+				logLevel: 'silent',
+				swaggerConfig: { url: 'unused', apiListFileName: 'bff.ts', mockPathPrefix: prefix },
+			}),
+		);
+		await mockHandle({ overwrite: true }, root);
+		const content = await fs.readFile(path.join(root, 'mocks/bff/item_GET.json'), 'utf8');
+		assert.ok(content.includes(`@url ${expected}\n`), `prefix ${JSON.stringify(prefix)}: ${content}`);
+	}
+});
+
+test('mockPathPrefix rejects invalid configuration before writing files', async (context) => {
+	const root = await fixture(context, {
+		'apis/bff.ts': "import { GET } from './config/fetch'; export const item_GET = () => GET<string>('/items', {}, 'serve');",
+		'apis/config/api-type.d.ts': responseDeclarations,
+		'apis/config/fetch.d.ts': requestDeclarations,
+	});
+	for (const prefix of [null, 123, {}, [], ' ', '/api path', '/api\n', 'https://example.com/api', '/api?query=1', '/api#hash', '/api\\path', '/api*/path']) {
+		await fs.writeFile(
+			path.join(root, 'an.config.json'),
+			JSON.stringify({ saveApiListFolderPath: 'apis', logLevel: 'silent', swaggerConfig: { url: 'unused', apiListFileName: 'bff.ts', mockPathPrefix: prefix } }),
+		);
+		await assert.rejects(mockHandle({}, root), /mockPathPrefix must be a URL path prefix/);
+	}
+	await assert.rejects(fs.access(path.join(root, 'mocks')), { code: 'ENOENT' });
+});
+
+test('mockPathPrefix from TypeScript configuration participates in route conflict detection', async (context) => {
+	const apiSource = "import { GET } from './config/fetch'; export const item_GET = () => GET<string>('/items', {}, 'serve');";
+	const config = {
+		saveApiListFolderPath: 'apis',
+		saveTypeFolderPath: 'types',
+		logLevel: 'silent',
+		swaggerConfig: [
+			{ url: 'unused', apiListFileName: 'bff.ts', mockPathPrefix: '/api' },
+			{ url: 'unused', apiListFileName: 'other.ts', mockPathPrefix: '/other' },
+		],
+	};
+	const root = await fixture(context, {
+		'an.config.ts': `export default ${JSON.stringify(config)};`,
+		'apis/bff.ts': apiSource,
+		'apis/other.ts': apiSource,
+		'apis/config/api-type.d.ts': responseDeclarations,
+		'apis/config/fetch.d.ts': requestDeclarations,
+	});
+	assert.equal((await mockHandle({ all: true }, root)).generated, 2);
+	const original = await fs.readFile(path.join(root, 'mocks/other/item_GET.json'), 'utf8');
+	assert.match(original, /@url \/other\/items\n/);
+	config.swaggerConfig[1].mockPathPrefix = '/api/';
+	const conflictingRoot = await fixture(context, {
+		'an.config.ts': `export default ${JSON.stringify(config)};`,
+		'apis/bff.ts': apiSource,
+		'apis/other.ts': apiSource,
+		'apis/config/api-type.d.ts': responseDeclarations,
+		'apis/config/fetch.d.ts': requestDeclarations,
+	});
+	await assert.rejects(mockHandle({ all: true }, conflictingRoot), /Multiple selected APIs match GET:\/api\/items/);
+	await assert.rejects(fs.access(path.join(conflictingRoot, 'mocks/bff/item_GET.json')), { code: 'ENOENT' });
+	assert.equal(await fs.readFile(path.join(root, 'mocks/other/item_GET.json'), 'utf8'), original);
 });
 
 test('mock source and public configuration pass strict type checking', () => {
