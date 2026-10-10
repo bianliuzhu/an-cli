@@ -12,8 +12,8 @@ interface AnConfig {
 	swaggerConfig?: {
 		url: string;
 		apiListFileName: string;
-		modulePrefix?: string;
-		publicPrefix?: string;
+		requestPathPrefix?: string;
+		stripPathPrefix?: string;
 		[key: string]: unknown;
 	}[];
 	[key: string]: unknown;

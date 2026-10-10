@@ -107,7 +107,7 @@ $ anl type
 	"swaggerConfig": {
 		"url": "https://generator3.swagger.io/openapi2.json",
 		"apiListFileName": "index.ts",
-		"publicPrefix": "api",
+		"stripPathPrefix": "api",
 		"headers": {}
 	},
 	"requestMethodsImportPath": "./fetch",
@@ -167,7 +167,7 @@ $ anl type
 		{
 			"url": "https://generator3.swagger.io/openapi2.json",
 			"apiListFileName": "index.ts",
-			"publicPrefix": "/api",
+			"stripPathPrefix": "/api",
 			"headers": {}
 		}
 	]
@@ -183,12 +183,12 @@ $ anl type
 | saveEnumFolderPath                 | string                                | Да           | Путь сохранения файлов данных enum                                                                                                                                                                                                                                                                                                                        |
 | importEnumPath                     | string                                | Да           | Путь импорта enum (путь ссылки на файлы enum в apps/types/models/\*.ts)                                                                                                                                                                                                                                                                                   |
 | swaggerJsonUrl                     | string                                | Нет          | Адрес документа Swagger JSON (мигрировано в `swaggerConfig`, сохранено для обратной совместимости) **Это поле будет удалено в будущих версиях**                                                                                                                                                                                                           |
-| swaggerConfig                      | object \| Array<object>               | Нет          | Конфигурация Swagger сервера. Один сервер может быть объектом, несколько серверов используют массив. Каждый сервер может настроить `url`, `publicPrefix`, `modulePrefix`, `apiListFileName`, `headers`, `dataLevel`, `parameterSeparator`, `includeInterface`, `excludeInterface`<br />См. примеры конфигурации одного и нескольких Swagger серверов выше |
+| swaggerConfig                      | object \| Array<object>               | Нет          | Конфигурация Swagger сервера. Один сервер может быть объектом, несколько серверов используют массив. Каждый сервер может настроить `url`, `stripPathPrefix`, `requestPathPrefix`, `apiListFileName`, `headers`, `dataLevel`, `parameterSeparator`, `includeInterface`, `excludeInterface`<br />См. примеры конфигурации одного и нескольких Swagger серверов выше |
 | swaggerConfig[].url                | string                                | Да           | Адрес документа Swagger JSON                                                                                                                                                                                                                                                                                                                              |
-| swaggerConfig[].publicPrefix       | string                                | Нет          | Общий префикс на url path, например: api/users、api/users/{id} ,api является общим префиксом                                                                                                                                                                                                                                                              |
+| swaggerConfig[].stripPathPrefix       | string                                | Нет          | Общий префикс на url path, например: api/users、api/users/{id} ,api является общим префиксом                                                                                                                                                                                                                                                              |
 | swaggerConfig[].apiListFileName    | string                                | Нет          | Имя файла списка API, по умолчанию `index.ts`. При использовании нескольких серверов имя файла каждого сервера должно быть уникальным                                                                                                                                                                                                                     |
 | swaggerConfig[].headers            | object                                | Нет          | Конфигурация заголовков запроса для этого сервера                                                                                                                                                                                                                                                                                                         |
-| swaggerConfig[].modulePrefix       | string                                | Нет          | Префикс пути запроса (может пониматься как имя модуля), автоматически добавляется к каждому пути API-запроса.<br />Например: при `modulePrefix: "/forward"`<br />`/publicPrefix/modulePrefix/user` становится `/api/forward/user`                                                                                                                         |
+| swaggerConfig[].requestPathPrefix       | string                                | Нет          | Префикс пути запроса (может пониматься как имя модуля), автоматически добавляется к каждому пути API-запроса.<br />Например: при `requestPathPrefix: "/forward"`<br />`/stripPathPrefix/requestPathPrefix/user` становится `/api/forward/user`                                                                                                                         |
 | swaggerConfig[].dataLevel          | 'data' \| 'serve' \| 'axios'          | Нет          | Уровень данных возврата интерфейса для этого сервера. Если не установлено, используется глобальная конфигурация `dataLevel`                                                                                                                                                                                                                               |
 | swaggerConfig[].parameterSeparator | '$' \| '\_'                           | Нет          | Разделитель, используемый при генерации имен API и имен типов для этого сервера. Если не установлено, используется глобальная конфигурация `parameterSeparator`                                                                                                                                                                                           |
 | swaggerConfig[].includeInterface   | Array<{path: string, method: string}> | Нет          | Список интерфейсов для включения для этого сервера. Если не установлено, используется глобальная конфигурация `includeInterface`                                                                                                                                                                                                                          |
@@ -201,8 +201,8 @@ $ anl type
 | headers                            | object                                | Нет          | Конфигурация заголовков запроса (мигрировано в `swaggerConfig`, сохранено для обратной совместимости)                                                                                                                                                                                                                                                     |
 | includeInterface                   | Array<{path: string, method: string}> | Нет          | Глобальные включаемые интерфейсы: файл списка интерфейсов, указанный `saveApiListFolderPath`, будет включать только интерфейсы из списка, взаимоисключающий с полем `excludeInterface`. Каждый сервер может переопределить индивидуально                                                                                                                  |
 | excludeInterface                   | Array<{path: string, method: string}> | Нет          | Глобальные исключаемые интерфейсы: файл списка интерфейсов, указанный `saveApiListFolderPath`, не будет содержать интерфейсы из этого списка, взаимоисключающий с `includeInterface`. Каждый сервер может переопределить индивидуально                                                                                                                    |
-| publicPrefix                       | string                                | Нет          | Глобальный общий префикс на url path (мигрировано в `swaggerConfig`, сохранено для обратной совместимости)                                                                                                                                                                                                                                                |
-| modulePrefix                       | string                                | Нет          | Глобальный префикс пути запроса (каждый сервер может переопределить индивидуально)                                                                                                                                                                                                                                                                        |
+| stripPathPrefix                       | string                                | Нет          | Глобальный общий префикс на url path (мигрировано в `swaggerConfig`, сохранено для обратной совместимости)                                                                                                                                                                                                                                                |
+| requestPathPrefix                       | string                                | Нет          | Глобальный префикс пути запроса (каждый сервер может переопределить индивидуально)                                                                                                                                                                                                                                                                        |
 | apiListFileName                    | string                                | Нет          | Глобальное имя файла списка API, по умолчанию `index.ts` (мигрировано в `swaggerConfig`, сохранено для обратной совместимости)                                                                                                                                                                                                                            |
 | enmuConfig                         | object                                | Да           | Объект конфигурации enum                                                                                                                                                                                                                                                                                                                                  |
 | enmuConfig.erasableSyntaxOnly      | boolean                               | Да           | Соответствует опции `compilerOptions.erasableSyntaxOnly` в tsconfig.json. При значении `true` генерируется const объект вместо enum (только типовый синтаксис). Значение по умолчанию: `false`                                                                                                                                                            |
@@ -274,8 +274,8 @@ export const userDetailGet = (params: UserDetail_GET.Query) => GET<UserDetail_GE
 - `parameterSeparator`: Разделитель для имен API и имен типов
 - `includeInterface`: Список включаемых интерфейсов
 - `excludeInterface`: Список исключаемых интерфейсов
-- `modulePrefix`: Префикс пути запроса
-- `publicPrefix`: Общий префикс URL
+- `requestPathPrefix`: Префикс пути запроса
+- `stripPathPrefix`: Общий префикс URL
 - `headers`: Конфигурация заголовков запроса
 
 **Пример:**
@@ -496,11 +496,11 @@ export const uploadFile = (params: UploadFile.Body) =>
 - `parameterSeparator` - Разделитель для имен API и имен типов
 - `includeInterface` - Список включаемых интерфейсов
 - `excludeInterface` - Список исключаемых интерфейсов
-- `modulePrefix` - Префикс пути запроса
+- `requestPathPrefix` - Префикс пути запроса
 
-#### Префикс пути (modulePrefix)
+#### Префикс пути (requestPathPrefix)
 
-`modulePrefix` используется для автоматического добавления префикса ко всем путям API-запросов, что особенно полезно в следующих сценариях:
+`requestPathPrefix` используется для автоматического добавления префикса ко всем путям API-запросов, что особенно полезно в следующих сценариях:
 
 1. **Сценарии обратного прокси**: Когда серверные службы перенаправляются через обратный прокси
 2. **API-шлюз**: Единообразное добавление префикса шлюза к путям
@@ -513,7 +513,7 @@ export const uploadFile = (params: UploadFile.Body) =>
 	"swaggerConfig": [
 		{
 			"url": "http://api.example.com/swagger.json",
-			"modulePrefix": "/forward",
+			"requestPathPrefix": "/forward",
 			"apiListFileName": "api.ts"
 		}
 	]
@@ -528,10 +528,10 @@ export const uploadFile = (params: UploadFile.Body) =>
 export const apiUserListGet = (params: ApiUserList_GET.Query) => GET<ApiUserList_GET.Response>('/forward/api/user/list', params);
 ```
 
-**Отличие от publicPrefix:**
+**Отличие от stripPathPrefix:**
 
-- `publicPrefix`: Используется для удаления общего префикса из путей интерфейса (влияет только на сгенерированные имена функций)
-- `modulePrefix`: Используется для добавления префикса к фактическим путям запроса (влияет на URL-адреса запросов во время выполнения)
+- `stripPathPrefix`: Используется для удаления общего префикса из путей интерфейса (влияет только на сгенерированные имена функций)
+- `requestPathPrefix`: Используется для добавления префикса к фактическим путям запроса (влияет на URL-адреса запросов во время выполнения)
 
 **Пример конфигурации:**
 
@@ -541,8 +541,8 @@ export const apiUserListGet = (params: ApiUserList_GET.Query) => GET<ApiUserList
 		{
 			"url": "http://api1.example.com/swagger.json",
 			"apiListFileName": "api1.ts",
-			"publicPrefix": "/api/v1",
-			"modulePrefix": "/forward",
+			"stripPathPrefix": "/api/v1",
+			"requestPathPrefix": "/forward",
 			"dataLevel": "serve",
 			"parameterSeparator": "_",
 			"headers": {
@@ -558,7 +558,7 @@ export const apiUserListGet = (params: ApiUserList_GET.Query) => GET<ApiUserList
 		{
 			"url": "http://api2.example.com/swagger.json",
 			"apiListFileName": "api2.ts",
-			"publicPrefix": "/api/v2",
+			"stripPathPrefix": "/api/v2",
 			"dataLevel": "data",
 			"headers": {
 				"Authorization": "Bearer token2"
@@ -570,7 +570,7 @@ export const apiUserListGet = (params: ApiUserList_GET.Query) => GET<ApiUserList
 
 **Примечания по миграции:**
 
-- Старая конфигурация (`swaggerJsonUrl`, `publicPrefix`, `headers`) все еще совместима
+- Старая конфигурация (`swaggerJsonUrl`, `stripPathPrefix`, `headers`) все еще совместима
 - Инструмент автоматически обнаружит старую конфигурацию и предложит способы миграции
 - Рекомендуется мигрировать на новую конфигурацию `swaggerConfig` для большей гибкости
 
@@ -597,7 +597,7 @@ export const apiUserListGet = (params: ApiUserList_GET.Query) => GET<ApiUserList
 4. Рекомендуется добавлять генерируемые файлы в систему контроля версий
 5. При использовании нескольких Swagger серверов убедитесь, что `apiListFileName` каждого сервера уникален, чтобы избежать перезаписи файлов
 6. При конфигурации нескольких серверов определения типов и enum будут объединены. Если разные серверы имеют типы с одинаковыми именами, могут возникнуть конфликты
-7. Конфигурация уровня сервера (`dataLevel`, `parameterSeparator`, `includeInterface`, `excludeInterface`, `modulePrefix`) переопределит глобальную конфигурацию
+7. Конфигурация уровня сервера (`dataLevel`, `parameterSeparator`, `includeInterface`, `excludeInterface`, `requestPathPrefix`) переопределит глобальную конфигурацию
 8. `includeInterface` и `excludeInterface` нельзя настраивать одновременно. Если оба настроены, приоритет будет у `includeInterface`
 
 ### Часто задаваемые вопросы
@@ -611,15 +611,15 @@ export const apiUserListGet = (params: ApiUserList_GET.Query) => GET<ApiUserList
    - Проверьте, правильно ли настроен `requestMethodsImportPath`
    - Убедитесь, что файл методов запросов существует
 
-3. **Когда использовать `modulePrefix`?**
+3. **Когда использовать `requestPathPrefix`?**
    - Когда ваши API необходимо получать через обратный прокси или шлюз
    - Например: Swagger определяет `/api/user`, но фактический запрос должен быть `/gateway/api/user`
-   - Установите `modulePrefix: "/gateway"` для достижения этого
+   - Установите `requestPathPrefix: "/gateway"` для достижения этого
 
-4. **В чем разница между `publicPrefix` и `modulePrefix`?**
-   - `publicPrefix`: Удаляет префикс из путей интерфейса, влияет только на сгенерированные имена функций
+4. **В чем разница между `stripPathPrefix` и `requestPathPrefix`?**
+   - `stripPathPrefix`: Удаляет префикс из путей интерфейса, влияет только на сгенерированные имена функций
      - Пример: `/api/user/list` после удаления `/api`, имя функции становится `userListGet`
-   - `modulePrefix`: Добавляет префикс к путям запроса, влияет на фактические URL запросов
+   - `requestPathPrefix`: Добавляет префикс к путям запроса, влияет на фактические URL запросов
      - Пример: `/api/user/list` после добавления `/forward`, URL запроса становится `/forward/api/user/list`
 
 5. **Как настроить разные `dataLevel` для нескольких серверов?**

@@ -24,7 +24,7 @@
 			"excludeInterface": [],
 			"dataLevel": "serve",
 			"parameterSeparator": "_",
-			"modulePrefix": "/forward",
+			"requestPathPrefix": "/forward",
 			"responseModelTransform": {
 				"type": "unwrap",
 				"dataField": "data",

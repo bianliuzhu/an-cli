@@ -27,6 +27,7 @@ export interface MockService {
 	segment: string;
 	fileName: string;
 	apiFile: string;
+	mockPathPrefix?: string;
 	options: MockGenerationOptions;
 }
 
@@ -71,6 +72,13 @@ function generationOptions(global: MockGenerationOptions | undefined, local: Moc
 	return options;
 }
 
+function normalizeMockPathPrefix(value: unknown): string {
+	if (value === undefined || value === '') return '';
+	if (typeof value !== 'string' || /[\s?#\\:]|\*\//.test(value)) throw new Error('mockPathPrefix must be a URL path prefix without whitespace, a host, query or fragment.');
+	const prefix = value.replace(/^\/+|\/+$/g, '');
+	return prefix ? `/${prefix}` : '';
+}
+
 async function discoverServices(apiDir: string, config: UserConfig): Promise<MockService[]> {
 	const configured = new Map<string, IConfigSwaggerServer>();
 	const servers = config.swaggerConfig ? (Array.isArray(config.swaggerConfig) ? config.swaggerConfig : [config.swaggerConfig]) : [];
@@ -101,7 +109,14 @@ async function discoverServices(apiDir: string, config: UserConfig): Promise<Moc
 		if (names.has(name.toLowerCase())) throw new Error(`Duplicate mock service name: ${name}`);
 		segments.add(segment.toLowerCase());
 		names.add(name.toLowerCase());
-		services.push({ name, segment, fileName: entry.name, apiFile, options: generationOptions(config.mock, server?.mock) });
+		services.push({
+			name,
+			segment,
+			fileName: entry.name,
+			apiFile,
+			mockPathPrefix: normalizeMockPathPrefix(server?.mockPathPrefix),
+			options: generationOptions(config.mock, server?.mock),
+		});
 	}
 	if (!services.length) throw new Error(`No generated service API files found in ${apiDir}. Run anl type first.`);
 	return services;
@@ -158,9 +173,10 @@ export async function mockHandle(options: MockCommandOptions = {}, projectRoot =
 	const warnings: string[] = [];
 	const files: MockFile[] = operations.map((operation) => {
 		const service = services.find((candidate) => candidate.apiFile === operation.sourceFile)!;
-		const rendered = renderMockOperation(checker, operation, service.options);
+		const mockOperation = service.mockPathPrefix ? { ...operation, url: `${service.mockPathPrefix}/${operation.url.replace(/^\/+/, '')}` } : operation;
+		const rendered = renderMockOperation(checker, mockOperation, service.options);
 		warnings.push(...rendered.warnings);
-		return { service: service.segment, operation, template: rendered.template };
+		return { service: service.segment, operation: mockOperation, template: rendered.template };
 	});
 	const result = await writeMockFiles(mockDir, files, { overwrite: options.overwrite, ...config.formatting });
 	for (const fileName of result.files) log.verbose(fileName);

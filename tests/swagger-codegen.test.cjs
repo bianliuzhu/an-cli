@@ -20,6 +20,7 @@ const { ComponentSchemaResolver } = jiti('../src/swagger-codegen/components/sche
 const { EnumParser } = jiti('../src/swagger-codegen/components/enum-parser.ts');
 const { renderSchemaType } = jiti('../src/swagger-codegen/shared/schema-type.ts');
 const { PathParse } = jiti('../src/swagger-codegen/path/index.ts');
+const { convertEndpointString } = jiti('../src/swagger-codegen/path/naming.ts');
 const { SchemaResolver } = jiti('../src/swagger-codegen/path/schema-resolver.ts');
 const { SUPPORTED_REQUEST_TYPES_ALL } = jiti('../src/swagger-codegen/shared/http.ts');
 const { REQUIRED_TEMPLATE_FILES, SUPPORTED_REQUEST_TEMPLATES } = jiti('../src/swagger-codegen/shared/constants.ts');
@@ -72,7 +73,13 @@ test('codegen source and configuration extensions pass strict type checking', ()
 	const contract = `
 import { createDefaultConfig } from './config-template';
 import { applyFormattingDefaults } from './shared/format';
+import { defineConfig } from '../../config';
 import type { ContentType, Schema, SchemaRenderResult } from './types';
+defineConfig({
+	stripPathPrefix: '/global',
+	requestPathPrefix: '/gateway',
+	swaggerConfig: { url: 'unused', stripPathPrefix: '/api', requestPathPrefix: '', mockPathPrefix: '/local' },
+});
 const formatted = applyFormattingDefaults({
 	...createDefaultConfig(),
 	typeMapping: new Map<string, string>(),
@@ -91,6 +98,57 @@ const rendered: SchemaRenderResult = { headerRef: '', renderStr: '' };
 	const program = ts.createProgram([...parsed.fileNames, contractPath], options, host);
 	const diagnostics = ts.getPreEmitDiagnostics(program);
 	assert.equal(diagnostics.length, 0, ts.formatDiagnosticsWithColorAndContext(diagnostics, host));
+});
+
+test('path prefixes strip full segments for naming and prepend only to request paths', () => {
+	const config = { ...createDefaultConfig(), stripPathPrefix: '/api/v1/', requestPathPrefix: 'gateway/' };
+	const naming = convertEndpointString('/api/v1/users/{id}|GET', config);
+	assert.deepEqual(naming, { apiName: 'users_id_GET', typeName: 'Users_Id_GET', fileName: 'users-id-get', path: '/users/${id}' });
+	const parser = new PathParse({}, {}, {}, config);
+	const request = parser.apiRequestItemHandle({
+		...naming,
+		requestPath: naming.path,
+		method: 'GET',
+		payload: { _path: { id: 'string' }, _query: {}, body: [] },
+		_response: 'string',
+		contentType: 'application/json',
+	});
+	assert.ok(request.includes('export const users_id_GET'));
+	assert.ok(request.includes('`/gateway/users/${id}`'));
+	for (const [stripPathPrefix, rawPath, expected] of [
+		[undefined, '/api/users', '/api/users'],
+		['', '/api/users', '/api/users'],
+		['/', '/api/users', '/api/users'],
+		['api', '/api/users', '/users'],
+		['///api///', '/api/users', '/users'],
+		['/api', '/apiculture/users', '/apiculture/users'],
+		['/api', '/other/api/users', '/other/api/users'],
+		['/api', '/api', '/'],
+	]) {
+		assert.equal(convertEndpointString(`${rawPath}|GET`, { ...config, stripPathPrefix }).path, expected);
+	}
+});
+
+test('path prefixes preserve global defaults, service overrides and explicit empty strings', () => {
+	const main = new Main();
+	const base = {
+		...createDefaultConfig(),
+		stripPathPrefix: '/global',
+		requestPathPrefix: '/gateway',
+		swaggerConfig: [
+			{ url: 'unused', apiListFileName: 'inherited.ts' },
+			{ url: 'unused', apiListFileName: 'overridden.ts', stripPathPrefix: '/api', requestPathPrefix: '/service' },
+			{ url: 'unused', apiListFileName: 'cleared.ts', stripPathPrefix: '', requestPathPrefix: '' },
+		],
+	};
+	const servers = main.normalizeswaggerConfig(base, true);
+	assert.deepEqual(
+		servers.map((server) => {
+			const config = main.buildServerConfig(base, server, '', '');
+			return [config.stripPathPrefix, config.requestPathPrefix];
+		}),
+		[['/global', '/gateway'], ['/api', '/service'], ['', '']],
+	);
 });
 
 test('schema names normalize separators and allocate deterministic collision-safe file names', () => {

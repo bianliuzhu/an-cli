@@ -1,5 +1,7 @@
 # Overview
 
+Path prefix configuration now uses `stripPathPrefix`, `requestPathPrefix` and `mockPathPrefix`, without legacy aliases. [Migration guide](en/anl-type?id=path-prefix-migration).
+
 > an-cli is a frontend command-line tool that includes the following commands:
 >
 > - `anl type` command: A command-line tool that automatically generates TypeScript type definitions and API request functions based on Swagger JSON.

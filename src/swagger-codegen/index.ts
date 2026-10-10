@@ -118,7 +118,7 @@ export class Main {
 	private showLegacyConfigHint(config: ConfigType) {
 		const exampleServer = {
 			url: config.swaggerJsonUrl ?? 'https://your.swagger.json',
-			publicPrefix: config.publicPrefix ?? '',
+			stripPathPrefix: config.stripPathPrefix ?? '',
 			apiListFileName: config.apiListFileName ?? 'index.ts',
 			headers: config.headers ?? {},
 		};
@@ -128,14 +128,14 @@ export class Main {
 
 		if (isChinese) {
 			log.print('\n检测到旧版配置，请更新 an.config.json：');
-			log.print('1) 将 swaggerJsonUrl / publicPrefix / headers 移到 swaggerConfig 字段。');
+			log.print('1) 将 swaggerJsonUrl / stripPathPrefix / headers 移到 swaggerConfig 字段。');
 			log.print('2) 单个服务可直接填写对象，多个服务请使用数组，并确保 apiListFileName 唯一。');
 			log.print('示例：');
 			log.print(JSON.stringify({ swaggerConfig: exampleServer }, null, 2));
 			log.print('');
 		} else {
 			log.print('\nLegacy configuration detected, please update an.config.json:');
-			log.print('1) Move swaggerJsonUrl / publicPrefix / headers to swaggerConfig field.');
+			log.print('1) Move swaggerJsonUrl / stripPathPrefix / headers to swaggerConfig field.');
 			log.print('2) Single service can be an object directly, multiple services should use an array, and ensure apiListFileName is unique.');
 			log.print('Example:');
 			log.print(JSON.stringify({ swaggerConfig: exampleServer }, null, 2));
@@ -154,10 +154,10 @@ export class Main {
 			legacyDetected = true;
 			serversInput = {
 				url: config.swaggerJsonUrl ?? '',
-				publicPrefix: config.publicPrefix ?? '',
+				stripPathPrefix: config.stripPathPrefix ?? '',
 				apiListFileName: config.apiListFileName ?? 'index.ts',
 				headers: config.headers ?? {},
-				modulePrefix: config.modulePrefix,
+				requestPathPrefix: config.requestPathPrefix,
 			};
 		}
 
@@ -167,7 +167,7 @@ export class Main {
 				throw new Error(`swaggerConfig[${index}] 缺少 url，请补充后重试。`);
 			}
 
-			const publicPrefix = server.publicPrefix ?? config.publicPrefix ?? '';
+			const stripPathPrefix = server.stripPathPrefix ?? config.stripPathPrefix ?? '';
 
 			if (!server.url && config.swaggerJsonUrl) {
 				legacyDetected = true;
@@ -186,7 +186,7 @@ export class Main {
 			const excludeInterface = server.excludeInterface ?? config.excludeInterface ?? [];
 			const includeTags = server.includeTags ?? config.includeTags;
 			const excludeTags = server.excludeTags ?? config.excludeTags;
-			const modulePrefix = server.modulePrefix ?? config.modulePrefix ?? '';
+			const requestPathPrefix = server.requestPathPrefix ?? config.requestPathPrefix ?? '';
 			const responseModelTransform = server.responseModelTransform ?? config.responseModelTransform;
 			const timeout = server.timeout ?? config.timeout;
 			const namespaceIsolation = server.namespaceIsolation ?? config.namespaceIsolation ?? 'segment';
@@ -194,14 +194,14 @@ export class Main {
 
 			const result: NormalizedSwaggerServer = {
 				url,
-				publicPrefix,
+				stripPathPrefix,
 				apiListFileName,
 				headers,
 				dataLevel,
 				parameterSeparator,
 				includeInterface,
 				excludeInterface,
-				modulePrefix,
+				requestPathPrefix,
 				responseModelTransform,
 				timeout,
 				namespaceIsolation,
@@ -265,7 +265,7 @@ export class Main {
 		const result: CodegenConfig = {
 			...baseConfig,
 			swaggerJsonUrl: server.url,
-			publicPrefix: server.publicPrefix ?? baseConfig.publicPrefix,
+			stripPathPrefix: server.stripPathPrefix ?? baseConfig.stripPathPrefix,
 			headers: server.headers,
 			apiListFileName: server.apiListFileName,
 			dataLevel: server.dataLevel,
@@ -274,7 +274,7 @@ export class Main {
 			excludeInterface: server.excludeInterface,
 			includeTags: server.includeTags,
 			excludeTags: server.excludeTags,
-			modulePrefix: server.modulePrefix,
+			requestPathPrefix: server.requestPathPrefix,
 			responseModelTransform: server.responseModelTransform ?? baseConfig.responseModelTransform,
 			timeout: server.timeout ?? baseConfig.timeout,
 			namespaceIsolation: server.namespaceIsolation ?? baseConfig.namespaceIsolation ?? 'segment',

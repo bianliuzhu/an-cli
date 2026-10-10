@@ -144,6 +144,36 @@ export default defineConfig({
 
 所有相对目录均相对于执行命令的项目根目录。`arrayLength` 范围为 1-100，`maxDepth` 范围为 1-30。插件使用的 `mockDir` 必须与生成目录一致。
 
+### 服务级路径前缀
+
+旧字段 `mockUrlPrefix` 已更名为 `mockPathPrefix`，不保留兼容别名；同时请将 `publicPrefix` 改为 `stripPathPrefix`、`modulePrefix` 改为 `requestPathPrefix`。完整迁移和处理顺序见 [路径前缀迁移](zh-cn/anl-type?id=路径前缀迁移)。
+
+在对应的 `swaggerConfig` 服务中配置 `mockPathPrefix`，可为生成的 mock `@url` 添加路径前缀。例如 `stripPathPrefix: '/api'` 已将生成 API 的路径变为 `/lark/im/messages/refund`，可用以下配置生成 `/api/lark/im/messages/refund`：
+
+```ts
+import { defineConfig } from 'anl/config';
+
+export default defineConfig({
+	swaggerConfig: [
+		{
+			url: './data/bff.json',
+			apiListFileName: 'bff.ts',
+			stripPathPrefix: '/api',
+			mockPathPrefix: '/api',
+		},
+	],
+});
+```
+
+将该字段合并到现有服务配置中，保留其他选项。它仅作用于当前服务的 `anl mock`，不修改 API 文件，不影响 `anl type`，也不需要重新生成 API。
+
+- 前缀追加到生成 API 的实际请求路径前，路径中已有的 `requestPathPrefix` 会保留。不会自动根据 `stripPathPrefix` 或 `requestPathPrefix` 推断前缀。
+- 未配置、空字符串或 `/` 均不追加。`api`、`/api` 和 `/api/` 均规范化为 `/api`；连接处只有一个 `/`，路径参数保持不变。
+- 不去重路径段：原路径 `/api/items` 配置 `/api` 后为 `/api/api/items`。
+- 仅支持路径前缀，不接受域名、协议、空白、查询串、片段、反斜杠或注释结束符。
+- 拼接后的完整 URL 同时用于路由冲突检查；不同服务目录不能隔离相同方法和 URL。
+- 已有同名 mock 默认跳过。修改前缀后运行 `anl mock -S bff --overwrite` 才会更新已有文件的 `@url`，同时重新生成其响应模板。该操作不会删除旧文件；手动改名且仍使用旧 URL 的文件需要自行处理。
+
 ## 响应类型与生成规则
 
 - 使用 TypeScript Compiler API 解析生成的请求调用及其类型引用。分析时在内存中使用 `serve` 层级解析请求方法重载，从 `RServe<T>` / `ResponseModel<T>` 等返回类型得到 HTTP 响应外壳；不会修改 API 文件。`data` 和 `axios` 层级不影响生成的 HTTP 响应内容。

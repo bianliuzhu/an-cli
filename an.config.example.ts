@@ -16,6 +16,9 @@ export default defineConfig({
 		{
 			url: 'https://generator3.swagger.io/openapi.json',
 			apiListFileName: 'index.ts',
+			stripPathPrefix: '',
+			requestPathPrefix: '',
+			mockPathPrefix: '',
 			headers: {},
 			dataLevel: 'serve',
 			parameterSeparator: '_',

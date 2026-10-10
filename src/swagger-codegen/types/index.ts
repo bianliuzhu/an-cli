@@ -15,14 +15,14 @@ export type NormalizedSwaggerServer = IConfigSwaggerServer &
 	Required<
 		Pick<
 			IConfigSwaggerServer,
-			| 'publicPrefix'
+			| 'stripPathPrefix'
 			| 'apiListFileName'
 			| 'headers'
 			| 'dataLevel'
 			| 'parameterSeparator'
 			| 'includeInterface'
 			| 'excludeInterface'
-			| 'modulePrefix'
+			| 'requestPathPrefix'
 			| 'namespaceIsolation'
 			| 'enumIsolation'
 		>

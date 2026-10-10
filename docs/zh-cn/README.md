@@ -1,5 +1,7 @@
 # 概览
 
+路径前缀配置已统一为 `stripPathPrefix`、`requestPathPrefix`、`mockPathPrefix`，不保留旧字段别名。升级前请查看[迁移说明](zh-cn/anl-type?id=路径前缀迁移)。
+
 > an-cli 是前端命令行工具，包含以下命令:
 >
 > - `anl type` 命令：基于 Swagger JSON 自动生成 TypeScript 类型定义和 API 请求函数的命令行工具。
